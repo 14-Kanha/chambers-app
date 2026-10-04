@@ -12,7 +12,7 @@ import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut 
 } from 'firebase/auth';
 import { 
-  getFirestore, doc, setDoc, onSnapshot, collection, updateDoc 
+  getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, query, where, getDocs 
 } from 'firebase/firestore';
 
 const getEnvVar = (viteKey, nextKey) => {
@@ -181,33 +181,33 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'track' ? (
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Client Tracking Code</label>
-              <input required type="text" value={trackingNumber} onChange={e=>setTrackingNumber(e.target.value)} placeholder="e.g. TRK-ABC123" className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm font-mono uppercase" />
+              <label htmlFor="auth-tracking-input" className="block text-xs font-bold text-gray-700 mb-1">Client Tracking Code</label>
+              <input id="auth-tracking-input" name="trackingNumber" required type="text" value={trackingNumber} onChange={e=>setTrackingNumber(e.target.value)} placeholder="e.g. TRK-ABC123" className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm font-mono uppercase" />
             </div>
           ) : (
             <>
               {(mode === 'signup' || mode === 'join') && (
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Full Name</label>
+                  <label htmlFor="auth-name-input" className="block text-xs font-bold text-gray-700 mb-1">Full Name</label>
                   <div className="relative">
                     <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input required type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Priya Sharma" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
+                    <input id="auth-name-input" name="name" required type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Priya Sharma" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
                   </div>
                 </div>
               )}
               
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
+                <label htmlFor="auth-email-input" className="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
                 <div className="relative">
                   <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input required type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@chambers.com" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
+                  <input id="auth-email-input" name="email" required type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@chambers.com" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
                 </div>
               </div>
               
               {mode !== 'reset' && (
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <label className="block text-xs font-bold text-gray-700">Password</label>
+                    <label htmlFor="auth-password-input" className="block text-xs font-bold text-gray-700">Password</label>
                     {mode === 'login' && (
                       <button 
                         type="button" 
@@ -220,21 +220,21 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
                   </div>
                   <div className="relative">
                     <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input required type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
+                    <input id="auth-password-input" name="password" required type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
                   </div>
                 </div>
               )}
 
               {mode === 'signup' && (
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Office / Chambers Name</label>
-                  <input required type="text" value={officeName} onChange={e=>setOfficeName(e.target.value)} placeholder="e.g. Sharma & Associates" className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
+                  <label htmlFor="auth-office-input" className="block text-xs font-bold text-gray-700 mb-1">Office / Chambers Name</label>
+                  <input id="auth-office-input" name="officeName" required type="text" value={officeName} onChange={e=>setOfficeName(e.target.value)} placeholder="e.g. Sharma & Associates" className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
                 </div>
               )}
               {mode === 'join' && (
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Office Invite Code</label>
-                  <input required type="text" value={inviteCode} onChange={e=>setInviteCode(e.target.value)} placeholder="e.g. CH-LEGAL1" className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm font-mono uppercase" />
+                  <label htmlFor="auth-invite-input" className="block text-xs font-bold text-gray-700 mb-1">Office Invite Code</label>
+                  <input id="auth-invite-input" name="inviteCode" required type="text" value={inviteCode} onChange={e=>setInviteCode(e.target.value)} placeholder="e.g. CH-LEGAL1" className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm font-mono uppercase" />
                 </div>
               )}
             </>
@@ -587,11 +587,17 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-4 bg-white border border-[#E5E5E5] shadow-sm">
             <form onSubmit={handlePostUpdate} className="space-y-3">
-              <input type="text" placeholder="Update Title (e.g. Affidavit Filed)" value={updateTitle} onChange={e=>setUpdateTitle(e.target.value)} className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none bg-[#F9F9F9]" required />
-              <textarea placeholder="Detailed notes for the team and client timeline..." value={updateText} onChange={e=>setUpdateText(e.target.value)} className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none min-h-[80px] resize-y bg-[#F9F9F9]" required />
+              <div>
+                <label htmlFor="update-title-input" className="block text-xs font-bold text-gray-700 mb-1">Update Title</label>
+                <input id="update-title-input" name="updateTitle" type="text" placeholder="Update Title (e.g. Affidavit Filed)" value={updateTitle} onChange={e=>setUpdateTitle(e.target.value)} className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none bg-[#F9F9F9]" required />
+              </div>
+              <div>
+                <label htmlFor="update-text-input" className="block text-xs font-bold text-gray-700 mb-1">Detailed Notes</label>
+                <textarea id="update-text-input" name="updateText" placeholder="Detailed notes for the team and client timeline..." value={updateText} onChange={e=>setUpdateText(e.target.value)} className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none min-h-[80px] resize-y bg-[#F9F9F9]" required />
+              </div>
               <div className="flex justify-between items-center mt-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <input type="file" id="ledger-attachment" className="hidden" onChange={(e) => { setUpdateAttachmentFile(e.target.files[0]); setUpdateAttachmentName(e.target.files[0]?.name || ''); }} accept=".pdf,.doc,.docx,.jpg,.png" />
+                  <input type="file" id="ledger-attachment" name="ledgerAttachment" className="hidden" onChange={(e) => { setUpdateAttachmentFile(e.target.files[0]); setUpdateAttachmentName(e.target.files[0]?.name || ''); }} accept=".pdf,.doc,.docx,.jpg,.png" />
                   <label htmlFor="ledger-attachment" className="flex items-center text-xs font-bold text-gray-600 hover:text-[#111111] cursor-pointer transition-colors bg-white border border-[#E5E5E5] px-3 py-1.5 rounded-md shadow-sm">
                     <Paperclip className="w-3.5 h-3.5 mr-2" />
                     {updateAttachmentFile ? <span className="truncate max-w-[120px]">{updateAttachmentFile.name}</span> : 'Attach File'}
@@ -600,6 +606,8 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                   {updateAttachmentFile && (
                     <div className="flex items-center space-x-1 animate-in fade-in">
                        <input 
+                         id="update-attachment-display-input"
+                         name="attachmentDisplayName"
                          type="text" 
                          placeholder="Display Name (e.g. Signed Order)" 
                          value={updateAttachmentName} 
@@ -679,6 +687,9 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                       </div>
                     </div>
                     <input 
+                      id={`task-check-${t.id}`}
+                      name={`taskCheck_${t.id}`}
+                      aria-label={`Toggle task ${t.title}`}
                       type="checkbox" 
                       checked={t.status === 'COMPLETED'} 
                       disabled={!canModify}
@@ -724,29 +735,29 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
          <form onSubmit={handleSaveEdits} className="space-y-4">
             <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4">
                <div className="col-span-2">
-                 <label className="block text-xs font-bold text-gray-700 mb-1">Matter Title *</label>
-                 <input required type="text" value={editCaseData.title || ''} onChange={e=>setEditCaseData({...editCaseData, title: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
+                 <label htmlFor="edit-case-title" className="block text-xs font-bold text-gray-700 mb-1">Matter Title *</label>
+                 <input id="edit-case-title" name="caseTitle" required type="text" value={editCaseData.title || ''} onChange={e=>setEditCaseData({...editCaseData, title: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
                </div>
                <div>
-                 <label className="block text-xs font-bold text-gray-700 mb-1">Case Number</label>
-                 <input type="text" value={editCaseData.caseNumber || ''} onChange={e=>setEditCaseData({...editCaseData, caseNumber: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm font-mono transition-all" placeholder="e.g. CS/1042/2026" />
+                 <label htmlFor="edit-case-number" className="block text-xs font-bold text-gray-700 mb-1">Case Number</label>
+                 <input id="edit-case-number" name="caseNumber" type="text" value={editCaseData.caseNumber || ''} onChange={e=>setEditCaseData({...editCaseData, caseNumber: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm font-mono transition-all" placeholder="e.g. CS/1042/2026" />
                </div>
                <div>
-                 <label className="block text-xs font-bold text-gray-700 mb-1">CNR Number</label>
-                 <input type="text" value={editCaseData.cnr || ''} onChange={e=>setEditCaseData({...editCaseData, cnr: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm font-mono transition-all" />
+                 <label htmlFor="edit-case-cnr" className="block text-xs font-bold text-gray-700 mb-1">CNR Number</label>
+                 <input id="edit-case-cnr" name="cnrNumber" type="text" value={editCaseData.cnr || ''} onChange={e=>setEditCaseData({...editCaseData, cnr: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm font-mono transition-all" />
                </div>
                <div className="col-span-2">
-                 <label className="block text-xs font-bold text-gray-700 mb-1">Client Tracking ID (Group multiple cases for one client)</label>
-                 <input type="text" value={editCaseData.trackingNumber || ''} onChange={e=>setEditCaseData({...editCaseData, trackingNumber: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-black rounded-md focus:ring-1 focus:ring-black outline-none text-sm font-mono uppercase transition-all shadow-sm" placeholder="e.g. TRK-ABC123" />
+                 <label htmlFor="edit-case-tracking" className="block text-xs font-bold text-gray-700 mb-1">Client Tracking ID (Group multiple cases for one client)</label>
+                 <input id="edit-case-tracking" name="trackingNumber" type="text" value={editCaseData.trackingNumber || ''} onChange={e=>setEditCaseData({...editCaseData, trackingNumber: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-black rounded-md focus:ring-1 focus:ring-black outline-none text-sm font-mono uppercase transition-all shadow-sm" placeholder="e.g. TRK-ABC123" />
                  <p className="text-[10px] text-gray-500 mt-1">Clients use this exact code to view their dashboard. Paste an existing code to group matters.</p>
                </div>
                <div>
-                 <label className="block text-xs font-bold text-gray-700 mb-1">Next Hearing Date</label>
-                 <input type="date" value={editCaseData.nextHearing || ''} onChange={e=>setEditCaseData({...editCaseData, nextHearing: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
+                 <label htmlFor="edit-case-hearing" className="block text-xs font-bold text-gray-700 mb-1">Next Hearing Date</label>
+                 <input id="edit-case-hearing" name="nextHearing" type="date" value={editCaseData.nextHearing || ''} onChange={e=>setEditCaseData({...editCaseData, nextHearing: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
                </div>
                <div>
-                 <label className="block text-xs font-bold text-gray-700 mb-1">Court Name / Authority</label>
-                 <input type="text" value={editCaseData.court || ''} onChange={e=>setEditCaseData({...editCaseData, court: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
+                 <label htmlFor="edit-case-court" className="block text-xs font-bold text-gray-700 mb-1">Court Name / Authority</label>
+                 <input id="edit-case-court" name="courtName" type="text" value={editCaseData.court || ''} onChange={e=>setEditCaseData({...editCaseData, court: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
                </div>
             </div>
 
@@ -761,10 +772,10 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                  {(editCaseData.partyOne || []).map((p, i) => (
                    <div key={i} className="flex space-x-2 mb-2 items-start animate-in fade-in slide-in-from-top-2">
                      <div className="flex-1">
-                       <input type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...editCaseData.partyOne]; newP[i].name = e.target.value; setEditCaseData({...editCaseData, partyOne: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
+                       <input aria-label={`Plaintiff Name ${i + 1}`} name={`partyOneName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...editCaseData.partyOne]; newP[i].name = e.target.value; setEditCaseData({...editCaseData, partyOne: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
                      </div>
                      <div className="flex-1">
-                       <input type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyOne]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyOne: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
+                       <input aria-label={`Plaintiff Mobile ${i + 1}`} name={`partyOneMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyOne]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyOne: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
                      </div>
                      <button type="button" onClick={() => { const newP = [...editCaseData.partyOne]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyOne: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
                    </div>
@@ -780,10 +791,10 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                  {(editCaseData.partyTwo || []).map((p, i) => (
                    <div key={i} className="flex space-x-2 mb-2 items-start animate-in fade-in slide-in-from-top-2">
                      <div className="flex-1">
-                       <input type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...editCaseData.partyTwo]; newP[i].name = e.target.value; setEditCaseData({...editCaseData, partyTwo: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
+                       <input aria-label={`Defendant Name ${i + 1}`} name={`partyTwoName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...editCaseData.partyTwo]; newP[i].name = e.target.value; setEditCaseData({...editCaseData, partyTwo: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
                      </div>
                      <div className="flex-1">
-                       <input type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyTwo]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyTwo: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
+                       <input aria-label={`Defendant Mobile ${i + 1}`} name={`partyTwoMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyTwo]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyTwo: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
                      </div>
                      <button type="button" onClick={() => { const newP = [...editCaseData.partyTwo]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyTwo: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
                    </div>
@@ -842,8 +853,8 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
       <Modal title="Upload Document" isOpen={isDocModalOpen} onClose={() => { setIsDocModalOpen(false); setNewDocFile(null); setNewDocName(""); }}>
         <form onSubmit={handleUploadDocument} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Select File</label>
-            <input required type="file" onChange={e => {
+            <label htmlFor="upload-doc-file" className="block text-xs font-bold text-gray-700 mb-1">Select File</label>
+            <input id="upload-doc-file" name="documentFile" required type="file" onChange={e => {
                 setNewDocFile(e.target.files[0]);
                 if (!newDocName && e.target.files[0]) {
                   setNewDocName(e.target.files[0].name);
@@ -852,14 +863,14 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
           </div>
           {newDocFile && (
              <div className="animate-in fade-in">
-               <label className="block text-xs font-bold text-gray-700 mb-1">Document Display Name</label>
-               <input required type="text" value={newDocName} onChange={e => setNewDocName(e.target.value)} placeholder="e.g. Affidavit of Evidence" className="w-full px-4 py-3 bg-[#F9F9F9] border border-black rounded-lg focus:ring-1 focus:ring-black outline-none text-sm transition-all shadow-sm" />
+               <label htmlFor="upload-doc-name" className="block text-xs font-bold text-gray-700 mb-1">Document Display Name</label>
+               <input id="upload-doc-name" name="documentName" required type="text" value={newDocName} onChange={e => setNewDocName(e.target.value)} placeholder="e.g. Affidavit of Evidence" className="w-full px-4 py-3 bg-[#F9F9F9] border border-black rounded-lg focus:ring-1 focus:ring-black outline-none text-sm transition-all shadow-sm" />
                <p className="text-[10px] text-gray-500 mt-1">This name will be displayed in the vault instead of the raw filename.</p>
              </div>
           )}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Document Date</label>
-            <input required type="date" value={newDocDate} onChange={e => setNewDocDate(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all" />
+            <label htmlFor="upload-doc-date" className="block text-xs font-bold text-gray-700 mb-1">Document Date</label>
+            <input id="upload-doc-date" name="documentDate" required type="date" value={newDocDate} onChange={e => setNewDocDate(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all" />
           </div>
           <Button type="submit" className="w-full py-3.5 mt-6"><Upload className="w-4 h-4 mr-2"/> Upload to Vault</Button>
         </form>
@@ -1179,9 +1190,9 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
               <span>Chambers</span>
            </button>
            <div className="flex space-x-2">
-             <button onClick={() => handleTabChange('ledger')} className="p-2 text-gray-500 hover:text-black"><Briefcase className="w-5 h-5" /></button>
-             <button onClick={() => handleTabChange('tasks')} className="p-2 text-gray-500 hover:text-black"><CheckCircle2 className="w-5 h-5" /></button>
-             <button onClick={onLogout} className="p-2 text-gray-500 hover:text-red-600"><LogOut className="w-5 h-5" /></button>
+             <button onClick={() => handleTabChange('ledger')} className="p-2 text-gray-500 hover:text-black" aria-label="Master Ledger"><Briefcase className="w-5 h-5" /></button>
+             <button onClick={() => handleTabChange('tasks')} className="p-2 text-gray-500 hover:text-black" aria-label="Task Pipeline"><CheckCircle2 className="w-5 h-5" /></button>
+             <button onClick={onLogout} className="p-2 text-gray-500 hover:text-red-600" aria-label="Log Out"><LogOut className="w-5 h-5" /></button>
            </div>
         </header>
 
@@ -1282,6 +1293,9 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                               </div>
                             </div>
                             <input 
+                              id={`overview-task-check-${t.id}`}
+                              name={`overviewTaskCheck_${t.id}`}
+                              aria-label={`Mark task ${t.title} as completed`}
                               type="checkbox" 
                               disabled={!canModify}
                               className={`w-5 h-5 rounded border-gray-300 text-black focus:ring-black ${canModify ? 'cursor-pointer hover:scale-110 transition-transform' : 'opacity-40 cursor-not-allowed'}`} 
@@ -1320,7 +1334,8 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
               <Card className="flex-1 overflow-hidden flex flex-col min-h-[400px]">
                 <div className="p-4 md:p-5 border-b border-[#E5E5E5] flex items-center bg-gray-50 shrink-0">
                   <Search className="w-5 h-5 text-gray-400 mr-3 shrink-0" />
-                  <input type="text" placeholder="Search Case Number, CNR, Client, or Matter..." className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 font-medium" />
+                  <label htmlFor="ledger-search-input" className="sr-only">Search Case Number, CNR, Client, or Matter</label>
+                  <input id="ledger-search-input" name="ledgerSearch" type="text" placeholder="Search Case Number, CNR, Client, or Matter..." className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 font-medium" />
                 </div>
                 <div className="overflow-y-auto overflow-x-auto flex-1 p-2">
                   <div className="min-w-[800px]">
@@ -1470,7 +1485,10 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                                      </div>
                                   ))}
                                 </div>
+                                <label htmlFor={`task-status-select-${t.id}`} className="sr-only">Task Status</label>
                                 <select 
+                                  id={`task-status-select-${t.id}`}
+                                  name={`taskStatus_${t.id}`}
                                   className={`text-[10px] font-bold bg-white outline-none border border-gray-200 rounded px-1.5 py-1 uppercase tracking-wider shadow-sm ${canModify ? 'cursor-pointer hover:bg-gray-50 hover:border-black' : 'opacity-50 cursor-not-allowed'}`}
                                   value={t.status}
                                   disabled={!canModify}
@@ -1528,7 +1546,10 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                          <RoleBadge role={user.role} />
                          {currentUser.id !== user.id && (
                            <div className="flex items-center space-x-2">
+                             <label htmlFor={`user-role-select-${user.id}`} className="sr-only">User Role</label>
                              <select 
+                               id={`user-role-select-${user.id}`}
+                               name={`userRole_${user.id}`}
                                className="text-xs font-bold uppercase tracking-wider border border-[#E5E5E5] rounded p-2 outline-none focus:border-black cursor-pointer bg-white shadow-sm hover:bg-gray-50 transition-colors"
                                value={user.role}
                                onChange={async (e) => {
@@ -1547,6 +1568,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                                  onClick={() => { setUserToFire(user); setIsFireModalOpen(true); }}
                                  className="p-2 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-md border border-transparent hover:border-red-200 transition-colors shrink-0"
                                  title="Terminate Employee"
+                                 aria-label={`Terminate ${user.name}`}
                                >
                                  <X className="w-4 h-4" />
                                </button>
@@ -1595,7 +1617,10 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                          <td className="p-5 text-gray-500 font-medium">{new Date(inv.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</td>
                          <td className="p-5 font-bold">₹{inv.amount.toLocaleString('en-IN')}</td>
                          <td className="p-5 text-right">
+                            <label htmlFor={`invoice-status-select-${inv.id}`} className="sr-only">Invoice Status</label>
                             <select 
+                             id={`invoice-status-select-${inv.id}`}
+                             name={`invoiceStatus_${inv.id}`}
                              className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-md cursor-pointer border-none outline-none shadow-sm transition-colors ${inv.status==='SETTLED' ? 'bg-gray-100 text-gray-400 line-through' : 'bg-[#111111] text-white hover:bg-black'}`}
                              value={inv.status}
                              onChange={async (e) => {
@@ -1620,27 +1645,27 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             <form onSubmit={handleCreateMatter} className="space-y-5">
               <div className="space-y-4 pb-4 border-b border-gray-100">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Matter Title *</label>
-                  <input required type="text" value={newTitle} onChange={e=>setNewTitle(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. Smith v. State" />
+                  <label htmlFor="new-matter-title" className="block text-xs font-bold text-gray-700 mb-1">Matter Title *</label>
+                  <input id="new-matter-title" name="matterTitle" required type="text" value={newTitle} onChange={e=>setNewTitle(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. Smith v. State" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Case Number</label>
-                    <input type="text" value={newCaseNumber} onChange={e=>setNewCaseNumber(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all font-mono shadow-sm" placeholder="e.g. CS/1042/2026" />
+                    <label htmlFor="new-matter-caseno" className="block text-xs font-bold text-gray-700 mb-1">Case Number</label>
+                    <input id="new-matter-caseno" name="caseNumber" type="text" value={newCaseNumber} onChange={e=>setNewCaseNumber(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all font-mono shadow-sm" placeholder="e.g. CS/1042/2026" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">CNR Number</label>
-                    <input type="text" value={newCnr} onChange={e=>setNewCnr(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all font-mono shadow-sm" placeholder="e.g. HC0982-2026" />
+                    <label htmlFor="new-matter-cnr" className="block text-xs font-bold text-gray-700 mb-1">CNR Number</label>
+                    <input id="new-matter-cnr" name="cnrNumber" type="text" value={newCnr} onChange={e=>setNewCnr(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all font-mono shadow-sm" placeholder="e.g. HC0982-2026" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Client Tracking ID (Grouping Code)</label>
-                    <input type="text" value={newTrackingNumber} onChange={e=>setNewTrackingNumber(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-black rounded-lg focus:ring-1 focus:ring-black outline-none text-sm transition-all font-mono uppercase shadow-sm" placeholder="e.g. TRK-ABC123" />
+                    <label htmlFor="new-matter-tracking" className="block text-xs font-bold text-gray-700 mb-1">Client Tracking ID (Grouping Code)</label>
+                    <input id="new-matter-tracking" name="trackingNumber" type="text" value={newTrackingNumber} onChange={e=>setNewTrackingNumber(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-black rounded-lg focus:ring-1 focus:ring-black outline-none text-sm transition-all font-mono uppercase shadow-sm" placeholder="e.g. TRK-ABC123" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Court Name / Authority</label>
-                    <input type="text" value={newCourt} onChange={e=>setNewCourt(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. District Court" />
+                    <label htmlFor="new-matter-court" className="block text-xs font-bold text-gray-700 mb-1">Court Name / Authority</label>
+                    <input id="new-matter-court" name="courtName" type="text" value={newCourt} onChange={e=>setNewCourt(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. District Court" />
                   </div>
                 </div>
               </div>
@@ -1656,10 +1681,10 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                  {newPartyOne.map((p, i) => (
                    <div key={i} className="flex space-x-2 mb-2 items-start animate-in fade-in slide-in-from-top-2">
                      <div className="flex-1">
-                       <input type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...newPartyOne]; newP[i].name = e.target.value; setNewPartyOne(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
+                       <input aria-label={`New Plaintiff Name ${i + 1}`} name={`newPartyOneName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...newPartyOne]; newP[i].name = e.target.value; setNewPartyOne(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
                      </div>
                      <div className="flex-1">
-                       <input type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...newPartyOne]; newP[i].mobile = e.target.value; setNewPartyOne(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all font-mono shadow-sm" />
+                       <input aria-label={`New Plaintiff Mobile ${i + 1}`} name={`newPartyOneMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...newPartyOne]; newP[i].mobile = e.target.value; setNewPartyOne(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all font-mono shadow-sm" />
                      </div>
                      {newPartyOne.length > 1 && (
                        <button type="button" onClick={() => { const newP = [...newPartyOne]; newP.splice(i, 1); setNewPartyOne(newP); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
@@ -1676,10 +1701,10 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                  {newPartyTwo.map((p, i) => (
                    <div key={i} className="flex space-x-2 mb-2 items-start animate-in fade-in slide-in-from-top-2">
                      <div className="flex-1">
-                       <input type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...newPartyTwo]; newP[i].name = e.target.value; setNewPartyTwo(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
+                       <input aria-label={`New Defendant Name ${i + 1}`} name={`newPartyTwoName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...newPartyTwo]; newP[i].name = e.target.value; setNewPartyTwo(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
                      </div>
                      <div className="flex-1">
-                       <input type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...newPartyTwo]; newP[i].mobile = e.target.value; setNewPartyTwo(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all font-mono shadow-sm" />
+                       <input aria-label={`New Defendant Mobile ${i + 1}`} name={`newPartyTwoMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...newPartyTwo]; newP[i].mobile = e.target.value; setNewPartyTwo(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all font-mono shadow-sm" />
                      </div>
                      {newPartyTwo.length > 1 && (
                        <button type="button" onClick={() => { const newP = [...newPartyTwo]; newP.splice(i, 1); setNewPartyTwo(newP); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
@@ -1696,14 +1721,15 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           <Modal title={editingTaskId ? "Edit Task" : "Create New Task"} isOpen={isNewTaskModalOpen} onClose={() => { setIsNewTaskModalOpen(false); setEditingTaskId(null); setNewTaskAssigneeIds([]); if(recognitionRef.current) recognitionRef.current.stop(); setIsRecording(false); }}>
             <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Task Title *</label>
+                <label htmlFor="task-title-input" className="block text-xs font-bold text-gray-700 mb-1">Task Title *</label>
                 <div className="flex items-center space-x-2">
-                  <input required type="text" value={newTaskTitle} onChange={e=>setNewTaskTitle(e.target.value)} className="flex-1 px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. Draft rejoinder for arbitration" />
+                  <input id="task-title-input" name="taskTitle" required type="text" value={newTaskTitle} onChange={e=>setNewTaskTitle(e.target.value)} className="flex-1 px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. Draft rejoinder for arbitration" />
                   <button 
                     type="button" 
                     onClick={handleStartVoiceRecording}
                     className={`p-3 rounded-lg border flex items-center justify-center transition-all shadow-sm ${isRecording ? 'bg-red-500 text-white border-red-500 animate-pulse' : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200'}`}
                     title={isRecording ? "Stop Recording" : "Record Voice Note"}
+                    aria-label={isRecording ? "Stop Recording" : "Record Voice Note"}
                   >
                     {isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                   </button>
@@ -1713,14 +1739,14 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
               {newTaskVoiceNote && (
                 <div className="animate-in fade-in">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Voice Note Transcript</label>
-                  <textarea value={newTaskVoiceNote} onChange={e=>setNewTaskVoiceNote(e.target.value)} className="w-full px-3 py-2 text-xs bg-purple-50 border border-purple-200 rounded-lg outline-none text-purple-900 italic shadow-inner" rows="2" />
+                  <label htmlFor="task-voicernote-transcript" className="block text-xs font-bold text-gray-700 mb-1">Voice Note Transcript</label>
+                  <textarea id="task-voicernote-transcript" name="voiceNoteTranscript" value={newTaskVoiceNote} onChange={e=>setNewTaskVoiceNote(e.target.value)} className="w-full px-3 py-2 text-xs bg-purple-50 border border-purple-200 rounded-lg outline-none text-purple-900 italic shadow-inner" rows="2" />
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Linked Matter *</label>
-                <select required value={newTaskCaseId} onChange={e=>setNewTaskCaseId(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all cursor-pointer shadow-sm">
+                <label htmlFor="task-matter-select" className="block text-xs font-bold text-gray-700 mb-1">Linked Matter *</label>
+                <select id="task-matter-select" name="linkedMatterId" required value={newTaskCaseId} onChange={e=>setNewTaskCaseId(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all cursor-pointer shadow-sm">
                   <option value="" disabled>Select a matter...</option>
                   {myOfficeCases.map(c => (
                     <option key={c.id} value={c.id}>{c.title}</option>
@@ -1728,11 +1754,12 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Assign To (Multiple allowed)</label>
+                <span className="block text-xs font-bold text-gray-700 mb-1">Assign To (Multiple allowed)</span>
                 <div className="max-h-32 overflow-y-auto border border-[#E5E5E5] rounded-lg bg-[#F9F9F9] p-2 space-y-1 shadow-inner">
                   {dbData.users.filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT' && u.role !== 'PENDING').map(u => (
                     <label key={u.id} className="flex items-center space-x-3 p-2 hover:bg-white rounded-md cursor-pointer transition-colors border border-transparent hover:border-gray-200 hover:shadow-sm">
                       <input 
+                        name={`assignee_${u.id}`}
                         type="checkbox" 
                         checked={newTaskAssigneeIds.includes(u.id)}
                         onChange={(e) => {
@@ -1747,8 +1774,8 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Due Date</label>
-                <input type="date" value={newTaskDueDate} onChange={e=>setNewTaskDueDate(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" />
+                <label htmlFor="task-due-date" className="block text-xs font-bold text-gray-700 mb-1">Due Date</label>
+                <input id="task-due-date" name="dueDate" type="date" value={newTaskDueDate} onChange={e=>setNewTaskDueDate(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" />
               </div>
               <Button type="submit" className="w-full py-3.5 mt-6">{editingTaskId ? 'Save Changes' : 'Create Task'}</Button>
             </form>
@@ -1757,8 +1784,8 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           <Modal title="Generate Invoice" isOpen={isInvoiceModalOpen} onClose={() => { setIsInvoiceModalOpen(false); setInvoiceFile(null); }}>
              <form onSubmit={handleGenerateInvoice} className="space-y-4">
                <div>
-                 <label className="block text-xs font-bold text-gray-700 mb-1">Select Matter</label>
-                 <select required value={invoiceCaseId} onChange={e=>setInvoiceCaseId(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all cursor-pointer shadow-sm">
+                 <label htmlFor="invoice-matter-select" className="block text-xs font-bold text-gray-700 mb-1">Select Matter</label>
+                 <select id="invoice-matter-select" name="invoiceMatterId" required value={invoiceCaseId} onChange={e=>setInvoiceCaseId(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all cursor-pointer shadow-sm">
                    <option value="" disabled>Select a matter to bill...</option>
                    {myOfficeCases.map(c => (
                      <option key={c.id} value={c.id}>{c.title}</option>
@@ -1766,12 +1793,12 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                  </select>
                </div>
                <div>
-                 <label className="block text-xs font-bold text-gray-700 mb-1">Invoice Amount (₹)</label>
-                 <input required type="number" min="0" step="0.01" value={invoiceAmount} onChange={e=>setInvoiceAmount(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. 50000" />
+                 <label htmlFor="invoice-amount-input" className="block text-xs font-bold text-gray-700 mb-1">Invoice Amount (₹)</label>
+                 <input id="invoice-amount-input" name="invoiceAmount" required type="number" min="0" step="0.01" value={invoiceAmount} onChange={e=>setInvoiceAmount(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. 50000" />
                </div>
                <div>
-                 <label className="block text-xs font-bold text-gray-700 mb-1">Attach Invoice PDF (Optional)</label>
-                 <input type="file" onChange={e => setInvoiceFile(e.target.files[0])} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg text-sm shadow-sm" accept=".pdf" />
+                 <label htmlFor="invoice-pdf-file" className="block text-xs font-bold text-gray-700 mb-1">Attach Invoice PDF (Optional)</label>
+                 <input id="invoice-pdf-file" name="invoicePdf" type="file" onChange={e => setInvoiceFile(e.target.files[0])} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg text-sm shadow-sm" accept=".pdf" />
                </div>
                <Button type="submit" className="w-full py-3.5 mt-6">Create Draft Invoice</Button>
              </form>
@@ -1783,8 +1810,8 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 You are about to terminate <strong>{userToFire?.name}</strong>. Their access to the workspace will be immediately revoked.
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Reason for Termination (Mandatory)</label>
-                <textarea required value={fireReason} onChange={e=>setFireReason(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-red-500 outline-none text-sm transition-all min-h-[100px] resize-y shadow-inner" placeholder="Detail the reason for immediate termination. This will be visible to the employee." />
+                <label htmlFor="fire-reason-textarea" className="block text-xs font-bold text-gray-700 mb-1">Reason for Termination (Mandatory)</label>
+                <textarea id="fire-reason-textarea" name="terminationReason" required value={fireReason} onChange={e=>setFireReason(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-red-500 outline-none text-sm transition-all min-h-[100px] resize-y shadow-inner" placeholder="Detail the reason for immediate termination. This will be visible to the employee." />
               </div>
               <div className="flex space-x-3 mt-6">
                 <Button variant="secondary" className="flex-1" onClick={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>Cancel</Button>
@@ -1817,7 +1844,6 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Only sync database collections once a user is authenticated
   useEffect(() => {
     if (!authUser) {
        setAppUser(null);
@@ -1875,8 +1901,17 @@ export default function App() {
   };
 
   const handleJoinOffice = async (name, email, password, code) => {
-    const foundOffice = dbData.offices.find(o => o.inviteCode === code.toUpperCase());
-    if (!foundOffice) throw new Error("Invalid invite code. Please ask your administrator.");
+    // Directly query Firestore for the office matching the invite code
+    const officesRef = collection(db, 'artifacts', appId, 'public', 'data', 'offices');
+    const q = query(officesRef, where('inviteCode', '==', code.toUpperCase().trim()));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      throw new Error("Invalid invite code. Please ask your administrator.");
+    }
+
+    const foundOfficeDoc = querySnapshot.docs[0];
+    const foundOffice = { id: foundOfficeDoc.id, ...foundOfficeDoc.data() };
     
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
