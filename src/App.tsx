@@ -91,7 +91,7 @@ const Modal = ({ title, isOpen, onClose, children }) => {
       <div className="bg-white rounded-2xl w-full max-w-lg mx-4 shadow-2xl overflow-hidden border border-[#E5E5E5] animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center px-6 py-4 border-b border-[#E5E5E5] bg-gray-50 shrink-0">
           <h3 className="font-bold text-base tracking-tight">{title}</h3>
-          <button type="button" onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-500 hover:text-black"><X className="w-4 h-4"/></button>
+          <button type="button" onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-500 hover:text-black"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-6 overflow-y-auto">{children}</div>
       </div>
@@ -108,7 +108,7 @@ const SidebarItem = ({ id, name, icon: Icon, activeTab, onClick }) => {
         active ? 'bg-[#111111] text-white shadow-sm' : 'text-gray-600 hover:bg-[#F0F0F0] hover:text-black'
       }`}
     >
-      <Icon className="w-4 h-4 mr-3"/>
+      <Icon className="w-4 h-4 mr-3" />
       {name}
     </button>
   );
@@ -151,11 +151,11 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
   return (
     <div className="min-h-screen bg-[#F9F9F9] flex flex-col justify-center items-center p-6 relative">
       <button onClick={goBack} className="absolute top-6 left-6 flex items-center text-sm font-medium text-gray-500 hover:text-black transition-colors">
-        <ChevronRight className="w-4 h-4 mr-1 rotate-180"/> Back to Home
+        <ChevronRight className="w-4 h-4 mr-1 rotate-180" /> Back to Home
       </button>
       <Card className="p-8 max-w-md w-full shadow-lg">
         <div className="flex items-center space-x-2 mb-6">
-          <Scale className="w-5 h-5 text-black"/>
+          <Scale className="w-5 h-5 text-black" />
           <h2 className="text-xl font-bold tracking-tight">Chambers</h2>
         </div>
         <div className="mb-6">
@@ -175,8 +175,8 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
           </p>
         </div>
 
-        {errorMsg && <div className="mb-4 bg-red-50 text-red-700 p-3 rounded-lg text-sm border border-red-200 flex items-start"><AlertCircle className="w-4 h-4 mr-2 shrink-0 mt-0.5"/> <span>{errorMsg}</span></div>}
-        {successMsg && <div className="mb-4 bg-green-50 text-green-700 p-3 rounded-lg text-sm border border-green-200 flex items-start"><CheckCircle2 className="w-4 h-4 mr-2 shrink-0 mt-0.5"/> <span>{successMsg}</span></div>}
+        {errorMsg && <div className="mb-4 bg-red-50 text-red-700 p-3 rounded-lg text-sm border border-red-200 flex items-start"><AlertCircle className="w-4 h-4 mr-2 shrink-0 mt-0.5" /> <span>{errorMsg}</span></div>}
+        {successMsg && <div className="mb-4 bg-green-50 text-green-700 p-3 rounded-lg text-sm border border-green-200 flex items-start"><CheckCircle2 className="w-4 h-4 mr-2 shrink-0 mt-0.5" /> <span>{successMsg}</span></div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'track' ? (
@@ -190,7 +190,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
                 <div>
                   <label htmlFor="auth-name-input" className="block text-xs font-bold text-gray-700 mb-1">Full Name</label>
                   <div className="relative">
-                    <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+                    <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input id="auth-name-input" name="name" required type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Priya Sharma" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
                   </div>
                 </div>
@@ -199,7 +199,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
               <div>
                 <label htmlFor="auth-email-input" className="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input id="auth-email-input" name="email" required type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@chambers.com" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
                 </div>
               </div>
@@ -219,7 +219,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
                     )}
                   </div>
                   <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input id="auth-password-input" name="password" required type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
                   </div>
                 </div>
@@ -239,7 +239,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
               )}
             </>
           )}
-          <Button className="w-full py-3.5 mt-2" disabled="{isLoading}" type="submit">
+          <Button type="submit" disabled={isLoading} className="w-full py-3.5 mt-2">
             {isLoading ? 'Processing...' : (
               <>
                 {mode === 'login' && 'Log in'}
@@ -285,10 +285,10 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
   if (clientCases.length === 0) {
     return (
       <div className="min-h-screen bg-[#F9F9F9] flex flex-col justify-center items-center p-6 text-center">
-         <AlertCircle className="w-12 h-12 text-amber-500 mb-4"/>
+         <AlertCircle className="w-12 h-12 text-amber-500 mb-4" />
          <h2 className="text-xl font-bold mb-2">No Cases Found</h2>
          <p className="text-gray-500 text-sm mb-6 max-w-sm">We couldn't find any active matters linked to tracking code <strong className="font-mono">{trackingCode}</strong>.</p>
-         <Button onClick="{onExit}">Return to Home</Button>
+         <Button onClick={onExit}>Return to Home</Button>
       </div>
     );
   }
@@ -297,10 +297,10 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
     <div className="min-h-screen bg-[#F9F9F9] text-[#111111] font-sans flex flex-col">
       <header className="h-16 bg-white border-b border-[#E5E5E5] flex justify-between items-center px-6 md:px-8 shrink-0">
         <div className="flex items-center space-x-2">
-          <Scale className="w-5 h-5 text-black"/>
+          <Scale className="w-5 h-5 text-black" />
           <span className="font-bold tracking-tight">Client Portal</span>
         </div>
-        <Button className="py-1.5 px-3 text-xs" onClick="{onExit}" variant="secondary">Exit Portal</Button>
+        <Button variant="secondary" onClick={onExit} className="py-1.5 px-3 text-xs">Exit Portal</Button>
       </header>
       <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 overflow-y-auto">
         <div className="mb-6">
@@ -312,7 +312,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
 
         {clientCases.length > 1 && (
           <div className="mb-8 flex items-center space-x-2 overflow-x-auto pb-2">
-            <Layers className="w-4 h-4 text-gray-400 mr-1 shrink-0"/>
+            <Layers className="w-4 h-4 text-gray-400 mr-1 shrink-0" />
             <span className="text-xs font-bold text-gray-500 uppercase shrink-0 mr-2">Your Matters:</span>
             {clientCases.map(c => (
               <button 
@@ -360,7 +360,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
                       <p className="text-sm text-gray-600 whitespace-pre-wrap">{u.text}</p>
                       {u.attachment && (
                         <div className="mt-2 text-xs font-medium text-[#4F46E5] flex items-center">
-                           <Paperclip className="w-3 h-3 mr-1"/> Document attached to vault
+                           <Paperclip className="w-3 h-3 mr-1" /> Document attached to vault
                         </div>
                       )}
                     </div>
@@ -379,7 +379,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
                            <span className="font-medium text-gray-800">{d.name}</span>
                            <span className="text-[10px] text-gray-400 font-mono mt-0.5">{new Date(d.date).toLocaleDateString('en-US')}</span>
                         </div>
-                        <Download className="w-4 h-4 text-gray-400 cursor-pointer group-hover:text-[#4F46E5] transition-colors"/>
+                        <Download className="w-4 h-4 text-gray-400 cursor-pointer group-hover:text-[#4F46E5] transition-colors" />
                       </div>
                     ))}
                   </div>
@@ -526,7 +526,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
   return (
     <div className="p-8 max-w-6xl mx-auto animate-in slide-in-from-right-4 duration-300 w-full">
       <button onClick={goBack} className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-black transition-colors">
-        <ChevronRight className="w-4 h-4 mr-1 rotate-180"/> Back to Ledger
+        <ChevronRight className="w-4 h-4 mr-1 rotate-180" /> Back to Ledger
       </button>
       
       <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
@@ -534,7 +534,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
           <div className="flex items-center space-x-3 mb-2">
             <h2 className="text-3xl font-bold tracking-tight">{activeCase.title}</h2>
             <button onClick={openEditModal} className="p-1.5 text-gray-400 hover:text-[#111111] hover:bg-gray-100 rounded-md transition-colors" title="Edit Case Details">
-              <Edit3 className="w-4 h-4"/>
+              <Edit3 className="w-4 h-4" />
             </button>
           </div>
           <div className="flex flex-wrap items-center text-sm text-gray-600 gap-x-3 gap-y-2 mb-3">
@@ -549,8 +549,8 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
              <span className="font-mono font-bold tracking-widest text-sm">{activeCase.trackingNumber}</span>
           </div>
         </div>
-        <Button onClick="{()" variant="secondary"> setShowBriefModal(true)} className="flex items-center shadow-sm shrink-0">
-          <FileCheck className="w-4 h-4 mr-2"/> Export Case Brief
+        <Button variant="secondary" onClick={() => setShowBriefModal(true)} className="flex items-center shadow-sm shrink-0">
+          <FileCheck className="w-4 h-4 mr-2" /> Export Case Brief
         </Button>
       </div>
 
@@ -599,7 +599,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                 <div className="flex flex-wrap items-center gap-2">
                   <input type="file" id="ledger-attachment" name="ledgerAttachment" className="hidden" onChange={(e) => { setUpdateAttachmentFile(e.target.files[0]); setUpdateAttachmentName(e.target.files[0]?.name || ''); }} accept=".pdf,.doc,.docx,.jpg,.png" />
                   <label htmlFor="ledger-attachment" className="flex items-center text-xs font-bold text-gray-600 hover:text-[#111111] cursor-pointer transition-colors bg-white border border-[#E5E5E5] px-3 py-1.5 rounded-md shadow-sm">
-                    <Paperclip className="w-3.5 h-3.5 mr-2"/>
+                    <Paperclip className="w-3.5 h-3.5 mr-2" />
                     {updateAttachmentFile ? <span className="truncate max-w-[120px]">{updateAttachmentFile.name}</span> : 'Attach File'}
                   </label>
                   
@@ -614,11 +614,11 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                          onChange={e => setUpdateAttachmentName(e.target.value)}
                          className="px-2 py-1.5 text-xs border border-gray-300 rounded focus:border-black outline-none w-48 shadow-inner"
                        />
-                       <button type="button" onClick={() => { setUpdateAttachmentFile(null); setUpdateAttachmentName(""); }} className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-3.5 h-3.5"/></button>
+                       <button type="button" onClick={() => { setUpdateAttachmentFile(null); setUpdateAttachmentName(""); }} className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-3.5 h-3.5" /></button>
                     </div>
                   )}
                 </div>
-                <Button className="py-1.5 text-xs shrink-0" type="submit">Post to Ledger</Button>
+                <Button type="submit" className="py-1.5 text-xs shrink-0">Post to Ledger</Button>
               </div>
             </form>
           </Card>
@@ -638,14 +638,14 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                     {u.attachment && (
                       <div className="mb-4 inline-block">
                         <button className="flex items-center text-xs font-semibold bg-gray-50 border border-gray-200 px-3 py-2 rounded-md hover:bg-gray-100 hover:border-black transition-colors">
-                          <Paperclip className="w-3.5 h-3.5 mr-2 text-[#4F46E5]"/>
+                          <Paperclip className="w-3.5 h-3.5 mr-2 text-[#4F46E5]" />
                           {u.attachment}
                         </button>
                       </div>
                     )}
                     <div className="flex items-center space-x-2 pt-3 border-t border-gray-100">
                       <span className="text-xs font-semibold text-[#111111]">{author?.name || 'Unknown'}</span>
-                      <RoleBadge 'PENDING'} role="{author?.role" ||/>
+                      <RoleBadge role={author?.role || 'PENDING'} />
                     </div>
                   </Card>
                 </div>
@@ -659,7 +659,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold flex items-center"><CheckCircle2 className="w-4 h-4 mr-2 text-gray-400"/> Active Tasks</h3>
               <button onClick={onOpenNewTask} className="text-[10px] uppercase tracking-wider font-bold bg-[#111111] text-white px-2.5 py-1.5 rounded flex items-center hover:bg-black transition-colors shadow-sm">
-                <Plus className="w-3 h-3 mr-1"/> Add Task
+                <Plus className="w-3 h-3 mr-1" /> Add Task
               </button>
             </div>
             <div className="space-y-3">
@@ -712,7 +712,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold flex items-center"><Download className="w-4 h-4 mr-2 text-gray-400"/> Document Vault</h3>
               <button onClick={() => setIsDocModalOpen(true)} className="text-xs font-bold bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 px-2.5 py-1.5 rounded flex items-center transition-colors">
-                <Upload className="w-3 h-3 mr-1"/> Upload
+                <Upload className="w-3 h-3 mr-1" /> Upload
               </button>
             </div>
             <div className="space-y-2">
@@ -723,7 +723,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                     <span className="text-[#111111] font-medium truncate group-hover:text-[#4F46E5] transition-colors">{doc.name}</span>
                     <span className="text-[10px] font-mono text-gray-400 mt-0.5 bg-gray-50 px-1 py-0.5 rounded w-fit">{new Date(doc.date).toLocaleDateString('en-US')}</span>
                   </div>
-                  <Download className="w-4 h-4 text-gray-400 group-hover:text-black flex-shrink-0 transition-colors"/>
+                  <Download className="w-4 h-4 text-gray-400 group-hover:text-black flex-shrink-0 transition-colors" />
                 </button>
               ))}
             </div>
@@ -731,7 +731,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
         </div>
       </div>
 
-      <Modal isOpen="{isEditModalOpen}" onClose="{()" title="Edit Case Details"> setIsEditModalOpen(false)}>
+      <Modal title="Edit Case Details" isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
          <form onSubmit={handleSaveEdits} className="space-y-4">
             <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4">
                <div className="col-span-2">
@@ -777,7 +777,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                      <div className="flex-1">
                        <input aria-label={`Plaintiff Mobile ${i + 1}`} name={`partyOneMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyOne]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyOne: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
                      </div>
-                     <button type="button" onClick={() => { const newP = [...editCaseData.partyOne]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyOne: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
+                     <button type="button" onClick={() => { const newP = [...editCaseData.partyOne]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyOne: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
                    </div>
                  ))}
                  {(!editCaseData.partyOne || editCaseData.partyOne.length === 0) && <div className="text-xs text-gray-400 italic">No parties added.</div>}
@@ -796,18 +796,18 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                      <div className="flex-1">
                        <input aria-label={`Defendant Mobile ${i + 1}`} name={`partyTwoMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyTwo]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyTwo: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
                      </div>
-                     <button type="button" onClick={() => { const newP = [...editCaseData.partyTwo]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyTwo: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
+                     <button type="button" onClick={() => { const newP = [...editCaseData.partyTwo]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyTwo: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
                    </div>
                  ))}
                  {(!editCaseData.partyTwo || editCaseData.partyTwo.length === 0) && <div className="text-xs text-gray-400 italic">No parties added.</div>}
                </div>
             </div>
             
-            <Button className="w-full py-3.5 mt-4" type="submit">Save Changes</Button>
+            <Button type="submit" className="w-full py-3.5 mt-4">Save Changes</Button>
          </form>
       </Modal>
 
-      <Modal isOpen="{showBriefModal}" onClose="{()" title="Generate Case Brief"> setShowBriefModal(false)}>
+      <Modal title="Generate Case Brief" isOpen={showBriefModal} onClose={() => setShowBriefModal(false)}>
         <div className="bg-gray-50 p-6 rounded-md border border-gray-200 font-serif text-sm h-64 overflow-y-auto mb-4">
           <div className="text-center mb-6 border-b pb-4">
             <h1 className="font-bold text-lg uppercase tracking-widest">{dbData.offices.find(o=>o.id === activeCase.officeId)?.name || 'Chambers'}</h1>
@@ -845,12 +845,12 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
             </div>
           ))}
         </div>
-        <Button className="w-full" onClick="{()"> { setShowBriefModal(false); }}>
-          <Download className="w-4 h-4 mr-2"/> Download Print-Ready PDF
+        <Button className="w-full" onClick={() => setShowBriefModal(false)}>
+          <Download className="w-4 h-4 mr-2" /> Download Print-Ready PDF
         </Button>
       </Modal>
 
-      <Modal isOpen="{isDocModalOpen}" onClose="{()" title="Upload Document"> { setIsDocModalOpen(false); setNewDocFile(null); setNewDocName(""); }}>
+      <Modal title="Upload Document" isOpen={isDocModalOpen} onClose={() => { setIsDocModalOpen(false); setNewDocFile(null); setNewDocName(""); }}>
         <form onSubmit={handleUploadDocument} className="space-y-4">
           <div>
             <label htmlFor="upload-doc-file" className="block text-xs font-bold text-gray-700 mb-1">Select File</label>
@@ -872,7 +872,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
             <label htmlFor="upload-doc-date" className="block text-xs font-bold text-gray-700 mb-1">Document Date</label>
             <input id="upload-doc-date" name="documentDate" required type="date" value={newDocDate} onChange={e => setNewDocDate(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all" />
           </div>
-          <Button className="w-full py-3.5 mt-6" type="submit"><Upload className="w-4 h-4 mr-2"/> Upload to Vault</Button>
+          <Button type="submit" className="w-full py-3.5 mt-6"><Upload className="w-4 h-4 mr-2"/> Upload to Vault</Button>
         </form>
       </Modal>
     </div>
@@ -1117,10 +1117,10 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
     return (
       <div className="min-h-screen bg-[#F9F9F9] flex flex-col items-center justify-center p-6">
         <Card className="p-8 text-center max-w-md w-full">
-          <AlertCircle className="w-12 h-12 text-[#D97706] mx-auto mb-4"/>
+          <AlertCircle className="w-12 h-12 text-[#D97706] mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">Account Pending Approval</h2>
           <p className="text-gray-600 text-sm mb-6">Your request to join the workspace has been received. Please wait for a Senior Advocate or Manager to assign your role access.</p>
-          <Button className="w-full" onClick="{onLogout}" variant="secondary">Sign Out</Button>
+          <Button onClick={onLogout} variant="secondary" className="w-full">Sign Out</Button>
         </Card>
       </div>
     );
@@ -1130,14 +1130,14 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
     return (
       <div className="min-h-screen bg-[#F9F9F9] flex flex-col items-center justify-center p-6">
         <Card className="p-8 text-center max-w-md w-full border-t-4 border-t-red-600">
-          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4"/>
+          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">Access Revoked</h2>
           <p className="text-gray-600 text-sm mb-4">Your access to this workspace has been permanently terminated.</p>
           <div className="bg-red-50 text-red-800 p-4 rounded-md text-sm text-left mb-6 border border-red-100">
             <span className="font-bold block mb-1">Reason for termination:</span>
             {currentUser.firedReason || 'No specific reason provided.'}
           </div>
-          <Button className="w-full" onClick="{onLogout}" variant="secondary">Sign Out</Button>
+          <Button onClick={onLogout} variant="secondary" className="w-full">Sign Out</Button>
         </Card>
       </div>
     );
@@ -1150,7 +1150,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           onClick={() => handleTabChange('overview')} 
           className="h-16 flex items-center px-6 border-b border-[#E5E5E5] hover:bg-gray-50 transition-colors group text-left w-full focus:outline-none"
         >
-          <Scale className="w-5 h-5 mr-2 text-black group-hover:scale-110 transition-transform"/>
+          <Scale className="w-5 h-5 mr-2 text-black group-hover:scale-110 transition-transform" />
           <h1 className="font-bold tracking-tight text-lg">Chambers</h1>
         </button>
         <div className="px-6 py-4 border-b border-[#E5E5E5] bg-gray-50 flex items-center justify-between shrink-0">
@@ -1159,13 +1159,13 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           </span>
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          <SidebarItem activeTab="{activeTab}" icon="{Clock}" id="overview" name="Overview" onClick="{handleTabChange}"/>
-          <SidebarItem activeTab="{activeTab}" icon="{Briefcase}" id="ledger" name="Master Ledger" onClick="{handleTabChange}"/>
-          <SidebarItem activeTab="{activeTab}" icon="{CheckCircle2}" id="tasks" name="Task Pipeline" onClick="{handleTabChange}"/>
+          <SidebarItem id="overview" name="Overview" icon={Clock} activeTab={activeTab} onClick={handleTabChange} />
+          <SidebarItem id="ledger" name="Master Ledger" icon={Briefcase} activeTab={activeTab} onClick={handleTabChange} />
+          <SidebarItem id="tasks" name="Task Pipeline" icon={CheckCircle2} activeTab={activeTab} onClick={handleTabChange} />
           {isSeniorOrManager && (
             <>
-              <SidebarItem activeTab="{activeTab}" icon="{FileText}" id="financials" name="Financials" onClick="{handleTabChange}"/>
-              <SidebarItem activeTab="{activeTab}" icon="{Users}" id="team" name="Team & Access" onClick="{handleTabChange}"/>
+              <SidebarItem id="financials" name="Financials" icon={FileText} activeTab={activeTab} onClick={handleTabChange} />
+              <SidebarItem id="team" name="Team & Access" icon={Users} activeTab={activeTab} onClick={handleTabChange} />
             </>
           )}
         </nav>
@@ -1176,9 +1176,9 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
             <div className="flex flex-col text-left flex-1 overflow-hidden">
               <span className="text-sm font-semibold truncate group-hover:text-[#4F46E5] transition-colors">{currentUser.name}</span>
-              <RoleBadge role="{currentUser.role}"/>
+              <RoleBadge role={currentUser.role} />
             </div>
-            <LogOut className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors shrink-0"/>
+            <LogOut className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
           </div>
         </div>
       </aside>
@@ -1186,19 +1186,18 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
       <main className="flex-1 flex flex-col overflow-hidden relative z-10">
         <header className="md:hidden h-14 bg-white border-b border-[#E5E5E5] flex justify-between items-center px-4 shrink-0">
            <button onClick={() => handleTabChange('overview')} className="flex items-center space-x-2 font-bold focus:outline-none">
-              <Scale className="w-5 h-5 text-black"/>
+              <Scale className="w-5 h-5 text-black" />
               <span>Chambers</span>
            </button>
            <div className="flex space-x-2">
-             <button onClick={() => handleTabChange('ledger')} className="p-2 text-gray-500 hover:text-black" aria-label="Master Ledger"><Briefcase className="w-5 h-5"/></button>
-             <button onClick={() => handleTabChange('tasks')} className="p-2 text-gray-500 hover:text-black" aria-label="Task Pipeline"><CheckCircle2 className="w-5 h-5"/></button>
-             <button onClick={onLogout} className="p-2 text-gray-500 hover:text-red-600" aria-label="Log Out"><LogOut className="w-5 h-5"/></button>
+             <button onClick={() => handleTabChange('ledger')} className="p-2 text-gray-500 hover:text-black" aria-label="Master Ledger"><Briefcase className="w-5 h-5" /></button>
+             <button onClick={() => handleTabChange('tasks')} className="p-2 text-gray-500 hover:text-black" aria-label="Task Pipeline"><CheckCircle2 className="w-5 h-5" /></button>
+             <button onClick={onLogout} className="p-2 text-gray-500 hover:text-red-600" aria-label="Log Out"><LogOut className="w-5 h-5" /></button>
            </div>
         </header>
 
         <div className="flex-1 overflow-auto bg-[#F9F9F9]">
           
-          {}
           {activeTab === 'overview' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
               <header className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
@@ -1210,8 +1209,8 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                   <p className="text-gray-500 mt-2 text-lg">Here's the shape of your practice today.</p>
                 </div>
                 {isSeniorOrManager && (
-                  <Button onClick="{()"> setIsNewMatterOpen(true)} className="py-3 px-5 shadow-sm shrink-0">
-                    <Plus className="w-4 h-4 mr-2"/> New matter
+                  <Button onClick={() => setIsNewMatterOpen(true)} className="py-3 px-5 shadow-sm shrink-0">
+                    <Plus className="w-4 h-4 mr-2" /> New matter
                   </Button>
                 )}
               </header>
@@ -1248,7 +1247,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                       const u = dbData.users.find(u=>u.id === up.authorId);
                       if(!c || c.officeId !== currentUser.officeId) return null;
                       return (
-                        <Card key="{up.id}" onClick="{()"> {setActiveTab('ledger'); setActiveCaseId(c.id);}} className="p-5 hover:border-black transition-all cursor-pointer group">
+                        <Card key={up.id} onClick={() => {setActiveTab('ledger'); setActiveCaseId(c.id);}} className="p-5 hover:border-black transition-all cursor-pointer group">
                           <div className="flex justify-between items-start mb-2 gap-2">
                             <span className="font-bold text-[15px] group-hover:text-[#4F46E5] transition-colors">{c.title}</span>
                             <span className="text-[10px] text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100 shrink-0">{new Date(up.timestamp).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</span>
@@ -1256,7 +1255,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                           <div className="text-sm text-gray-600 line-clamp-1">{up.text}</div>
                           <div className="mt-3 flex items-center space-x-2 text-xs border-t border-gray-50 pt-3">
                             <span className="font-semibold text-[#111111]">{u?.name || 'Unknown'}</span>
-                            <RoleBadge 'PENDING'} role="{u?.role" ||/>
+                            <RoleBadge role={u?.role || 'PENDING'} />
                           </div>
                         </Card>
                       );
@@ -1283,7 +1282,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                         const c = dbData.cases.find(c=>c.id === t.caseId);
                         const canModify = canUserModifyTask(t);
                         return (
-                          <Card className="p-5 flex items-center hover:border-black transition-colors group" key="{t.id}">
+                          <Card key={t.id} className="p-5 flex items-center hover:border-black transition-colors group">
                             <div className="flex flex-col flex-1 pr-4">
                               <span className="font-bold text-[15px] text-[#111111] mb-1 group-hover:text-[#4F46E5] transition-colors">{t.title}</span>
                               <div className="flex items-center text-xs text-gray-500 space-x-2">
@@ -1319,7 +1318,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
-          {}
           {activeTab === 'ledger' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-6xl mx-auto h-full flex flex-col animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1328,12 +1326,12 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                   <p className="text-sm text-gray-500 mt-1">Directory of all active and inactive matters in your chambers.</p>
                 </div>
                 {isSeniorOrManager && (
-                  <Button onClick="{()"> setIsNewMatterOpen(true)} className="shrink-0"><Plus className="w-4 h-4 mr-2"/> New Matter</Button>
+                  <Button onClick={() => setIsNewMatterOpen(true)} className="shrink-0"><Plus className="w-4 h-4 mr-2" /> New Matter</Button>
                 )}
               </header>
               <Card className="flex-1 overflow-hidden flex flex-col min-h-[400px]">
                 <div className="p-4 md:p-5 border-b border-[#E5E5E5] flex items-center bg-gray-50 shrink-0">
-                  <Search className="w-5 h-5 text-gray-400 mr-3 shrink-0"/>
+                  <Search className="w-5 h-5 text-gray-400 mr-3 shrink-0" />
                   <label htmlFor="ledger-search-input" className="sr-only">Search Case Number, CNR, Client, or Matter</label>
                   <input id="ledger-search-input" name="ledgerSearch" type="text" placeholder="Search Case Number, CNR, Client, or Matter..." className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 font-medium" />
                 </div>
@@ -1348,11 +1346,11 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                     </div>
                     {myOfficeCases.length === 0 && (
                       <div className="flex flex-col items-center justify-center p-12 text-center animate-in fade-in">
-                        <Briefcase className="w-12 h-12 text-gray-300 mb-4"/>
+                        <Briefcase className="w-12 h-12 text-gray-300 mb-4" />
                         <h3 className="text-lg font-bold text-[#111111] mb-2">No Active Matters</h3>
                         <p className="text-gray-500 text-sm max-w-sm mb-6">Your workspace is completely empty.</p>
                         {isSeniorOrManager && (
-                          <Button onClick="{()"> setIsNewMatterOpen(true)}><Plus className="w-4 h-4 mr-2"/>Create First Matter</Button>
+                          <Button onClick={() => setIsNewMatterOpen(true)}><Plus className="w-4 h-4 mr-2"/>Create First Matter</Button>
                         )}
                       </div>
                     )}
@@ -1385,7 +1383,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                                 <div className="text-sm font-bold text-[#111111]">{c.nextHearing ? new Date(c.nextHearing).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}) : 'TBD'}</div>
                               </div>
                               <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-white border border-transparent group-hover:border-gray-200 transition-all shrink-0">
-                                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-black"/>
+                                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-black" />
                               </div>
                             </div>
                           </div>
@@ -1399,7 +1397,9 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           )}
 
           {activeCaseId && (
-            <CaseDetailView activeCaseId="{activeCaseId}" goBack="{()"> setActiveCaseId(null)} 
+            <CaseDetailView 
+              activeCaseId={activeCaseId} 
+              goBack={() => setActiveCaseId(null)} 
               dbData={dbData} 
               currentUser={currentUser} 
               onOpenNewTask={() => {
@@ -1414,7 +1414,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             />
           )}
 
-          {}
           {activeTab === 'tasks' && !activeCaseId && (
             <div className="p-6 md:p-10 h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
@@ -1422,7 +1421,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                   <h2 className="text-3xl font-bold tracking-tight">Task Pipeline</h2>
                   <p className="text-sm text-gray-500 mt-1">Drag and drop tasks across stages to update their progress.</p>
                 </div>
-                <Button onClick="{()"> {
+                <Button onClick={() => {
                   setEditingTaskId(null);
                   setNewTaskTitle("");
                   setNewTaskDueDate("");
@@ -1430,7 +1429,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                   setNewTaskAssigneeIds([]);
                   setNewTaskCaseId(myOfficeCases[0]?.id || '');
                   setIsNewTaskModalOpen(true);
-                }} className="shrink-0"><Plus className="w-4 h-4 mr-2"/> Add Task</Button>
+                }} className="shrink-0"><Plus className="w-4 h-4 mr-2" /> Add Task</Button>
               </header>
               <div className="flex-1 flex gap-6 overflow-x-auto pb-4">
                 {['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'].map(status => {
@@ -1454,7 +1453,10 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                            const assignees = (t.assigneeIds || []).map(id => dbData.users.find(u=>u.id===id)).filter(Boolean);
                            const canModify = canUserModifyTask(t);
                            return (
-                            <Card draggable="{canModify}" key="{t.id}" onDragStart="{(e)"> handleDragStart(e, t.id)}
+                            <Card 
+                              key={t.id} 
+                              draggable={canModify}
+                              onDragStart={(e) => handleDragStart(e, t.id)}
                               onDragEnd={handleDragEnd}
                               className={`p-4 shadow-sm hover:shadow-md transition-all group bg-white relative border border-[#E5E5E5] ${canModify ? 'cursor-grab active:cursor-grabbing hover:border-black' : 'opacity-90'}`}
                             >
@@ -1509,7 +1511,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
-          {}
           {activeTab === 'team' && isSeniorOrManager && (
              <div className="p-6 md:p-10 max-w-4xl mx-auto animate-in fade-in duration-300">
                <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1538,7 +1539,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                           </div>
                        </div>
                        <div className="flex items-center space-x-4">
-                         <RoleBadge role="{user.role}"/>
+                         <RoleBadge role={user.role} />
                          {currentUser.id !== user.id && (
                            <div className="flex items-center space-x-2">
                              <label htmlFor={`user-role-select-${user.id}`} className="sr-only">User Role</label>
@@ -1565,7 +1566,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                                  title="Terminate Employee"
                                  aria-label={`Terminate ${user.name}`}
                                >
-                                 <X className="w-4 h-4"/>
+                                 <X className="w-4 h-4" />
                                </button>
                              )}
                            </div>
@@ -1585,7 +1586,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                     <h2 className="text-3xl font-bold tracking-tight">Financials</h2>
                     <p className="text-sm text-gray-500 mt-1">Track billables and sent invoices strictly restricted to management.</p>
                  </div>
-                 <Button onClick="{()"> setIsInvoiceModalOpen(true)} className="shrink-0"><Plus className="w-4 h-4 mr-2"/> Generate Invoice</Button>
+                 <Button onClick={() => setIsInvoiceModalOpen(true)} className="shrink-0"><Plus className="w-4 h-4 mr-2" /> Generate Invoice</Button>
                </header>
                <Card className="overflow-hidden overflow-x-auto">
                  <table className="w-full text-left text-sm min-w-[700px]">
@@ -1635,8 +1636,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
              </div>
           )}
 
-          {}
-          <Modal isOpen="{isNewMatterOpen}" onClose="{()" title="Open New Matter"> setIsNewMatterOpen(false)}>
+          <Modal title="Open New Matter" isOpen={isNewMatterOpen} onClose={() => setIsNewMatterOpen(false)}>
             <form onSubmit={handleCreateMatter} className="space-y-5">
               <div className="space-y-4 pb-4 border-b border-gray-100">
                 <div>
@@ -1682,7 +1682,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                        <input aria-label={`New Plaintiff Mobile ${i + 1}`} name={`newPartyOneMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...newPartyOne]; newP[i].mobile = e.target.value; setNewPartyOne(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all font-mono shadow-sm" />
                      </div>
                      {newPartyOne.length > 1 && (
-                       <button type="button" onClick={() => { const newP = [...newPartyOne]; newP.splice(i, 1); setNewPartyOne(newP); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
+                       <button type="button" onClick={() => { const newP = [...newPartyOne]; newP.splice(i, 1); setNewPartyOne(newP); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
                      )}
                    </div>
                  ))}
@@ -1702,18 +1702,18 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                        <input aria-label={`New Defendant Mobile ${i + 1}`} name={`newPartyTwoMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...newPartyTwo]; newP[i].mobile = e.target.value; setNewPartyTwo(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all font-mono shadow-sm" />
                      </div>
                      {newPartyTwo.length > 1 && (
-                       <button type="button" onClick={() => { const newP = [...newPartyTwo]; newP.splice(i, 1); setNewPartyTwo(newP); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
+                       <button type="button" onClick={() => { const newP = [...newPartyTwo]; newP.splice(i, 1); setNewPartyTwo(newP); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
                      )}
                    </div>
                  ))}
                </div>
               </div>
               
-              <Button className="w-full py-3.5 mt-6" type="submit">Create Matter File</Button>
+              <Button type="submit" className="w-full py-3.5 mt-6">Create Matter File</Button>
             </form>
           </Modal>
 
-          <Modal "Create "Edit : ? New Task" Task"} isOpen="{isNewTaskModalOpen}" onClose="{()" title="{editingTaskId"> { setIsNewTaskModalOpen(false); setEditingTaskId(null); setNewTaskAssigneeIds([]); if(recognitionRef.current) recognitionRef.current.stop(); setIsRecording(false); }}>
+          <Modal title={editingTaskId ? "Edit Task" : "Create New Task"} isOpen={isNewTaskModalOpen} onClose={() => { setIsNewTaskModalOpen(false); setEditingTaskId(null); setNewTaskAssigneeIds([]); if(recognitionRef.current) recognitionRef.current.stop(); setIsRecording(false); }}>
             <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
                 <label htmlFor="task-title-input" className="block text-xs font-bold text-gray-700 mb-1">Task Title *</label>
@@ -1726,7 +1726,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                     title={isRecording ? "Stop Recording" : "Record Voice Note"}
                     aria-label={isRecording ? "Stop Recording" : "Record Voice Note"}
                   >
-                    {isRecording ? <Square className="w-4 h-4"/> : <Mic className="w-4 h-4"/>}
+                    {isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                   </button>
                 </div>
                 {isRecording && <div className="text-xs text-red-600 mt-1.5 font-bold animate-pulse">Listening... Speak clearly into your microphone.</div>}
@@ -1772,11 +1772,11 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 <label htmlFor="task-due-date" className="block text-xs font-bold text-gray-700 mb-1">Due Date</label>
                 <input id="task-due-date" name="dueDate" type="date" value={newTaskDueDate} onChange={e=>setNewTaskDueDate(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" />
               </div>
-              <Button className="w-full py-3.5 mt-6" type="submit">{editingTaskId ? 'Save Changes' : 'Create Task'}</Button>
+              <Button type="submit" className="w-full py-3.5 mt-6">{editingTaskId ? 'Save Changes' : 'Create Task'}</Button>
             </form>
           </Modal>
 
-          <Modal isOpen="{isInvoiceModalOpen}" onClose="{()" title="Generate Invoice"> { setIsInvoiceModalOpen(false); setInvoiceFile(null); }}>
+          <Modal title="Generate Invoice" isOpen={isInvoiceModalOpen} onClose={() => { setIsInvoiceModalOpen(false); setInvoiceFile(null); }}>
              <form onSubmit={handleGenerateInvoice} className="space-y-4">
                <div>
                  <label htmlFor="invoice-matter-select" className="block text-xs font-bold text-gray-700 mb-1">Select Matter</label>
@@ -1795,11 +1795,11 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                  <label htmlFor="invoice-pdf-file" className="block text-xs font-bold text-gray-700 mb-1">Attach Invoice PDF (Optional)</label>
                  <input id="invoice-pdf-file" name="invoicePdf" type="file" onChange={e => setInvoiceFile(e.target.files[0])} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg text-sm shadow-sm" accept=".pdf" />
                </div>
-               <Button className="w-full py-3.5 mt-6" type="submit">Create Draft Invoice</Button>
+               <Button type="submit" className="w-full py-3.5 mt-6">Create Draft Invoice</Button>
              </form>
           </Modal>
 
-          <Modal isOpen="{isFireModalOpen}" onClose="{()" title="Terminate Employee"> { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>
+          <Modal title="Terminate Employee" isOpen={isFireModalOpen} onClose={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>
             <form onSubmit={handleFireUser} className="space-y-4">
               <div className="bg-red-50 text-red-800 p-4 rounded-lg text-sm border border-red-200 mb-4 shadow-sm">
                 You are about to terminate <strong>{userToFire?.name}</strong>. Their access to the workspace will be immediately revoked.
@@ -1809,7 +1809,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 <textarea id="fire-reason-textarea" name="terminationReason" required value={fireReason} onChange={e=>setFireReason(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-red-500 outline-none text-sm transition-all min-h-[100px] resize-y shadow-inner" placeholder="Detail the reason for immediate termination. This will be visible to the employee." />
               </div>
               <div className="flex space-x-3 mt-6">
-                <Button className="flex-1" onClick="{()" variant="secondary"> { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>Cancel</Button>
+                <Button variant="secondary" className="flex-1" onClick={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>Cancel</Button>
                 <button type="submit" className="flex-1 bg-red-600 text-white py-2 px-4 text-sm font-medium rounded-md hover:bg-red-700 transition-colors shadow-sm active:scale-95">Confirm Termination</button>
               </div>
             </form>
@@ -1935,7 +1935,7 @@ export default function App() {
       <div className="min-h-screen bg-[#F9F9F9] text-[#111111] font-sans flex flex-col">
         <header className="flex justify-between items-center p-6 lg:px-12 bg-[#F9F9F9] shrink-0">
           <div className="flex items-center space-x-2 cursor-pointer hover:scale-105 transition-transform" onClick={() => setCurrentView('landing')}>
-            <Scale className="w-5 h-5 text-black"/>
+            <Scale className="w-5 h-5 text-black" />
             <span className="font-bold tracking-tight">Chambers</span>
           </div>
           <div className="flex items-center space-x-4">
@@ -1943,13 +1943,13 @@ export default function App() {
               Track Case
             </button>
             <button onClick={() => { setAuthMode('login'); setCurrentView('auth'); }} className="text-sm font-bold flex items-center hover:text-gray-600 transition-colors">
-              Log in <ChevronRight className="w-4 h-4 ml-1"/>
+              Log in <ChevronRight className="w-4 h-4 ml-1" />
             </button>
           </div>
         </header>
         <main className="flex-1 flex flex-col items-center justify-center text-center px-6 max-w-4xl mx-auto -mt-20">
           <div className="text-xs font-bold tracking-[0.2em] text-gray-400 mb-8 uppercase flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <Scale className="w-3 h-3 mr-2"/> A calmer way to run your practice
+            <Scale className="w-3 h-3 mr-2" /> A calmer way to run your practice
           </div>
           <h1 className="text-6xl md:text-8xl font-bold tracking-tighter leading-[0.95] mb-8 text-[#111111] animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
             Make room <br/> for the law.
@@ -1958,10 +1958,10 @@ export default function App() {
             Chambers brings cases, people, and progress into one focused workspace built for the way modern law offices actually work.
           </p>
           <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 w-full sm:w-auto">
-            <Button onClick="{()"> { setAuthMode('login'); setCurrentView('auth'); }} className="w-full sm:w-auto px-8 py-3.5 text-base shadow-lg shadow-black/20 hover:shadow-xl hover:scale-105 transition-all">
-              Log in to your workspace <ArrowRight className="w-4 h-4 ml-2"/>
+            <Button onClick={() => { setAuthMode('login'); setCurrentView('auth'); }} className="w-full sm:w-auto px-8 py-3.5 text-base shadow-lg shadow-black/20 hover:shadow-xl hover:scale-105 transition-all">
+              Log in to your workspace <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
-            <Button onClick="{()" variant="secondary"> { setAuthMode('track'); setCurrentView('auth'); }} className="w-full sm:w-auto px-8 py-3.5 text-base font-bold bg-white text-black border border-[#E5E5E5] hover:bg-gray-50 hover:border-black shadow-sm transition-all">
+            <Button variant="secondary" onClick={() => { setAuthMode('track'); setCurrentView('auth'); }} className="w-full sm:w-auto px-8 py-3.5 text-base font-bold bg-white text-black border border-[#E5E5E5] hover:bg-gray-50 hover:border-black shadow-sm transition-all">
               Client Case Tracking
             </Button>
           </div>
@@ -1972,17 +1972,25 @@ export default function App() {
 
   if (currentView === 'auth') {
     return (
-      <AuthView goBack="{()" mode="{authMode}" onCreateOffice="{handleCreateOffice}" onJoinOffice="{handleJoinOffice}" onLogin="{handleLogin}" onResetPassword="{handleResetPassword}" onTrackCase="{handleTrackCase}" setMode="{setAuthMode}"> setCurrentView('landing')} 
+      <AuthView 
+        mode={authMode} 
+        setMode={setAuthMode} 
+        onLogin={handleLogin} 
+        onCreateOffice={handleCreateOffice} 
+        onJoinOffice={handleJoinOffice} 
+        onTrackCase={handleTrackCase} 
+        onResetPassword={handleResetPassword}
+        goBack={() => setCurrentView('landing')} 
       />
     );
   }
 
   if (currentView === 'client') {
-    return <ClientPortalView dbData="{dbData}" onExit="{handleLogout}" trackingCode="{trackedCode}"/>;
+    return <ClientPortalView trackingCode={trackedCode} dbData={dbData} onExit={handleLogout} />;
   }
 
   if (currentView === 'dashboard' && appUser) {
-    return <DashboardView currentUser="{appUser}" dbData="{dbData}" onLogout="{handleLogout}"/>;
+    return <DashboardView currentUser={appUser} dbData={dbData} onLogout={handleLogout} />;
   }
 
   return (
@@ -1991,4 +1999,3 @@ export default function App() {
     </div>
   );
 }
-```eof
