@@ -15,19 +15,19 @@ import {
   getFirestore, doc, setDoc, onSnapshot, collection, updateDoc 
 } from 'firebase/firestore';
 
-// Setup Firebase Configuration for Vercel/Production
+// This config dynamically pulls from Vercel environment variables or defaults to the Canvas preview config.
 let firebaseConfig = {
-  apiKey: "REPLACE_WITH_YOUR_API_KEY",
-  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
-  messagingSenderId: "REPLACE_WITH_YOUR_SENDER_ID",
-  appId: "REPLACE_WITH_YOUR_APP_ID"
+  apiKey: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? process.env.NEXT_PUBLIC_FIREBASE_API_KEY : "REPLACE_WITH_YOUR_API_KEY",
+  authDomain: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN : "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+  projectId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID : "REPLACE_WITH_YOUR_PROJECT_ID",
+  storageBucket: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ? process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET : "REPLACE_WITH_YOUR_STORAGE_BUCKET",
+  messagingSenderId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ? process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID : "REPLACE_WITH_YOUR_SENDER_ID",
+  appId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_APP_ID ? process.env.NEXT_PUBLIC_FIREBASE_APP_ID : "REPLACE_WITH_YOUR_APP_ID"
 };
 
 try {
   if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-    firebaseConfig = JSON.parse(__firebase_config);
+    firebaseConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
   }
 } catch (e) {
   console.error("Firebase config parsing error", e);
@@ -55,8 +55,8 @@ const ROLE_CONFIG = {
   'FIRED': { label: 'Terminated', bg: 'bg-red-100', text: 'text-red-700' }
 };
 
-const Card = ({ children, className = '', onClick }) => (
-  <div onClick={onClick} className={`bg-white border border-[#E5E5E5] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${className}`}>
+const Card = ({ children, className = '', onClick, ...props }) => (
+  <div onClick={onClick} className={`bg-white border border-[#E5E5E5] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${className}`} {...props}>
     {children}
   </div>
 );
@@ -254,7 +254,6 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
   const clientCases = dbData.cases.filter(c => c.trackingNumber === trackingCode);
   const [selectedCaseId, setSelectedCaseId] = useState(clientCases[0]?.id || null);
 
-  // Sync selected case if cases load later
   useEffect(() => {
     if (!selectedCaseId && clientCases.length > 0) setSelectedCaseId(clientCases[0].id);
   }, [clientCases, selectedCaseId]);
@@ -908,7 +907,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
   const handleStartVoiceRecording = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Speech recognition is not supported in this browser."); // Fallback message
+      alert("Speech recognition is not supported in this browser.");
       return;
     }
 
@@ -1170,6 +1169,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
         <div className="flex-1 overflow-auto bg-[#F9F9F9]">
           
+          {}
           {activeTab === 'overview' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
               <header className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
@@ -1287,6 +1287,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
+          {}
           {activeTab === 'ledger' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-6xl mx-auto h-full flex flex-col animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1382,6 +1383,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             />
           )}
 
+          {}
           {activeTab === 'tasks' && !activeCaseId && (
             <div className="p-6 md:p-10 h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
@@ -1476,6 +1478,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
+          {}
           {activeTab === 'team' && isSeniorOrManager && (
              <div className="p-6 md:p-10 max-w-4xl mx-auto animate-in fade-in duration-300">
                <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1594,6 +1597,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
              </div>
           )}
 
+          {}
           <Modal title="Open New Matter" isOpen={isNewMatterOpen} onClose={() => setIsNewMatterOpen(false)}>
             <form onSubmit={handleCreateMatter} className="space-y-5">
               <div className="space-y-4 pb-4 border-b border-gray-100">
@@ -1791,9 +1795,13 @@ export default function App() {
   // Firebase Auth Connection Guard
   useEffect(() => {
     const initAuth = async () => {
-      // Compliance with external sandbox requirement
+      // In the Canvas environment, this securely provisions access via a custom token.
       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        await signInWithCustomToken(auth, __initial_auth_token);
+        try {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } catch (e) {
+          console.warn("Failed to sign in with custom token. Real Firebase credentials in use?", e);
+        }
       }
     };
     initAuth();
@@ -1887,7 +1895,6 @@ export default function App() {
     setTrackedCode(null);
     setCurrentView('landing');
   };
-
 
   if (currentView === 'landing') {
     return (
