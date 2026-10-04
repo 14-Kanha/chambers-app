@@ -2,8 +2,41 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Scale, Briefcase, Calendar, CheckCircle2, FileText, Search, Settings, 
   Users, Plus, Filter, Clock, LogOut, ChevronRight, Download, Upload, 
-  FileCheck, Edit3, X, Paperclip, AlertCircle, Mic, Square, ArrowRight, Layers
+  FileCheck, Edit3, X, Paperclip, AlertCircle, Mic, Square, ArrowRight, Layers,
+  Mail, Lock, User
 } from 'lucide-react';
+
+import { initializeApp } from 'firebase/app';
+import { 
+  getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut 
+} from 'firebase/auth';
+import { 
+  getFirestore, doc, setDoc, onSnapshot, collection, updateDoc 
+} from 'firebase/firestore';
+
+// Setup Firebase Configuration for Vercel/Production
+let firebaseConfig = {
+  apiKey: "REPLACE_WITH_YOUR_API_KEY",
+  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
+  storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
+  messagingSenderId: "REPLACE_WITH_YOUR_SENDER_ID",
+  appId: "REPLACE_WITH_YOUR_APP_ID"
+};
+
+try {
+  if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+    firebaseConfig = JSON.parse(__firebase_config);
+  }
+} catch (e) {
+  console.error("Firebase config parsing error", e);
+}
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'chambers-prod-app';
 
 const ROLE_HIERARCHY = {
   'SENIOR_ADVOCATE': 4,
@@ -22,84 +55,18 @@ const ROLE_CONFIG = {
   'FIRED': { label: 'Terminated', bg: 'bg-red-100', text: 'text-red-700' }
 };
 
-const INITIAL_DB = {
-  offices: [
-    { id: 'off_1', name: 'Kapoor & Associates', inviteCode: 'CH-LEGAL1' }
-  ],
-  users: [
-    { id: 'u_1', officeId: 'off_1', name: 'Arjun Kapoor', email: 'arjun@chambers.com', password: 'password', role: 'SENIOR_ADVOCATE' },
-    { id: 'u_2', officeId: 'off_1', name: 'Neha Desai', email: 'neha@chambers.com', password: 'password', role: 'EMPLOYEE' }
-  ],
-  cases: [
-    { 
-      id: 'c_1', 
-      officeId: 'off_1', 
-      title: 'Sharma vs. TechCorp India', 
-      court: 'High Court', 
-      caseNumber: 'CS/1042/2026',
-      cnr: 'HC0982-2026', 
-      partyOne: [{name: 'Rajesh Sharma', mobile: '+919876543210'}], 
-      partyTwo: [{name: 'TechCorp India Ltd.', mobile: '+919123456789'}],
-      nextHearing: '2026-04-15T00:00:00.000Z', 
-      status: 'Active',
-      trackingNumber: 'TRK-ABC123'
-    },
-    { 
-      id: 'c_2', 
-      officeId: 'off_1', 
-      title: 'Sharma Real Estate Acquisition', 
-      court: 'Advisory', 
-      caseNumber: 'ADV/204/2026',
-      cnr: '', 
-      partyOne: [{name: 'Rajesh Sharma', mobile: '+919876543210'}], 
-      partyTwo: [],
-      nextHearing: null, 
-      status: 'Active',
-      trackingNumber: 'TRK-ABC123'
-    }
-  ],
-  updates: [
-    { id: 'up_1', caseId: 'c_1', authorId: 'u_2', title: 'Rejoinder Drafted', text: 'Rejoinder drafted. Awaiting client signature before filing.', timestamp: '2026-03-30T10:00:00.000Z', attachment: 'Draft_Rejoinder.pdf' }
-  ],
-  tasks: [
-    { id: 't_1', caseId: 'c_1', title: 'File signed rejoinder with registry', assigneeIds: ['u_2'], status: 'TODO', dueDate: '2026-04-10', createdAt: 'Mar 30, 2026', voiceNote: 'Make sure to attach the affidavit.' }
-  ],
-  documents: [
-    { id: 'd_1', caseId: 'c_1', name: 'Draft_Rejoinder.pdf', date: '2026-03-30' }
-  ],
-  invoices: [
-    { id: 'INV-001', officeId: 'off_1', caseId: 'c_1', amount: 45000, status: 'SENT', date: '2026-03-25', attachment: 'Invoice_001.pdf' }
-  ]
-};
-
-const loadState = (key, defaultVal) => {
-  try {
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (key === 'chambers_db') {
-         return { ...defaultVal, ...parsed };
-      }
-      return parsed;
-    }
-  } catch (e) {
-    console.error("Local storage error:", e);
-  }
-  return defaultVal;
-};
-
-const Card = ({ children, className = '', ...props }) => (
-  <div className={`bg-white border border-[#E5E5E5] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${className}`} {...props}>
+const Card = ({ children, className = '', onClick }) => (
+  <div onClick={onClick} className={`bg-white border border-[#E5E5E5] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${className}`}>
     {children}
   </div>
 );
 
-const Button = ({ children, onClick, variant = 'primary', type = 'button', className = '' }) => {
-  const base = "px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center cursor-pointer active:scale-[0.98]";
+const Button = ({ children, onClick, variant = 'primary', type = 'button', className = '', disabled = false }) => {
+  const base = "px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed";
   const styles = variant === 'primary' 
     ? `${base} bg-[#111111] text-white hover:bg-black shadow-sm`
     : `${base} bg-[#F0F0F0] text-[#111111] hover:bg-[#E5E5E5]`;
-  return <button type={type} onClick={onClick} className={`${styles} ${className}`}>{children}</button>;
+  return <button type={type} onClick={onClick} disabled={disabled} className={`${styles} ${className}`}>{children}</button>;
 };
 
 const RoleBadge = ({ role }) => {
@@ -137,24 +104,42 @@ const SidebarItem = ({ id, name, icon: Icon, activeTab, onClick }) => {
   );
 };
 
-const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrackCase, goBack }) => {
+const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrackCase, onResetPassword, goBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [officeName, setOfficeName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [trackingNumber, setTrackingNumber] = useState('');
+  
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (mode === 'login') onLogin(email, password);
-    else if (mode === 'signup') onCreateOffice(name, email, password, officeName);
-    else if (mode === 'join') onJoinOffice(name, email, password, inviteCode);
-    else if (mode === 'track') onTrackCase(trackingNumber);
+    setErrorMsg('');
+    setSuccessMsg('');
+    setIsLoading(true);
+
+    try {
+      if (mode === 'login') await onLogin(email, password);
+      else if (mode === 'signup') await onCreateOffice(name, email, password, officeName);
+      else if (mode === 'join') await onJoinOffice(name, email, password, inviteCode);
+      else if (mode === 'track') await onTrackCase(trackingNumber);
+      else if (mode === 'reset') {
+        await onResetPassword(email);
+        setSuccessMsg("If an account exists, a password reset link has been sent to your email.");
+      }
+    } catch (err) {
+      setErrorMsg(err.message || "An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F9F9] flex flex-col justify-center items-center p-6">
+    <div className="min-h-screen bg-[#F9F9F9] flex flex-col justify-center items-center p-6 relative">
       <button onClick={goBack} className="absolute top-6 left-6 flex items-center text-sm font-medium text-gray-500 hover:text-black transition-colors">
         <ChevronRight className="w-4 h-4 mr-1 rotate-180" /> Back to Home
       </button>
@@ -169,14 +154,20 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
             {mode === 'signup' && 'Create law chambers'}
             {mode === 'join' && 'Join an existing office'}
             {mode === 'track' && 'Client Case Tracking'}
+            {mode === 'reset' && 'Reset your password'}
           </h3>
           <p className="text-sm text-gray-500">
             {mode === 'login' && 'Enter your credentials to access your cases.'}
             {mode === 'signup' && 'Set up your practice workspace.'}
             {mode === 'join' && 'Enter your invite code provided by your admin.'}
             {mode === 'track' && 'Enter the tracking code provided by your advocate.'}
+            {mode === 'reset' && 'Enter your email to receive a secure reset link.'}
           </p>
         </div>
+
+        {errorMsg && <div className="mb-4 bg-red-50 text-red-700 p-3 rounded-lg text-sm border border-red-200 flex items-start"><AlertCircle className="w-4 h-4 mr-2 shrink-0 mt-0.5" /> <span>{errorMsg}</span></div>}
+        {successMsg && <div className="mb-4 bg-green-50 text-green-700 p-3 rounded-lg text-sm border border-green-200 flex items-start"><CheckCircle2 className="w-4 h-4 mr-2 shrink-0 mt-0.5" /> <span>{successMsg}</span></div>}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'track' ? (
             <div>
@@ -188,17 +179,34 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
               {(mode === 'signup' || mode === 'join') && (
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Full Name</label>
-                  <input required type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Priya Sharma" className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
+                  <div className="relative">
+                    <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input required type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Priya Sharma" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
+                  </div>
                 </div>
               )}
+              
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
-                <input required type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@chambers.com" className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input required type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@chambers.com" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Password</label>
-                <input required type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
-              </div>
+              
+              {mode !== 'reset' && (
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-xs font-bold text-gray-700">Password</label>
+                    {mode === 'login' && <button type="button" onClick={() => setMode('reset')} className="text-xs font-medium text-[#4F46E5] hover:underline">Forgot password?</button>}
+                  </div>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input required type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
+                  </div>
+                </div>
+              )}
+
               {mode === 'signup' && (
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Office / Chambers Name</label>
@@ -213,23 +221,28 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
               )}
             </>
           )}
-          <Button type="submit" className="w-full py-3.5 mt-2">
-            {mode === 'login' && 'Log in'}
-            {mode === 'signup' && 'Create Practice'}
-            {mode === 'join' && 'Request to Join'}
-            {mode === 'track' && 'View Case Status'}
+          <Button type="submit" disabled={isLoading} className="w-full py-3.5 mt-2">
+            {isLoading ? 'Processing...' : (
+              <>
+                {mode === 'login' && 'Log in'}
+                {mode === 'signup' && 'Create Practice'}
+                {mode === 'join' && 'Request to Join'}
+                {mode === 'track' && 'View Case Status'}
+                {mode === 'reset' && 'Send Reset Link'}
+              </>
+            )}
           </Button>
         </form>
         <div className="mt-6 pt-6 border-t border-[#E5E5E5] text-center text-sm text-gray-500 space-y-2">
           {mode === 'login' && (
             <>
-              <p>Don't have an office? <button onClick={() => setMode('signup')} className="text-black font-bold underline">Create chambers</button></p>
-              <p>Have an invite code? <button onClick={() => setMode('join')} className="text-black font-bold underline">Join office</button></p>
-              <p>Are you a client? <button onClick={() => setMode('track')} className="text-black font-bold underline">Track case with code</button></p>
+              <p>Don't have an office? <button onClick={() => setMode('signup')} className="text-black font-bold hover:underline">Create chambers</button></p>
+              <p>Have an invite code? <button onClick={() => setMode('join')} className="text-black font-bold hover:underline">Join office</button></p>
+              <p>Are you a client? <button onClick={() => setMode('track')} className="text-black font-bold hover:underline">Track case with code</button></p>
             </>
           )}
           {mode !== 'login' && (
-            <p>Already have an account? <button onClick={() => setMode('login')} className="text-black font-bold underline">Log in</button></p>
+            <p>Already have an account? <button onClick={() => { setMode('login'); setErrorMsg(''); setSuccessMsg(''); }} className="text-black font-bold hover:underline">Return to Log in</button></p>
           )}
         </div>
       </Card>
@@ -237,15 +250,31 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
   );
 };
 
-const ClientPortalView = ({ trackedCase, db, onExit }) => {
-  const [selectedCaseId, setSelectedCaseId] = useState(trackedCase?.id || null);
+const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
+  const clientCases = dbData.cases.filter(c => c.trackingNumber === trackingCode);
+  const [selectedCaseId, setSelectedCaseId] = useState(clientCases[0]?.id || null);
 
-  const clientCases = db.cases.filter(c => c.trackingNumber === trackedCase?.trackingNumber);
-  const activeCase = clientCases.find(c => c.id === selectedCaseId) || clientCases[0] || trackedCase;
+  // Sync selected case if cases load later
+  useEffect(() => {
+    if (!selectedCaseId && clientCases.length > 0) setSelectedCaseId(clientCases[0].id);
+  }, [clientCases, selectedCaseId]);
+
+  const activeCase = clientCases.find(c => c.id === selectedCaseId) || clientCases[0];
   
-  const updates = db.updates.filter(u => u.caseId === activeCase?.id).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-  const docs = db.documents.filter(d => d.caseId === activeCase?.id);
-  const invoices = db.invoices.filter(i => i.caseId === activeCase?.id);
+  const updates = dbData.updates.filter(u => u.caseId === activeCase?.id).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const docs = dbData.documents.filter(d => d.caseId === activeCase?.id);
+  const invoices = dbData.invoices.filter(i => i.caseId === activeCase?.id);
+
+  if (clientCases.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#F9F9F9] flex flex-col justify-center items-center p-6 text-center">
+         <AlertCircle className="w-12 h-12 text-amber-500 mb-4" />
+         <h2 className="text-xl font-bold mb-2">No Cases Found</h2>
+         <p className="text-gray-500 text-sm mb-6 max-w-sm">We couldn't find any active matters linked to tracking code <strong className="font-mono">{trackingCode}</strong>.</p>
+         <Button onClick={onExit}>Return to Home</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F9F9F9] text-[#111111] font-sans flex flex-col">
@@ -259,7 +288,7 @@ const ClientPortalView = ({ trackedCase, db, onExit }) => {
       <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 overflow-y-auto">
         <div className="mb-6">
           <div className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1 flex items-center">
-             Tracking Code: <span className="text-[#111111] ml-2 font-mono bg-gray-200 px-2 py-0.5 rounded">{trackedCase?.trackingNumber}</span>
+             Tracking Code: <span className="text-[#111111] ml-2 font-mono bg-gray-200 px-2 py-0.5 rounded">{trackingCode}</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Case Status Dashboard</h1>
         </div>
@@ -272,7 +301,7 @@ const ClientPortalView = ({ trackedCase, db, onExit }) => {
               <button 
                 key={c.id} 
                 onClick={() => setSelectedCaseId(c.id)}
-                className={`px-4 py-2 text-xs font-bold rounded-lg border transition-all shrink-0 ${activeCase.id === c.id ? 'bg-[#111111] text-white border-[#111111] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-black hover:bg-gray-50'}`}
+                className={`px-4 py-2 text-xs font-bold rounded-lg border transition-all shrink-0 ${activeCase?.id === c.id ? 'bg-[#111111] text-white border-[#111111] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-black hover:bg-gray-50'}`}
               >
                 {c.title}
               </button>
@@ -366,7 +395,7 @@ const ClientPortalView = ({ trackedCase, db, onExit }) => {
   );
 };
 
-const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNewTask }) => {
+const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTask }) => {
   const [updateTitle, setUpdateTitle] = useState('');
   const [updateText, setUpdateText] = useState('');
   const [updateAttachmentFile, setUpdateAttachmentFile] = useState(null);
@@ -381,18 +410,19 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
   const [newDocName, setNewDocName] = useState('');
   const [newDocDate, setNewDocDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const activeCase = db.cases.find(c => c.id === activeCaseId);
-  const caseUpdates = db.updates.filter(u => u.caseId === activeCaseId).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-  const caseTasks = db.tasks.filter(t => t.caseId === activeCaseId);
-  const caseDocs = db.documents.filter(d => d.caseId === activeCaseId);
+  const activeCase = dbData.cases.find(c => c.id === activeCaseId);
+  const caseUpdates = dbData.updates.filter(u => u.caseId === activeCaseId).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const caseTasks = dbData.tasks.filter(t => t.caseId === activeCaseId);
+  const caseDocs = dbData.documents.filter(d => d.caseId === activeCaseId);
 
-  const handlePostUpdate = (e) => {
+  const handlePostUpdate = async (e) => {
     e.preventDefault();
     if (!updateTitle || !updateText) return;
     
     const docDisplayName = updateAttachmentName || updateAttachmentFile?.name;
+    const updateId = `up_${Date.now()}`;
     const newUpdate = {
-      id: `up_${Date.now()}`,
+      id: updateId,
       caseId: activeCaseId,
       authorId: currentUser.id,
       title: updateTitle,
@@ -400,16 +430,18 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
       timestamp: new Date().toISOString(),
       attachment: docDisplayName || null
     };
-    setDb(prev => ({ ...prev, updates: [newUpdate, ...prev.updates] }));
+    
+    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'updates', updateId), newUpdate);
     
     if (docDisplayName) {
+      const docId = `d_${Date.now()}`;
       const newDoc = {
-        id: `d_${Date.now()}`,
+        id: docId,
         caseId: activeCaseId,
         name: docDisplayName,
         date: new Date().toISOString().split('T')[0]
       };
-      setDb(prev => ({ ...prev, documents: [newDoc, ...prev.documents] }));
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'documents', docId), newDoc);
     }
     
     setUpdateTitle('');
@@ -418,16 +450,18 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
     setUpdateAttachmentName('');
   };
 
-  const handleUploadDocument = (e) => {
+  const handleUploadDocument = async (e) => {
     e.preventDefault();
     if (!newDocFile) return;
-    const doc = {
-      id: `d_${Date.now()}`,
+    const docId = `d_${Date.now()}`;
+    const documentRecord = {
+      id: docId,
       caseId: activeCaseId,
       name: newDocName || newDocFile.name,
       date: newDocDate
     };
-    setDb(prev => ({ ...prev, documents: [doc, ...prev.documents] }));
+    
+    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'documents', docId), documentRecord);
     setIsDocModalOpen(false);
     setNewDocFile(null);
     setNewDocName('');
@@ -447,17 +481,13 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEdits = (e) => {
+  const handleSaveEdits = async (e) => {
     e.preventDefault();
-    setDb(prev => ({
-      ...prev,
-      cases: prev.cases.map(c => c.id === activeCaseId ? { 
-        ...c, 
-        ...editCaseData,
-        trackingNumber: editCaseData.trackingNumber ? editCaseData.trackingNumber.toUpperCase().trim() : c.trackingNumber,
-        nextHearing: editCaseData.nextHearing ? new Date(editCaseData.nextHearing).toISOString() : null
-      } : c)
-    }));
+    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', activeCaseId), {
+      ...editCaseData,
+      trackingNumber: editCaseData.trackingNumber ? editCaseData.trackingNumber.toUpperCase().trim() : activeCase.trackingNumber,
+      nextHearing: editCaseData.nextHearing ? new Date(editCaseData.nextHearing).toISOString() : null
+    });
     setIsEditModalOpen(false);
   };
 
@@ -467,7 +497,7 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
     if (!assigneeIds.includes(currentUser.id)) return false;
     if (currentUser.role === 'MANAGER') return true;
     
-    const assignees = assigneeIds.map(id => db.users.find(u => u.id === id)).filter(Boolean);
+    const assignees = assigneeIds.map(id => dbData.users.find(u => u.id === id)).filter(Boolean);
     const myRank = ROLE_HIERARCHY[currentUser.role] || 0;
     const hasHigherRankAssigned = assignees.some(a => (ROLE_HIERARCHY[a.role] || 0) > myRank);
     
@@ -477,7 +507,7 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
   if (!activeCase) return null;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto animate-in slide-in-from-right-4 duration-300">
+    <div className="p-8 max-w-6xl mx-auto animate-in slide-in-from-right-4 duration-300 w-full">
       <button onClick={goBack} className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-black transition-colors">
         <ChevronRight className="w-4 h-4 mr-1 rotate-180" /> Back to Ledger
       </button>
@@ -536,7 +566,7 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
         </Card>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-4 bg-white border border-[#E5E5E5] shadow-sm">
             <form onSubmit={handlePostUpdate} className="space-y-3">
@@ -570,7 +600,7 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
 
           <div className="space-y-6 border-l-2 ml-4 border-[#E5E5E5] pl-6 relative py-4">
             {caseUpdates.map((u) => {
-              const author = db.users.find(user=>user.id === u.authorId);
+              const author = dbData.users.find(user=>user.id === u.authorId);
               return (
                 <div key={u.id} className="relative group">
                   <div className="absolute -left-[31px] top-1.5 w-3 h-3 bg-white border-2 border-[#111111] rounded-full group-hover:scale-125 transition-transform"></div>
@@ -609,7 +639,7 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
             </div>
             <div className="space-y-3">
               {caseTasks.length === 0 ? <div className="text-sm text-gray-500 italic p-4 text-center bg-gray-50 rounded border border-dashed border-gray-200">No active tasks.</div> : caseTasks.map(t => {
-                const assignees = (t.assigneeIds || []).map(id => db.users.find(u=>u.id===id)).filter(Boolean);
+                const assignees = (t.assigneeIds || []).map(id => dbData.users.find(u=>u.id===id)).filter(Boolean);
                 const canModify = canUserModifyTask(t);
                 return (
                   <div key={t.id} className="flex justify-between items-start text-sm border-b border-gray-100 pb-3 last:border-0 last:pb-0 group">
@@ -635,9 +665,11 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
                       type="checkbox" 
                       checked={t.status === 'COMPLETED'} 
                       disabled={!canModify}
-                      onChange={() => {
+                      onChange={async () => {
                         if (!canModify) return;
-                        setDb(prev => ({...prev, tasks: prev.tasks.map(tk => tk.id === t.id ? {...tk, status: t.status === 'COMPLETED' ? 'TODO' : 'COMPLETED'} : tk)}));
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), {
+                           status: t.status === 'COMPLETED' ? 'TODO' : 'COMPLETED'
+                        });
                       }} 
                       className={`mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black ${canModify ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'}`} 
                       title={canModify ? "Toggle Status" : "Insufficient permissions to edit this task."}
@@ -750,7 +782,7 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
       <Modal title="Generate Case Brief" isOpen={showBriefModal} onClose={() => setShowBriefModal(false)}>
         <div className="bg-gray-50 p-6 rounded-md border border-gray-200 font-serif text-sm h-64 overflow-y-auto mb-4">
           <div className="text-center mb-6 border-b pb-4">
-            <h1 className="font-bold text-lg uppercase tracking-widest">{db.offices.find(o=>o.id === activeCase.officeId)?.name || 'Chambers'}</h1>
+            <h1 className="font-bold text-lg uppercase tracking-widest">{dbData.offices.find(o=>o.id === activeCase.officeId)?.name || 'Chambers'}</h1>
             <div className="text-gray-500 text-xs mt-1 font-sans">CONFIDENTIAL CASE BRIEF</div>
           </div>
           <h2 className="font-bold text-lg mb-1">{activeCase.title}</h2>
@@ -819,7 +851,7 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
   );
 };
 
-const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
+const DashboardView = ({ currentUser, dbData, onLogout }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [activeCaseId, setActiveCaseId] = useState(null);
   
@@ -853,9 +885,9 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
 
   const [draggingColumn, setDraggingColumn] = useState(null);
 
-  const myOfficeCases = db.cases.filter(c => c.officeId === currentUser.officeId);
+  const myOfficeCases = dbData.cases.filter(c => c.officeId === currentUser.officeId);
   const activeCasesCount = myOfficeCases.filter(c => c.status === 'Active').length;
-  const myOfficeTasks = db.tasks.filter(t => myOfficeCases.map(c=>c.id).includes(t.caseId));
+  const myOfficeTasks = dbData.tasks.filter(t => myOfficeCases.map(c=>c.id).includes(t.caseId));
 
   const isSeniorOrManager = currentUser.role === 'SENIOR_ADVOCATE' || currentUser.role === 'MANAGER';
 
@@ -866,7 +898,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
     if (!assigneeIds.includes(currentUser.id)) return false; 
     if (currentUser.role === 'MANAGER') return true;
     
-    const assignees = assigneeIds.map(id => db.users.find(u => u.id === id)).filter(Boolean);
+    const assignees = assigneeIds.map(id => dbData.users.find(u => u.id === id)).filter(Boolean);
     const myRank = ROLE_HIERARCHY[currentUser.role] || 0;
     const hasHigherRankAssigned = assignees.some(a => (ROLE_HIERARCHY[a.role] || 0) > myRank);
     
@@ -876,7 +908,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
   const handleStartVoiceRecording = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Speech recognition is not supported in this browser. Please type your task description instead.");
+      alert("Speech recognition is not supported in this browser."); // Fallback message
       return;
     }
 
@@ -927,16 +959,13 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
     if (draggingColumn !== status) setDraggingColumn(status);
   };
 
-  const handleDrop = (e, newStatus) => {
+  const handleDrop = async (e, newStatus) => {
     e.preventDefault();
     setDraggingColumn(null);
     const taskId = e.dataTransfer.getData('text/plain');
-    const task = db.tasks.find(t => t.id === taskId);
+    const task = dbData.tasks.find(t => t.id === taskId);
     if (task && canUserModifyTask(task)) {
-      setDb(prev => ({
-        ...prev,
-        tasks: prev.tasks.map(tk => tk.id === taskId ? { ...tk, status: newStatus } : tk)
-      }));
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId), { status: newStatus });
     }
   };
 
@@ -950,7 +979,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
     setIsNewTaskModalOpen(true);
   };
 
-  const handleCreateTask = (e) => {
+  const handleCreateTask = async (e) => {
     e.preventDefault();
     if (!newTaskTitle || !newTaskCaseId) return;
 
@@ -959,13 +988,13 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
     const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
     if (editingTaskId) {
-      setDb(prev => ({
-        ...prev, 
-        tasks: prev.tasks.map(t => t.id === editingTaskId ? { ...t, title: newTaskTitle, caseId: newTaskCaseId, assigneeIds: finalAssigneeIds, voiceNote: newTaskVoiceNote, dueDate: newTaskDueDate || t.dueDate } : t)
-      }));
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', editingTaskId), {
+         title: newTaskTitle, caseId: newTaskCaseId, assigneeIds: finalAssigneeIds, voiceNote: newTaskVoiceNote, dueDate: newTaskDueDate || dueDateStr
+      });
     } else {
+      const taskId = `t_${Date.now()}`;
       const newTask = {
-        id: `t_${Date.now()}`,
+        id: taskId,
         caseId: newTaskCaseId,
         title: newTaskTitle,
         assigneeIds: finalAssigneeIds,
@@ -974,7 +1003,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
         createdAt: todayStr,
         voiceNote: newTaskVoiceNote
       };
-      setDb(prev => ({...prev, tasks: [...prev.tasks, newTask]}));
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId), newTask);
     }
 
     if (recognitionRef.current) recognitionRef.current.stop();
@@ -988,13 +1017,14 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
     setNewTaskVoiceNote('');
   };
 
-  const handleGenerateInvoice = (e) => {
+  const handleGenerateInvoice = async (e) => {
     e.preventDefault();
     if (!invoiceCaseId || !invoiceAmount) return;
     
     const randomId = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const invId = `INV-${randomId}`;
     const newInvoice = {
-      id: `INV-${randomId}`,
+      id: invId,
       officeId: currentUser.officeId,
       caseId: invoiceCaseId,
       amount: parseFloat(invoiceAmount),
@@ -1003,18 +1033,19 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
       attachment: invoiceFile ? invoiceFile.name : null
     };
 
-    setDb(prev => ({...prev, invoices: [newInvoice, ...prev.invoices]}));
+    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'invoices', invId), newInvoice);
     setIsInvoiceModalOpen(false);
     setInvoiceCaseId('');
     setInvoiceAmount('');
     setInvoiceFile(null);
   };
 
-  const handleCreateMatter = (e) => {
+  const handleCreateMatter = async (e) => {
     e.preventDefault();
     if (!newTitle) return;
+    const caseId = `c_${Date.now()}`;
     const newCase = {
-      id: `c_${Date.now()}`,
+      id: caseId,
       officeId: currentUser.officeId,
       title: newTitle,
       court: newCourt || 'Pending Court Assignment',
@@ -1026,7 +1057,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
       status: 'Active',
       trackingNumber: newTrackingNumber ? newTrackingNumber.toUpperCase().trim() : `TRK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
     };
-    setDb(prev => ({ ...prev, cases: [newCase, ...prev.cases] }));
+    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', caseId), newCase);
     setIsNewMatterOpen(false);
     setNewTitle('');
     setNewCaseNumber('');
@@ -1038,13 +1069,12 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
     setActiveTab('ledger');
   };
 
-  const handleFireUser = (e) => {
+  const handleFireUser = async (e) => {
     e.preventDefault();
     if (!userToFire || !fireReason) return;
-    setDb(prev => ({
-      ...prev,
-      users: prev.users.map(u => u.id === userToFire.id ? { ...u, role: 'FIRED', firedReason: fireReason } : u)
-    }));
+    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userToFire.id), {
+      role: 'FIRED', firedReason: fireReason
+    });
     setIsFireModalOpen(false);
     setUserToFire(null);
     setFireReason('');
@@ -1088,13 +1118,13 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
   return (
     <div className="min-h-screen bg-[#F9F9F9] text-[#111111] font-sans flex h-screen overflow-hidden">
       <aside className="w-64 bg-white border-r border-[#E5E5E5] flex flex-col flex-shrink-0 z-20 shadow-[2px_0_12px_rgba(0,0,0,0.02)] hidden md:flex">
-        <div 
+        <button 
           onClick={() => handleTabChange('overview')} 
-          className="h-16 flex items-center px-6 border-b border-[#E5E5E5] cursor-pointer hover:bg-gray-50 transition-colors group"
+          className="h-16 flex items-center px-6 border-b border-[#E5E5E5] hover:bg-gray-50 transition-colors group text-left w-full focus:outline-none"
         >
           <Scale className="w-5 h-5 mr-2 text-black group-hover:scale-110 transition-transform" />
           <h1 className="font-bold tracking-tight text-lg">Chambers</h1>
-        </div>
+        </button>
         <div className="px-6 py-4 border-b border-[#E5E5E5] bg-gray-50 flex items-center justify-between shrink-0">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest flex items-center">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></span> Systems Online
@@ -1127,10 +1157,10 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
 
       <main className="flex-1 flex flex-col overflow-hidden relative z-10">
         <header className="md:hidden h-14 bg-white border-b border-[#E5E5E5] flex justify-between items-center px-4 shrink-0">
-           <div onClick={() => handleTabChange('overview')} className="flex items-center space-x-2 font-bold cursor-pointer">
+           <button onClick={() => handleTabChange('overview')} className="flex items-center space-x-2 font-bold focus:outline-none">
               <Scale className="w-5 h-5 text-black" />
               <span>Chambers</span>
-           </div>
+           </button>
            <div className="flex space-x-2">
              <button onClick={() => handleTabChange('ledger')} className="p-2 text-gray-500 hover:text-black"><Briefcase className="w-5 h-5" /></button>
              <button onClick={() => handleTabChange('tasks')} className="p-2 text-gray-500 hover:text-black"><CheckCircle2 className="w-5 h-5" /></button>
@@ -1184,9 +1214,9 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
                     <button onClick={()=>setActiveTab('ledger')} className="text-sm font-medium text-gray-500 hover:text-black transition-colors">View all</button>
                   </div>
                   <div className="space-y-4">
-                    {db.updates.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,4).map(up => {
-                      const c = db.cases.find(c=>c.id === up.caseId);
-                      const u = db.users.find(u=>u.id === up.authorId);
+                    {dbData.updates.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,4).map(up => {
+                      const c = dbData.cases.find(c=>c.id === up.caseId);
+                      const u = dbData.users.find(u=>u.id === up.authorId);
                       if(!c || c.officeId !== currentUser.officeId) return null;
                       return (
                         <Card key={up.id} onClick={() => {setActiveTab('ledger'); setActiveCaseId(c.id);}} className="p-5 hover:border-black transition-all cursor-pointer group">
@@ -1221,7 +1251,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
                       })
                       .slice(0, 4)
                       .map(t => {
-                        const c = db.cases.find(c=>c.id === t.caseId);
+                        const c = dbData.cases.find(c=>c.id === t.caseId);
                         const canModify = canUserModifyTask(t);
                         return (
                           <Card key={t.id} className="p-5 flex items-center hover:border-black transition-colors group">
@@ -1237,9 +1267,9 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
                               type="checkbox" 
                               disabled={!canModify}
                               className={`w-5 h-5 rounded border-gray-300 text-black focus:ring-black ${canModify ? 'cursor-pointer hover:scale-110 transition-transform' : 'opacity-40 cursor-not-allowed'}`} 
-                              onChange={() => {
+                              onChange={async () => {
                                 if (!canModify) return;
-                                setDb(prev => ({...prev, tasks: prev.tasks.map(tk => tk.id === t.id ? {...tk, status: 'COMPLETED'} : tk)}));
+                                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), { status: 'COMPLETED' });
                               }} 
                               title={canModify ? "Mark as Completed" : "Insufficient permissions"} 
                             />
@@ -1293,7 +1323,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
                       </div>
                     )}
                     {myOfficeCases.map((c, idx) => {
-                      const latestUpdate = db.updates.filter(u=>u.caseId === c.id).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];
+                      const latestUpdate = dbData.updates.filter(u=>u.caseId === c.id).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];
                       return (
                         <div key={c.id} onClick={() => setActiveCaseId(c.id)} className={`p-4 mx-2 flex items-center hover:bg-[#F9F9F9] rounded-lg transition-colors cursor-pointer group ${idx !== 0 ? 'border-t border-[#E5E5E5]' : ''}`}>
                           <div className="grid grid-cols-12 gap-4 w-full items-center">
@@ -1338,8 +1368,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
             <CaseDetailView 
               activeCaseId={activeCaseId} 
               goBack={() => setActiveCaseId(null)} 
-              db={db} 
-              setDb={setDb} 
+              dbData={dbData} 
               currentUser={currentUser} 
               onOpenNewTask={() => {
                 setEditingTaskId(null);
@@ -1388,8 +1417,8 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
                       </div>
                       <div className="flex-1 p-3 overflow-y-auto space-y-3 min-h-[150px]">
                         {colTasks.map(t => {
-                           const c = db.cases.find(c=>c.id===t.caseId);
-                           const assignees = (t.assigneeIds || []).map(id => db.users.find(u=>u.id===id)).filter(Boolean);
+                           const c = dbData.cases.find(c=>c.id===t.caseId);
+                           const assignees = (t.assigneeIds || []).map(id => dbData.users.find(u=>u.id===id)).filter(Boolean);
                            const canModify = canUserModifyTask(t);
                            return (
                             <Card 
@@ -1425,9 +1454,9 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
                                   className={`text-[10px] font-bold bg-white outline-none border border-gray-200 rounded px-1.5 py-1 uppercase tracking-wider shadow-sm ${canModify ? 'cursor-pointer hover:bg-gray-50 hover:border-black' : 'opacity-50 cursor-not-allowed'}`}
                                   value={t.status}
                                   disabled={!canModify}
-                                  onChange={(e) => {
+                                  onChange={async (e) => {
                                     if (!canModify) return;
-                                    setDb(prev => ({...prev, tasks: prev.tasks.map(tk => tk.id === t.id ? {...tk, status: e.target.value} : tk)}));
+                                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), { status: e.target.value });
                                   }}
                                 >
                                   <option value="TODO">Todo</option>
@@ -1455,7 +1484,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
                    <p className="text-sm text-gray-500 mt-1">Manage office members and set role-based permissions.</p>
                  </div>
                  <div className="bg-white border border-[#E5E5E5] text-[#111111] px-4 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm shrink-0">
-                   Invite Code: <span className="ml-3 font-mono font-bold tracking-widest text-[#4F46E5] bg-indigo-50 px-2 py-0.5 rounded">{db.offices.find(o=>o.id === currentUser.officeId)?.inviteCode}</span>
+                   Invite Code: <span className="ml-3 font-mono font-bold tracking-widest text-[#4F46E5] bg-indigo-50 px-2 py-0.5 rounded">{dbData.offices.find(o=>o.id === currentUser.officeId)?.inviteCode}</span>
                  </div>
                </header>
                <Card className="overflow-hidden">
@@ -1463,7 +1492,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
                    Workspace Members
                  </div>
                  <div className="divide-y divide-[#E5E5E5]">
-                   {db.users.filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT').map(user => (
+                   {dbData.users.filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT').map(user => (
                      <div key={user.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition-colors pl-6 gap-4">
                        <div className="flex items-center space-x-4">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-inner shrink-0 ${ROLE_CONFIG[user.role]?.bg} ${ROLE_CONFIG[user.role]?.text}`}>
@@ -1481,7 +1510,9 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
                              <select 
                                className="text-xs font-bold uppercase tracking-wider border border-[#E5E5E5] rounded p-2 outline-none focus:border-black cursor-pointer bg-white shadow-sm hover:bg-gray-50 transition-colors"
                                value={user.role}
-                               onChange={(e) => setDb(prev => ({...prev, users: prev.users.map(u => u.id === user.id ? {...u, role: e.target.value} : u)}))}
+                               onChange={async (e) => {
+                                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user.id), { role: e.target.value });
+                               }}
                              >
                                <option value="PENDING">Pending</option>
                                <option value="INTERN">Intern</option>
@@ -1530,23 +1561,25 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
                      </tr>
                    </thead>
                    <tbody className="divide-y divide-[#E5E5E5]">
-                     {db.invoices.filter(i=>i.officeId === currentUser.officeId).length === 0 && (
+                     {dbData.invoices.filter(i=>i.officeId === currentUser.officeId).length === 0 && (
                         <tr><td colSpan="5" className="p-8 text-center text-gray-500 italic">No invoices generated yet.</td></tr>
                      )}
-                     {db.invoices.filter(i=>i.officeId === currentUser.officeId).map(inv => (
+                     {dbData.invoices.filter(i=>i.officeId === currentUser.officeId).map(inv => (
                        <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
                          <td className="p-5 font-mono font-bold text-[#111111]">
                            {inv.id}
                            {inv.attachment && <div className="text-[10px] text-[#4F46E5] font-sans mt-0.5 flex items-center font-medium"><Paperclip className="w-3 h-3 mr-1"/> {inv.attachment}</div>}
                          </td>
-                         <td className="p-5 font-medium">{db.cases.find(c=>c.id===inv.caseId)?.title || 'Unknown'}</td>
+                         <td className="p-5 font-medium">{dbData.cases.find(c=>c.id===inv.caseId)?.title || 'Unknown'}</td>
                          <td className="p-5 text-gray-500 font-medium">{new Date(inv.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</td>
                          <td className="p-5 font-bold">₹{inv.amount.toLocaleString('en-IN')}</td>
                          <td className="p-5 text-right">
                             <select 
                              className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-md cursor-pointer border-none outline-none shadow-sm transition-colors ${inv.status==='SETTLED' ? 'bg-gray-100 text-gray-400 line-through' : 'bg-[#111111] text-white hover:bg-black'}`}
                              value={inv.status}
-                             onChange={(e) => setDb(prev => ({...prev, invoices: prev.invoices.map(i => i.id === inv.id ? {...i, status: e.target.value} : i)}))}
+                             onChange={async (e) => {
+                               await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'invoices', inv.id), { status: e.target.value });
+                             }}
                            >
                              <option value="DRAFT">Draft</option>
                              <option value="SENT">Sent</option>
@@ -1675,7 +1708,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Assign To (Multiple allowed)</label>
                 <div className="max-h-32 overflow-y-auto border border-[#E5E5E5] rounded-lg bg-[#F9F9F9] p-2 space-y-1 shadow-inner">
-                  {db.users.filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT' && u.role !== 'PENDING').map(u => (
+                  {dbData.users.filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT' && u.role !== 'PENDING').map(u => (
                     <label key={u.id} className="flex items-center space-x-3 p-2 hover:bg-white rounded-md cursor-pointer transition-colors border border-transparent hover:border-gray-200 hover:shadow-sm">
                       <input 
                         type="checkbox" 
@@ -1745,73 +1778,116 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
 };
 
 export default function App() {
-  const [db, setDb] = useState(() => loadState('chambers_db', INITIAL_DB));
-  const [currentUser, setCurrentUser] = useState(() => loadState('chambers_user', null));
-  const [trackedCase, setTrackedCase] = useState(() => loadState('chambers_tracked_case', null));
-  const [currentView, setCurrentView] = useState(() => loadState('chambers_view', 'landing'));
-  const [authMode, setAuthMode] = useState(() => loadState('chambers_auth_mode', 'login'));
+  const [dbData, setDbData] = useState({
+    offices: [], users: [], cases: [], updates: [], tasks: [], documents: [], invoices: []
+  });
+  
+  const [authUser, setAuthUser] = useState(null);
+  const [appUser, setAppUser] = useState(null); 
+  const [trackedCode, setTrackedCode] = useState(null);
+  const [currentView, setCurrentView] = useState('landing');
+  const [authMode, setAuthMode] = useState('login');
 
-  useEffect(() => { localStorage.setItem('chambers_db', JSON.stringify(db)); }, [db]);
-  useEffect(() => { localStorage.setItem('chambers_user', JSON.stringify(currentUser)); }, [currentUser]);
-  useEffect(() => { localStorage.setItem('chambers_tracked_case', JSON.stringify(trackedCase)); }, [trackedCase]);
-  useEffect(() => { localStorage.setItem('chambers_view', JSON.stringify(currentView)); }, [currentView]);
-  useEffect(() => { localStorage.setItem('chambers_auth_mode', JSON.stringify(authMode)); }, [authMode]);
-
+  // Firebase Auth Connection Guard
   useEffect(() => {
-    if (!db.users || db.users.length === 0) {
-      setDb(INITIAL_DB);
-    }
-  }, [db]);
+    const initAuth = async () => {
+      // Compliance with external sandbox requirement
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        await signInWithCustomToken(auth, __initial_auth_token);
+      }
+    };
+    initAuth();
 
-  const handleLogin = (email, password) => {
-    const user = db.users.find(u => u.email === email && u.password === password);
-    if (user) {
-      setCurrentUser(user);
-      setCurrentView(user.role === 'CLIENT' ? 'client' : 'dashboard');
-    } else {
-      alert("Invalid credentials. Demo accounts: arjun@chambers.com or neha@chambers.com (password: password)");
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setAuthUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Real-time Firestore Multi-Collection Sync Guarded by Authentication
+  useEffect(() => {
+    if (!authUser) {
+       setAppUser(null);
+       return;
     }
+
+    const cols = ['offices', 'users', 'cases', 'updates', 'tasks', 'documents', 'invoices'];
+    const unsubscribes = cols.map(colName => {
+       return onSnapshot(
+         collection(db, 'artifacts', appId, 'public', 'data', colName),
+         (snapshot) => {
+           const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+           setDbData(prev => ({ ...prev, [colName]: data }));
+         },
+         (error) => console.error(`Error syncing ${colName}:`, error)
+       );
+    });
+
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, [authUser]);
+
+  // Sync App User Identity 
+  useEffect(() => {
+    if (authUser && !authUser.isAnonymous) {
+      const userProfile = dbData.users.find(u => u.id === authUser.uid);
+      if (userProfile) {
+        setAppUser(userProfile);
+        setCurrentView('dashboard');
+      }
+    }
+  }, [authUser, dbData.users]);
+
+
+  const handleLogin = async (email, password) => {
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const handleTrackCase = (trackingNumber) => {
-    const caseFound = db.cases.find(c => c.trackingNumber.toUpperCase() === trackingNumber.toUpperCase());
-    if (caseFound) {
-      setTrackedCase(caseFound);
-      setCurrentView('client');
-    } else {
-      alert("Invalid tracking number. Demo tracking code: TRK-ABC123");
-    }
+  const handleResetPassword = async (email) => {
+    await sendPasswordResetEmail(auth, email);
   };
 
-  const handleCreateOffice = (name, email, password, officeName) => {
+  const handleCreateOffice = async (name, email, password, officeName) => {
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = userCred.user.uid;
     const newOfficeId = `off_${Date.now()}`;
     const inviteCode = `CH-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-    const newOffice = { id: newOfficeId, name: officeName, inviteCode };
-    const newUser = { id: `u_${Date.now()}`, officeId: newOfficeId, name, email, password, role: 'SENIOR_ADVOCATE' };
     
-    setDb(prev => ({ ...prev, offices: [...(prev.offices||[]), newOffice], users: [...(prev.users||[]), newUser] }));
-    setCurrentUser(newUser);
-    setCurrentView('dashboard');
+    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'offices', newOfficeId), {
+      id: newOfficeId, name: officeName, inviteCode
+    });
+    
+    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), {
+      id: uid, officeId: newOfficeId, name, email, role: 'SENIOR_ADVOCATE'
+    });
   };
 
-  const handleJoinOffice = (name, email, password, code) => {
-    const office = db.offices.find(o => o.inviteCode === code.toUpperCase());
-    if (!office) return alert("Invalid invite code. Please check with your administrator.");
+  const handleJoinOffice = async (name, email, password, code) => {
+    const foundOffice = dbData.offices.find(o => o.inviteCode === code.toUpperCase());
+    if (!foundOffice) throw new Error("Invalid invite code. Please ask your administrator.");
     
-    const newUser = { id: `u_${Date.now()}`, officeId: office.id, name, email, password, role: 'PENDING' };
-    setDb(prev => ({ ...prev, users: [...(prev.users||[]), newUser] }));
-    setCurrentUser(newUser);
-    setCurrentView('dashboard');
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = userCred.user.uid;
+    
+    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), {
+      id: uid, officeId: foundOffice.id, name, email, role: 'PENDING'
+    });
   };
 
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setTrackedCase(null);
+  const handleTrackCase = async (trackingNumber) => {
+    if (!authUser) {
+      await signInAnonymously(auth);
+    }
+    setTrackedCode(trackingNumber.toUpperCase().trim());
+    setCurrentView('client');
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setAppUser(null);
+    setTrackedCode(null);
     setCurrentView('landing');
-    localStorage.removeItem('chambers_user');
-    localStorage.removeItem('chambers_tracked_case');
-    localStorage.setItem('chambers_view', JSON.stringify('landing'));
   };
+
 
   if (currentView === 'landing') {
     return (
@@ -1854,16 +1930,31 @@ export default function App() {
   }
 
   if (currentView === 'auth') {
-    return <AuthView mode={authMode} setMode={setAuthMode} onLogin={handleLogin} onCreateOffice={handleCreateOffice} onJoinOffice={handleJoinOffice} onTrackCase={handleTrackCase} goBack={() => setCurrentView('landing')} />;
+    return (
+      <AuthView 
+        mode={authMode} 
+        setMode={setAuthMode} 
+        onLogin={handleLogin} 
+        onCreateOffice={handleCreateOffice} 
+        onJoinOffice={handleJoinOffice} 
+        onTrackCase={handleTrackCase} 
+        onResetPassword={handleResetPassword}
+        goBack={() => setCurrentView('landing')} 
+      />
+    );
   }
 
   if (currentView === 'client') {
-    return <ClientPortalView trackedCase={trackedCase} db={db} onExit={handleLogout} />;
+    return <ClientPortalView trackingCode={trackedCode} dbData={dbData} onExit={handleLogout} />;
   }
 
-  if (currentView === 'dashboard' && currentUser) {
-    return <DashboardView currentUser={currentUser} db={db} setDb={setDb} onLogout={handleLogout} />;
+  if (currentView === 'dashboard' && appUser) {
+    return <DashboardView currentUser={appUser} dbData={dbData} onLogout={handleLogout} />;
   }
 
-  return null;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#F9F9F9]">
+       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#111111]"></div>
+    </div>
+  );
 }
