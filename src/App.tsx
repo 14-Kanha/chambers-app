@@ -15,15 +15,25 @@ import {
   getFirestore, doc, setDoc, onSnapshot, collection, updateDoc 
 } from 'firebase/firestore';
 
-// We use your exact keys here to prevent the "api-key-not-valid" error.
+// Securely load Firebase keys from Environment Variables
+const getEnvVar = (viteKey, nextKey) => {
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[viteKey]) {
+    return import.meta.env[viteKey];
+  }
+  if (typeof process !== 'undefined' && process.env && process.env[nextKey]) {
+    return process.env[nextKey];
+  }
+  return ''; // Fallback to empty string if not found
+};
+
 let firebaseConfig = {
-  apiKey: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? process.env.NEXT_PUBLIC_FIREBASE_API_KEY : "AIzaSyDL3dgiAvCplblJF0cjDK3O4e41hytysiI",
-  authDomain: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN : "chamber-app-fa0f7.firebaseapp.com",
-  projectId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID : "chamber-app-fa0f7",
-  storageBucket: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ? process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET : "chamber-app-fa0f7.firebasestorage.app",
-  messagingSenderId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ? process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID : "691076974969",
-  appId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_APP_ID ? process.env.NEXT_PUBLIC_FIREBASE_APP_ID : "1:691076974969:web:34d38d49d23187c04987a8",
-  measurementId: "G-FZE4V95WEF"
+  apiKey: getEnvVar('VITE_FIREBASE_API_KEY', 'NEXT_PUBLIC_FIREBASE_API_KEY'),
+  authDomain: getEnvVar('VITE_FIREBASE_AUTH_DOMAIN', 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'),
+  projectId: getEnvVar('VITE_FIREBASE_PROJECT_ID', 'NEXT_PUBLIC_FIREBASE_PROJECT_ID'),
+  storageBucket: getEnvVar('VITE_FIREBASE_STORAGE_BUCKET', 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: getEnvVar('VITE_FIREBASE_MESSAGING_SENDER_ID', 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: getEnvVar('VITE_FIREBASE_APP_ID', 'NEXT_PUBLIC_FIREBASE_APP_ID'),
+  measurementId: getEnvVar('VITE_FIREBASE_MEASUREMENT_ID', 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID')
 };
 
 // Canvas Preview Environment Support
@@ -200,7 +210,15 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <label className="block text-xs font-bold text-gray-700">Password</label>
-                    {mode === 'login' && <button type="button" onClick={() => setMode('reset')} className="text-xs font-medium text-[#4F46E5] hover:underline">Forgot password?</button>}
+                    {mode === 'login' && (
+                      <button 
+                        type="button" 
+                        onClick={() => setMode('reset')} 
+                        className="text-xs font-bold text-[#111111] relative after:absolute after:-bottom-0.5 after:left-0 after:h-[1px] after:w-full after:origin-bottom-right after:scale-x-0 hover:after:origin-bottom-left hover:after:scale-x-100 after:transition-transform after:ease-in-out after:duration-300 after:bg-black"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
                   </div>
                   <div className="relative">
                     <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
