@@ -15,7 +15,6 @@ import {
   getFirestore, doc, setDoc, onSnapshot, collection, updateDoc 
 } from 'firebase/firestore';
 
-// Securely load Firebase keys from Environment Variables
 const getEnvVar = (viteKey, nextKey) => {
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[viteKey]) {
     return import.meta.env[viteKey];
@@ -23,7 +22,7 @@ const getEnvVar = (viteKey, nextKey) => {
   if (typeof process !== 'undefined' && process.env && process.env[nextKey]) {
     return process.env[nextKey];
   }
-  return ''; // Fallback to empty string if not found
+  return '';
 };
 
 let firebaseConfig = {
@@ -36,7 +35,6 @@ let firebaseConfig = {
   measurementId: getEnvVar('VITE_FIREBASE_MEASUREMENT_ID', 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID')
 };
 
-// Canvas Preview Environment Support
 try {
   if (typeof __firebase_config !== 'undefined' && __firebase_config) {
     firebaseConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
@@ -1813,27 +1811,17 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login');
 
   useEffect(() => {
-    const initAuth = async () => {
-      // Used by the Canvas preview environment
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        try {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } catch (e) {
-          console.warn("Failed to sign in with custom token.", e);
-        }
-      }
-    };
-    initAuth();
-
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setAuthUser(user);
     });
     return () => unsubscribe();
   }, []);
 
+  // Only sync database collections once a user is authenticated
   useEffect(() => {
     if (!authUser) {
        setAppUser(null);
+       setDbData({ offices: [], users: [], cases: [], updates: [], tasks: [], documents: [], invoices: [] });
        return;
     }
 
@@ -1982,3 +1970,4 @@ export default function App() {
     </div>
   );
 }
+```eof
