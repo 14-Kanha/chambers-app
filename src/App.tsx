@@ -40,7 +40,6 @@ const INITIAL_DB = {
       cnr: 'HC0982-2026', 
       partyOne: [{name: 'Rajesh Sharma', mobile: '+919876543210'}], 
       partyTwo: [{name: 'TechCorp India Ltd.', mobile: '+919123456789'}],
-      clientId: null,
       nextHearing: '2026-04-15T00:00:00.000Z', 
       status: 'Active',
       trackingNumber: 'TRK-ABC123'
@@ -54,10 +53,9 @@ const INITIAL_DB = {
       cnr: '', 
       partyOne: [{name: 'Rajesh Sharma', mobile: '+919876543210'}], 
       partyTwo: [],
-      clientId: null,
       nextHearing: null, 
       status: 'Active',
-      trackingNumber: 'TRK-ABC123' // Grouped under the same tracking ID
+      trackingNumber: 'TRK-ABC123'
     }
   ],
   updates: [
@@ -79,7 +77,6 @@ const loadState = (key, defaultVal) => {
     const saved = localStorage.getItem(key);
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Failsafe to merge missing DB keys if local storage structure is older
       if (key === 'chambers_db') {
          return { ...defaultVal, ...parsed };
       }
@@ -91,7 +88,6 @@ const loadState = (key, defaultVal) => {
   return defaultVal;
 };
 
-// Spread operator (...props) ensures drag-and-drop events are passed to the DOM element
 const Card = ({ children, className = '', ...props }) => (
   <div className={`bg-white border border-[#E5E5E5] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${className}`} {...props}>
     {children}
@@ -244,7 +240,6 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
 const ClientPortalView = ({ trackedCase, db, onExit }) => {
   const [selectedCaseId, setSelectedCaseId] = useState(trackedCase?.id || null);
 
-  // Group all cases that share the exact same tracking number
   const clientCases = db.cases.filter(c => c.trackingNumber === trackedCase?.trackingNumber);
   const activeCase = clientCases.find(c => c.id === selectedCaseId) || clientCases[0] || trackedCase;
   
@@ -270,7 +265,7 @@ const ClientPortalView = ({ trackedCase, db, onExit }) => {
         </div>
 
         {clientCases.length > 1 && (
-          <div className="mb-8 flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="mb-8 flex items-center space-x-2 overflow-x-auto pb-2">
             <Layers className="w-4 h-4 text-gray-400 mr-1 shrink-0" />
             <span className="text-xs font-bold text-gray-500 uppercase shrink-0 mr-2">Your Matters:</span>
             {clientCases.map(c => (
@@ -375,7 +370,7 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
   const [updateTitle, setUpdateTitle] = useState('');
   const [updateText, setUpdateText] = useState('');
   const [updateAttachmentFile, setUpdateAttachmentFile] = useState(null);
-  const [updateAttachmentName, setUpdateAttachmentName] = useState(''); // Request display name for attachment
+  const [updateAttachmentName, setUpdateAttachmentName] = useState('');
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editCaseData, setEditCaseData] = useState({});
@@ -383,7 +378,7 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
   
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
   const [newDocFile, setNewDocFile] = useState(null);
-  const [newDocName, setNewDocName] = useState(''); // Custom document name override
+  const [newDocName, setNewDocName] = useState('');
   const [newDocDate, setNewDocDate] = useState(new Date().toISOString().split('T')[0]);
 
   const activeCase = db.cases.find(c => c.id === activeCaseId);
@@ -407,7 +402,6 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
     };
     setDb(prev => ({ ...prev, updates: [newUpdate, ...prev.updates] }));
     
-    // Automatically add to vault if there's an attachment
     if (docDisplayName) {
       const newDoc = {
         id: `d_${Date.now()}`,
@@ -430,7 +424,7 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
     const doc = {
       id: `d_${Date.now()}`,
       caseId: activeCaseId,
-      name: newDocName || newDocFile.name, // Display custom name or fallback to filename
+      name: newDocName || newDocFile.name,
       date: newDocDate
     };
     setDb(prev => ({ ...prev, documents: [doc, ...prev.documents] }));
@@ -468,12 +462,11 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
   };
 
   const canUserModifyTask = (task) => {
-    if (currentUser.role === 'SENIOR_ADVOCATE') return true; // Ultimate override
+    if (currentUser.role === 'SENIOR_ADVOCATE') return true;
     const assigneeIds = task.assigneeIds || [];
-    if (!assigneeIds.includes(currentUser.id)) return false; // Must be assigned
+    if (!assigneeIds.includes(currentUser.id)) return false;
     if (currentUser.role === 'MANAGER') return true;
     
-    // In a multi-assignee scenario, only the highest ranking assignee can change status
     const assignees = assigneeIds.map(id => db.users.find(u => u.id === id)).filter(Boolean);
     const myRank = ROLE_HIERARCHY[currentUser.role] || 0;
     const hasHigherRankAssigned = assignees.some(a => (ROLE_HIERARCHY[a.role] || 0) > myRank);
@@ -544,7 +537,6 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Timeline */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-4 bg-white border border-[#E5E5E5] shadow-sm">
             <form onSubmit={handlePostUpdate} className="space-y-3">
@@ -607,7 +599,6 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
           </div>
         </div>
 
-        {/* Right Column: Tasks & Vault */}
         <div className="space-y-6">
           <Card className="p-5">
             <div className="flex justify-between items-center mb-4">
@@ -680,7 +671,6 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
         </div>
       </div>
 
-      {/* Edit Case Details Modal */}
       <Modal title="Edit Case Details" isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
          <form onSubmit={handleSaveEdits} className="space-y-4">
             <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4">
@@ -757,7 +747,6 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
          </form>
       </Modal>
 
-      {/* Case Brief Export Modal */}
       <Modal title="Generate Case Brief" isOpen={showBriefModal} onClose={() => setShowBriefModal(false)}>
         <div className="bg-gray-50 p-6 rounded-md border border-gray-200 font-serif text-sm h-64 overflow-y-auto mb-4">
           <div className="text-center mb-6 border-b pb-4">
@@ -801,7 +790,6 @@ const CaseDetailView = ({ activeCaseId, goBack, db, setDb, currentUser, onOpenNe
         </Button>
       </Modal>
 
-      {/* Document Upload Modal (With Custom Name) */}
       <Modal title="Upload Document" isOpen={isDocModalOpen} onClose={() => { setIsDocModalOpen(false); setNewDocFile(null); setNewDocName(''); }}>
         <form onSubmit={handleUploadDocument} className="space-y-4">
           <div>
@@ -871,7 +859,6 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
 
   const isSeniorOrManager = currentUser.role === 'SENIOR_ADVOCATE' || currentUser.role === 'MANAGER';
 
-  // Strict role-based task modification logic
   const canUserModifyTask = (task) => {
     if (currentUser.role === 'SENIOR_ADVOCATE') return true; 
     
@@ -1035,7 +1022,6 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
       cnr: newCnr || '',
       partyOne: newPartyOne.filter(p => p.name.trim() !== ''),
       partyTwo: newPartyTwo.filter(p => p.name.trim() !== ''),
-      clientId: null,
       nextHearing: null,
       status: 'Active',
       trackingNumber: newTrackingNumber ? newTrackingNumber.toUpperCase().trim() : `TRK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
@@ -1140,7 +1126,6 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden relative z-10">
-        {/* Mobile Header */}
         <header className="md:hidden h-14 bg-white border-b border-[#E5E5E5] flex justify-between items-center px-4 shrink-0">
            <div onClick={() => handleTabChange('overview')} className="flex items-center space-x-2 font-bold cursor-pointer">
               <Scale className="w-5 h-5 text-black" />
@@ -1155,12 +1140,11 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
 
         <div className="flex-1 overflow-auto bg-[#F9F9F9]">
           
-          {}
           {activeTab === 'overview' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
               <header className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
                 <div>
-                  <div className="text-xs font-bold tracking-widest text-gray-400 mb-2 uppercase">{new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                  <div className="text-xs font-bold tracking-[0.2em] text-gray-400 mb-2 uppercase">{new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
                   <h2 className="text-4xl font-bold tracking-tight">
                     {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'}, {currentUser.name.split(' ')[0]}.
                   </h2>
@@ -1273,7 +1257,6 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
             </div>
           )}
 
-          {}
           {activeTab === 'ledger' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-6xl mx-auto h-full flex flex-col animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1351,7 +1334,6 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
             </div>
           )}
 
-          {}
           {activeCaseId && (
             <CaseDetailView 
               activeCaseId={activeCaseId} 
@@ -1371,7 +1353,6 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
             />
           )}
 
-          {}
           {activeTab === 'tasks' && !activeCaseId && (
             <div className="p-6 md:p-10 h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
@@ -1389,7 +1370,7 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
                   setIsNewTaskModalOpen(true);
                 }} className="shrink-0"><Plus className="w-4 h-4 mr-2" /> Add Task</Button>
               </header>
-              <div className="flex-1 flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+              <div className="flex-1 flex gap-6 overflow-x-auto pb-4">
                 {['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'].map(status => {
                   const colTasks = myOfficeTasks.filter(t => t.status === status);
                   const isDraggingOver = draggingColumn === status;
@@ -1466,7 +1447,6 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
             </div>
           )}
 
-          {}
           {activeTab === 'team' && isSeniorOrManager && (
              <div className="p-6 md:p-10 max-w-4xl mx-auto animate-in fade-in duration-300">
                <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1529,7 +1509,6 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
              </div>
           )}
 
-          {}
           {activeTab === 'financials' && isSeniorOrManager && (
              <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
                <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
@@ -1582,7 +1561,6 @@ const DashboardView = ({ currentUser, db, setDb, onLogout }) => {
              </div>
           )}
 
-          {}
           <Modal title="Open New Matter" isOpen={isNewMatterOpen} onClose={() => setIsNewMatterOpen(false)}>
             <form onSubmit={handleCreateMatter} className="space-y-5">
               <div className="space-y-4 pb-4 border-b border-gray-100">
@@ -1779,7 +1757,6 @@ export default function App() {
   useEffect(() => { localStorage.setItem('chambers_view', JSON.stringify(currentView)); }, [currentView]);
   useEffect(() => { localStorage.setItem('chambers_auth_mode', JSON.stringify(authMode)); }, [authMode]);
 
-  // Force seed the initial demo users if local storage got corrupted or wiped
   useEffect(() => {
     if (!db.users || db.users.length === 0) {
       setDb(INITIAL_DB);
