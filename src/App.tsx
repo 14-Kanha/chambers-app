@@ -1198,6 +1198,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
         <div className="flex-1 overflow-auto bg-[#F9F9F9]">
           
+          {}
           {activeTab === 'overview' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
               <header className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
@@ -1318,6 +1319,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
+          {}
           {activeTab === 'ledger' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-6xl mx-auto h-full flex flex-col animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1414,6 +1416,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             />
           )}
 
+          {}
           {activeTab === 'tasks' && !activeCaseId && (
             <div className="p-6 md:p-10 h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
@@ -1511,6 +1514,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
+          {}
           {activeTab === 'team' && isSeniorOrManager && (
              <div className="p-6 md:p-10 max-w-4xl mx-auto animate-in fade-in duration-300">
                <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1636,6 +1640,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
              </div>
           )}
 
+          {}
           <Modal title="Open New Matter" isOpen={isNewMatterOpen} onClose={() => setIsNewMatterOpen(false)}>
             <form onSubmit={handleCreateMatter} className="space-y-5">
               <div className="space-y-4 pb-4 border-b border-gray-100">
@@ -1896,6 +1901,11 @@ export default function App() {
   };
 
   const handleJoinOffice = async (name, email, password, code) => {
+    // 1. Create the Auth account first so the user is authenticated for Firestore rules
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = userCred.user.uid;
+
+    // 2. Query the office using the invite code now that the user is authenticated
     const officesRef = collection(db, 'artifacts', appId, 'public', 'data', 'offices');
     const q = query(officesRef, where('inviteCode', '==', code.toUpperCase().trim()));
     const querySnapshot = await getDocs(q);
@@ -1907,9 +1917,7 @@ export default function App() {
     const foundOfficeDoc = querySnapshot.docs[0];
     const foundOffice = { id: foundOfficeDoc.id, ...foundOfficeDoc.data() };
     
-    const userCred = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = userCred.user.uid;
-    
+    // 3. Save the pending user profile
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), {
       id: uid, officeId: foundOffice.id, name, email, role: 'PENDING'
     });
@@ -1999,3 +2007,4 @@ export default function App() {
     </div>
   );
 }
+```eof
