@@ -1901,11 +1901,9 @@ export default function App() {
   };
 
   const handleJoinOffice = async (name, email, password, code) => {
-    // 1. Create the Auth account first so the user is authenticated for Firestore rules
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
 
-    // 2. Query the office using the invite code now that the user is authenticated
     const officesRef = collection(db, 'artifacts', appId, 'public', 'data', 'offices');
     const q = query(officesRef, where('inviteCode', '==', code.toUpperCase().trim()));
     const querySnapshot = await getDocs(q);
@@ -1917,7 +1915,6 @@ export default function App() {
     const foundOfficeDoc = querySnapshot.docs[0];
     const foundOffice = { id: foundOfficeDoc.id, ...foundOfficeDoc.data() };
     
-    // 3. Save the pending user profile
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), {
       id: uid, officeId: foundOffice.id, name, email, role: 'PENDING'
     });
@@ -2007,4 +2004,3 @@ export default function App() {
     </div>
   );
 }
-```eof
