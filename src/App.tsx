@@ -15,9 +15,7 @@ import {
   getFirestore, doc, setDoc, onSnapshot, collection, updateDoc 
 } from 'firebase/firestore';
 
-// Safely configure Firebase.
-// This attempts to pull from Vercel env variables first (NEXT_PUBLIC_). 
-// If they fail or are missing, it falls back directly to the valid API keys you provided.
+// We use your exact keys here to prevent the "api-key-not-valid" error.
 let firebaseConfig = {
   apiKey: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? process.env.NEXT_PUBLIC_FIREBASE_API_KEY : "AIzaSyDL3dgiAvCplblJF0cjDK3O4e41hytysiI",
   authDomain: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN : "chamber-app-fa0f7.firebaseapp.com",
@@ -85,7 +83,7 @@ const Modal = ({ title, isOpen, onClose, children }) => {
       <div className="bg-white rounded-2xl w-full max-w-lg mx-4 shadow-2xl overflow-hidden border border-[#E5E5E5] animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center px-6 py-4 border-b border-[#E5E5E5] bg-gray-50 shrink-0">
           <h3 className="font-bold text-base tracking-tight">{title}</h3>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-500 hover:text-black"><X className="w-4 h-4" /></button>
+          <button type="button" onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-500 hover:text-black"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-6 overflow-y-auto">{children}</div>
       </div>
@@ -1546,7 +1544,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
              </div>
           )}
 
-          {}
           {activeTab === 'financials' && isSeniorOrManager && (
              <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
                <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
