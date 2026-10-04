@@ -15,16 +15,20 @@ import {
   getFirestore, doc, setDoc, onSnapshot, collection, updateDoc 
 } from 'firebase/firestore';
 
-// This config dynamically pulls from Vercel environment variables or defaults to the Canvas preview config.
+// Safely configure Firebase.
+// This attempts to pull from Vercel env variables first (NEXT_PUBLIC_). 
+// If they fail or are missing, it falls back directly to the valid API keys you provided.
 let firebaseConfig = {
-  apiKey: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? process.env.NEXT_PUBLIC_FIREBASE_API_KEY : "REPLACE_WITH_YOUR_API_KEY",
-  authDomain: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN : "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-  projectId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID : "REPLACE_WITH_YOUR_PROJECT_ID",
-  storageBucket: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ? process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET : "REPLACE_WITH_YOUR_STORAGE_BUCKET",
-  messagingSenderId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ? process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID : "REPLACE_WITH_YOUR_SENDER_ID",
-  appId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_APP_ID ? process.env.NEXT_PUBLIC_FIREBASE_APP_ID : "REPLACE_WITH_YOUR_APP_ID"
+  apiKey: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? process.env.NEXT_PUBLIC_FIREBASE_API_KEY : "AIzaSyDL3dgiAvCplblJF0cjDK3O4e41hytysiI",
+  authDomain: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN : "chamber-app-fa0f7.firebaseapp.com",
+  projectId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID : "chamber-app-fa0f7",
+  storageBucket: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ? process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET : "chamber-app-fa0f7.firebasestorage.app",
+  messagingSenderId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ? process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID : "691076974969",
+  appId: typeof process !== 'undefined' && process.env.NEXT_PUBLIC_FIREBASE_APP_ID ? process.env.NEXT_PUBLIC_FIREBASE_APP_ID : "1:691076974969:web:34d38d49d23187c04987a8",
+  measurementId: "G-FZE4V95WEF"
 };
 
+// Canvas Preview Environment Support
 try {
   if (typeof __firebase_config !== 'undefined' && __firebase_config) {
     firebaseConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
@@ -55,13 +59,13 @@ const ROLE_CONFIG = {
   'FIRED': { label: 'Terminated', bg: 'bg-red-100', text: 'text-red-700' }
 };
 
-const Card = ({ children, className = '', onClick, ...props }) => (
+const Card = ({ children, className = "", onClick, ...props }) => (
   <div onClick={onClick} className={`bg-white border border-[#E5E5E5] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${className}`} {...props}>
     {children}
   </div>
 );
 
-const Button = ({ children, onClick, variant = 'primary', type = 'button', className = '', disabled = false }) => {
+const Button = ({ children, onClick, variant = 'primary', type = 'button', className = "", disabled = false }) => {
   const base = "px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed";
   const styles = variant === 'primary' 
     ? `${base} bg-[#111111] text-white hover:bg-black shadow-sm`
@@ -105,21 +109,21 @@ const SidebarItem = ({ id, name, icon: Icon, activeTab, onClick }) => {
 };
 
 const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrackCase, onResetPassword, goBack }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [officeName, setOfficeName] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
-  const [trackingNumber, setTrackingNumber] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [officeName, setOfficeName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
+  const [trackingNumber, setTrackingNumber] = useState("");
   
-  const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg('');
-    setSuccessMsg('');
+    setErrorMsg("");
+    setSuccessMsg("");
     setIsLoading(true);
 
     try {
@@ -242,7 +246,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
             </>
           )}
           {mode !== 'login' && (
-            <p>Already have an account? <button onClick={() => { setMode('login'); setErrorMsg(''); setSuccessMsg(''); }} className="text-black font-bold hover:underline">Return to Log in</button></p>
+            <p>Already have an account? <button onClick={() => { setMode('login'); setErrorMsg(""); setSuccessMsg(""); }} className="text-black font-bold hover:underline">Return to Log in</button></p>
           )}
         </div>
       </Card>
@@ -387,18 +391,17 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
                 </Card>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </main>
     </div>
   );
 };
 
 const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTask }) => {
-  const [updateTitle, setUpdateTitle] = useState('');
-  const [updateText, setUpdateText] = useState('');
+  const [updateTitle, setUpdateTitle] = useState("");
+  const [updateText, setUpdateText] = useState("");
   const [updateAttachmentFile, setUpdateAttachmentFile] = useState(null);
-  const [updateAttachmentName, setUpdateAttachmentName] = useState('');
+  const [updateAttachmentName, setUpdateAttachmentName] = useState("");
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editCaseData, setEditCaseData] = useState({});
@@ -406,7 +409,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
   
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
   const [newDocFile, setNewDocFile] = useState(null);
-  const [newDocName, setNewDocName] = useState('');
+  const [newDocName, setNewDocName] = useState("");
   const [newDocDate, setNewDocDate] = useState(new Date().toISOString().split('T')[0]);
 
   const activeCase = dbData.cases.find(c => c.id === activeCaseId);
@@ -443,10 +446,10 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'documents', docId), newDoc);
     }
     
-    setUpdateTitle('');
-    setUpdateText('');
+    setUpdateTitle("");
+    setUpdateText("");
     setUpdateAttachmentFile(null);
-    setUpdateAttachmentName('');
+    setUpdateAttachmentName("");
   };
 
   const handleUploadDocument = async (e) => {
@@ -463,7 +466,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'documents', docId), documentRecord);
     setIsDocModalOpen(false);
     setNewDocFile(null);
-    setNewDocName('');
+    setNewDocName("");
   };
 
   const openEditModal = () => {
@@ -588,7 +591,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                          onChange={e => setUpdateAttachmentName(e.target.value)}
                          className="px-2 py-1.5 text-xs border border-gray-300 rounded focus:border-black outline-none w-48 shadow-inner"
                        />
-                       <button type="button" onClick={() => { setUpdateAttachmentFile(null); setUpdateAttachmentName(''); }} className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-3.5 h-3.5" /></button>
+                       <button type="button" onClick={() => { setUpdateAttachmentFile(null); setUpdateAttachmentName(""); }} className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-3.5 h-3.5" /></button>
                     </div>
                   )}
                 </div>
@@ -821,7 +824,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
         </Button>
       </Modal>
 
-      <Modal title="Upload Document" isOpen={isDocModalOpen} onClose={() => { setIsDocModalOpen(false); setNewDocFile(null); setNewDocName(''); }}>
+      <Modal title="Upload Document" isOpen={isDocModalOpen} onClose={() => { setIsDocModalOpen(false); setNewDocFile(null); setNewDocName(""); }}>
         <form onSubmit={handleUploadDocument} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1">Select File</label>
@@ -855,32 +858,32 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
   const [activeCaseId, setActiveCaseId] = useState(null);
   
   const [isNewMatterOpen, setIsNewMatterOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newCaseNumber, setNewCaseNumber] = useState('');
-  const [newCnr, setNewCnr] = useState('');
-  const [newCourt, setNewCourt] = useState('');
-  const [newTrackingNumber, setNewTrackingNumber] = useState('');
+  const [newTitle, setNewTitle] = useState("");
+  const [newCaseNumber, setNewCaseNumber] = useState("");
+  const [newCnr, setNewCnr] = useState("");
+  const [newCourt, setNewCourt] = useState("");
+  const [newTrackingNumber, setNewTrackingNumber] = useState("");
   const [newPartyOne, setNewPartyOne] = useState([{name: '', mobile: ''}]);
   const [newPartyTwo, setNewPartyTwo] = useState([{name: '', mobile: ''}]);
 
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
-  const [invoiceCaseId, setInvoiceCaseId] = useState('');
-  const [invoiceAmount, setInvoiceAmount] = useState('');
+  const [invoiceCaseId, setInvoiceCaseId] = useState("");
+  const [invoiceAmount, setInvoiceAmount] = useState("");
   const [invoiceFile, setInvoiceFile] = useState(null);
 
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(null);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskCaseId, setNewTaskCaseId] = useState('');
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskCaseId, setNewTaskCaseId] = useState("");
   const [newTaskAssigneeIds, setNewTaskAssigneeIds] = useState([]);
-  const [newTaskDueDate, setNewTaskDueDate] = useState('');
-  const [newTaskVoiceNote, setNewTaskVoiceNote] = useState('');
+  const [newTaskDueDate, setNewTaskDueDate] = useState("");
+  const [newTaskVoiceNote, setNewTaskVoiceNote] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef(null);
 
   const [isFireModalOpen, setIsFireModalOpen] = useState(false);
   const [userToFire, setUserToFire] = useState(null);
-  const [fireReason, setFireReason] = useState('');
+  const [fireReason, setFireReason] = useState("");
 
   const [draggingColumn, setDraggingColumn] = useState(null);
 
@@ -1009,11 +1012,11 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
     setIsRecording(false);
     setIsNewTaskModalOpen(false);
     setEditingTaskId(null);
-    setNewTaskTitle('');
-    setNewTaskCaseId('');
+    setNewTaskTitle("");
+    setNewTaskCaseId("");
     setNewTaskAssigneeIds([]);
-    setNewTaskDueDate('');
-    setNewTaskVoiceNote('');
+    setNewTaskDueDate("");
+    setNewTaskVoiceNote("");
   };
 
   const handleGenerateInvoice = async (e) => {
@@ -1034,8 +1037,8 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'invoices', invId), newInvoice);
     setIsInvoiceModalOpen(false);
-    setInvoiceCaseId('');
-    setInvoiceAmount('');
+    setInvoiceCaseId("");
+    setInvoiceAmount("");
     setInvoiceFile(null);
   };
 
@@ -1058,11 +1061,11 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
     };
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', caseId), newCase);
     setIsNewMatterOpen(false);
-    setNewTitle('');
-    setNewCaseNumber('');
-    setNewCnr('');
-    setNewCourt('');
-    setNewTrackingNumber('');
+    setNewTitle("");
+    setNewCaseNumber("");
+    setNewCnr("");
+    setNewCourt("");
+    setNewTrackingNumber("");
     setNewPartyOne([{name: '', mobile: ''}]);
     setNewPartyTwo([{name: '', mobile: ''}]);
     setActiveTab('ledger');
@@ -1076,7 +1079,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
     });
     setIsFireModalOpen(false);
     setUserToFire(null);
-    setFireReason('');
+    setFireReason("");
   };
 
   const handleTabChange = (tabId) => {
@@ -1373,9 +1376,9 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
               currentUser={currentUser} 
               onOpenNewTask={() => {
                 setEditingTaskId(null);
-                setNewTaskTitle('');
-                setNewTaskDueDate('');
-                setNewTaskVoiceNote('');
+                setNewTaskTitle("");
+                setNewTaskDueDate("");
+                setNewTaskVoiceNote("");
                 setNewTaskAssigneeIds([]);
                 setNewTaskCaseId(activeCaseId);
                 setIsNewTaskModalOpen(true);
@@ -1393,9 +1396,9 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 </div>
                 <Button onClick={() => {
                   setEditingTaskId(null);
-                  setNewTaskTitle('');
-                  setNewTaskDueDate('');
-                  setNewTaskVoiceNote('');
+                  setNewTaskTitle("");
+                  setNewTaskDueDate("");
+                  setNewTaskVoiceNote("");
                   setNewTaskAssigneeIds([]);
                   setNewTaskCaseId(myOfficeCases[0]?.id || '');
                   setIsNewTaskModalOpen(true);
@@ -1543,6 +1546,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
              </div>
           )}
 
+          {}
           {activeTab === 'financials' && isSeniorOrManager && (
              <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
                <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
@@ -1759,7 +1763,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
              </form>
           </Modal>
 
-          <Modal title="Terminate Employee" isOpen={isFireModalOpen} onClose={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(''); }}>
+          <Modal title="Terminate Employee" isOpen={isFireModalOpen} onClose={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>
             <form onSubmit={handleFireUser} className="space-y-4">
               <div className="bg-red-50 text-red-800 p-4 rounded-lg text-sm border border-red-200 mb-4 shadow-sm">
                 You are about to terminate <strong>{userToFire?.name}</strong>. Their access to the workspace will be immediately revoked.
@@ -1769,7 +1773,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 <textarea required value={fireReason} onChange={e=>setFireReason(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-red-500 outline-none text-sm transition-all min-h-[100px] resize-y shadow-inner" placeholder="Detail the reason for immediate termination. This will be visible to the employee." />
               </div>
               <div className="flex space-x-3 mt-6">
-                <Button variant="secondary" className="flex-1" onClick={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(''); }}>Cancel</Button>
+                <Button variant="secondary" className="flex-1" onClick={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>Cancel</Button>
                 <button type="submit" className="flex-1 bg-red-600 text-white py-2 px-4 text-sm font-medium rounded-md hover:bg-red-700 transition-colors shadow-sm active:scale-95">Confirm Termination</button>
               </div>
             </form>
@@ -1792,15 +1796,14 @@ export default function App() {
   const [currentView, setCurrentView] = useState('landing');
   const [authMode, setAuthMode] = useState('login');
 
-  // Firebase Auth Connection Guard
   useEffect(() => {
     const initAuth = async () => {
-      // In the Canvas environment, this securely provisions access via a custom token.
+      // Used by the Canvas preview environment
       if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
         try {
           await signInWithCustomToken(auth, __initial_auth_token);
         } catch (e) {
-          console.warn("Failed to sign in with custom token. Real Firebase credentials in use?", e);
+          console.warn("Failed to sign in with custom token.", e);
         }
       }
     };
@@ -1812,7 +1815,6 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Real-time Firestore Multi-Collection Sync Guarded by Authentication
   useEffect(() => {
     if (!authUser) {
        setAppUser(null);
@@ -1834,7 +1836,6 @@ export default function App() {
     return () => unsubscribes.forEach(unsub => unsub());
   }, [authUser]);
 
-  // Sync App User Identity 
   useEffect(() => {
     if (authUser && !authUser.isAnonymous) {
       const userProfile = dbData.users.find(u => u.id === authUser.uid);
