@@ -389,7 +389,8 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
                 </Card>
               </div>
             </div>
-          )}
+          </div>
+        )}
       </main>
     </div>
   );
