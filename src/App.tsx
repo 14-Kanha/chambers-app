@@ -48,6 +48,30 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'chambers-prod-app';
 
+// ==========================================
+// GOOGLE SHEETS AUTOMATED BACKUP FUNCTION
+// ==========================================
+const syncToGoogleSheets = async (payloadType, recordData) => {
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwhM2pM_6COtz05AVxZRnpJtCu_-EOfh6IKTwOJhwcgRu6Bzvy5hsDSxs7dme4LqJbE/exec";
+  
+  try {
+    await fetch(WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        type: payloadType, 
+        record: recordData
+      })
+    });
+    console.log("Synced to Google Sheets successfully");
+  } catch (err) {
+    console.error("Failed to sync backup to Google Sheets:", err);
+  }
+};
+
 const ROLE_HIERARCHY = {
   'SENIOR_ADVOCATE': 4,
   'MANAGER': 3,
@@ -91,7 +115,7 @@ const Modal = ({ title, isOpen, onClose, children }) => {
       <div className="bg-white rounded-2xl w-full max-w-lg mx-4 shadow-2xl overflow-hidden border border-[#E5E5E5] animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center px-6 py-4 border-b border-[#E5E5E5] bg-gray-50 shrink-0">
           <h3 className="font-bold text-base tracking-tight">{title}</h3>
-          <button type="button" onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-500 hover:text-black"><X className="w-4 h-4"/></button>
+          <button type="button" onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 transition-colors text-gray-500 hover:text-black"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-6 overflow-y-auto">{children}</div>
       </div>
@@ -108,7 +132,7 @@ const SidebarItem = ({ id, name, icon: Icon, activeTab, onClick }) => {
         active ? 'bg-[#111111] text-white shadow-sm' : 'text-gray-600 hover:bg-[#F0F0F0] hover:text-black'
       }`}
     >
-      <Icon className="w-4 h-4 mr-3"/>
+      <Icon className="w-4 h-4 mr-3" />
       {name}
     </button>
   );
@@ -151,11 +175,11 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
   return (
     <div className="min-h-screen bg-[#F9F9F9] flex flex-col justify-center items-center p-6 relative">
       <button onClick={goBack} className="absolute top-6 left-6 flex items-center text-sm font-medium text-gray-500 hover:text-black transition-colors">
-        <ChevronRight className="w-4 h-4 mr-1 rotate-180"/> Back to Home
+        <ChevronRight className="w-4 h-4 mr-1 rotate-180" /> Back to Home
       </button>
       <Card className="p-8 max-w-md w-full shadow-lg">
         <div className="flex items-center space-x-2 mb-6">
-          <Scale className="w-5 h-5 text-black"/>
+          <Scale className="w-5 h-5 text-black" />
           <h2 className="text-xl font-bold tracking-tight">Chambers</h2>
         </div>
         <div className="mb-6">
@@ -175,8 +199,8 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
           </p>
         </div>
 
-        {errorMsg && <div className="mb-4 bg-red-50 text-red-700 p-3 rounded-lg text-sm border border-red-200 flex items-start"><AlertCircle className="w-4 h-4 mr-2 shrink-0 mt-0.5"/> <span>{errorMsg}</span></div>}
-        {successMsg && <div className="mb-4 bg-green-50 text-green-700 p-3 rounded-lg text-sm border border-green-200 flex items-start"><CheckCircle2 className="w-4 h-4 mr-2 shrink-0 mt-0.5"/> <span>{successMsg}</span></div>}
+        {errorMsg && <div className="mb-4 bg-red-50 text-red-700 p-3 rounded-lg text-sm border border-red-200 flex items-start"><AlertCircle className="w-4 h-4 mr-2 shrink-0 mt-0.5" /> <span>{errorMsg}</span></div>}
+        {successMsg && <div className="mb-4 bg-green-50 text-green-700 p-3 rounded-lg text-sm border border-green-200 flex items-start"><CheckCircle2 className="w-4 h-4 mr-2 shrink-0 mt-0.5" /> <span>{successMsg}</span></div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'track' ? (
@@ -190,7 +214,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
                 <div>
                   <label htmlFor="auth-name-input" className="block text-xs font-bold text-gray-700 mb-1">Full Name</label>
                   <div className="relative">
-                    <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+                    <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input id="auth-name-input" name="name" required type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Priya Sharma" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
                   </div>
                 </div>
@@ -199,7 +223,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
               <div>
                 <label htmlFor="auth-email-input" className="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input id="auth-email-input" name="email" required type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@chambers.com" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
                 </div>
               </div>
@@ -219,7 +243,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
                     )}
                   </div>
                   <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
+                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input id="auth-password-input" name="password" required type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
                   </div>
                 </div>
@@ -285,7 +309,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
   if (clientCases.length === 0) {
     return (
       <div className="min-h-screen bg-[#F9F9F9] flex flex-col justify-center items-center p-6 text-center">
-         <AlertCircle className="w-12 h-12 text-amber-500 mb-4"/>
+         <AlertCircle className="w-12 h-12 text-amber-500 mb-4" />
          <h2 className="text-xl font-bold mb-2">No Cases Found</h2>
          <p className="text-gray-500 text-sm mb-6 max-w-sm">We couldn't find any active matters linked to tracking code <strong className="font-mono">{trackingCode}</strong>.</p>
          <Button onClick={onExit}>Return to Home</Button>
@@ -297,7 +321,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
     <div className="min-h-screen bg-[#F9F9F9] text-[#111111] font-sans flex flex-col">
       <header className="h-16 bg-white border-b border-[#E5E5E5] flex justify-between items-center px-6 md:px-8 shrink-0">
         <div className="flex items-center space-x-2">
-          <Scale className="w-5 h-5 text-black"/>
+          <Scale className="w-5 h-5 text-black" />
           <span className="font-bold tracking-tight">Client Portal</span>
         </div>
         <Button variant="secondary" onClick={onExit} className="py-1.5 px-3 text-xs">Exit Portal</Button>
@@ -312,7 +336,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
 
         {clientCases.length > 1 && (
           <div className="mb-8 flex items-center space-x-2 overflow-x-auto pb-2">
-            <Layers className="w-4 h-4 text-gray-400 mr-1 shrink-0"/>
+            <Layers className="w-4 h-4 text-gray-400 mr-1 shrink-0" />
             <span className="text-xs font-bold text-gray-500 uppercase shrink-0 mr-2">Your Matters:</span>
             {clientCases.map(c => (
               <button 
@@ -348,7 +372,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <Card className="p-6">
-                <h3 className="font-bold text-lg mb-4 flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-400"/> Recent Updates</h3>
+                <h3 className="font-bold text-lg mb-4 flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-400" /> Recent Updates</h3>
                 <div className="space-y-4">
                   {updates.length === 0 && <p className="text-sm text-gray-500 italic">No updates posted yet.</p>}
                   {updates.map(u => (
@@ -360,7 +384,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
                       <p className="text-sm text-gray-600 whitespace-pre-wrap">{u.text}</p>
                       {u.attachment && (
                         <div className="mt-2 text-xs font-medium text-[#4F46E5] flex items-center">
-                           <Paperclip className="w-3 h-3 mr-1"/> Document attached to vault
+                           <Paperclip className="w-3 h-3 mr-1" /> Document attached to vault
                         </div>
                       )}
                     </div>
@@ -370,7 +394,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
 
               <div className="space-y-8">
                 <Card className="p-6">
-                  <h3 className="font-bold text-lg mb-4 flex items-center"><FileText className="w-4 h-4 mr-2 text-gray-400"/> Documents & Filings</h3>
+                  <h3 className="font-bold text-lg mb-4 flex items-center"><FileText className="w-4 h-4 mr-2 text-gray-400" /> Documents & Filings</h3>
                   <div className="space-y-2">
                     {docs.length === 0 && <p className="text-sm text-gray-500 italic">No documents available.</p>}
                     {docs.map(d => (
@@ -379,14 +403,14 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
                            <span className="font-medium text-gray-800">{d.name}</span>
                            <span className="text-[10px] text-gray-400 font-mono mt-0.5">{new Date(d.date).toLocaleDateString('en-US')}</span>
                         </div>
-                        <Download className="w-4 h-4 text-gray-400 cursor-pointer group-hover:text-[#4F46E5] transition-colors"/>
+                        <Download className="w-4 h-4 text-gray-400 cursor-pointer group-hover:text-[#4F46E5] transition-colors" />
                       </div>
                     ))}
                   </div>
                 </Card>
 
                 <Card className="p-6">
-                  <h3 className="font-bold text-lg mb-4 flex items-center"><FileCheck className="w-4 h-4 mr-2 text-gray-400"/> Invoices & Billing</h3>
+                  <h3 className="font-bold text-lg mb-4 flex items-center"><FileCheck className="w-4 h-4 mr-2 text-gray-400" /> Invoices & Billing</h3>
                   <div className="space-y-2">
                     {invoices.length === 0 && <p className="text-sm text-gray-500 italic">No invoices generated.</p>}
                     {invoices.map(inv => (
@@ -448,7 +472,11 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
       attachment: docDisplayName || null
     };
     
+    // Save to Firestore
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'updates', updateId), newUpdate);
+    
+    // Sync to Google Sheets automatically
+    await syncToGoogleSheets('update', newUpdate);
     
     if (docDisplayName) {
       const docId = `d_${Date.now()}`;
@@ -526,7 +554,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
   return (
     <div className="p-8 max-w-6xl mx-auto animate-in slide-in-from-right-4 duration-300 w-full">
       <button onClick={goBack} className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-black transition-colors">
-        <ChevronRight className="w-4 h-4 mr-1 rotate-180"/> Back to Ledger
+        <ChevronRight className="w-4 h-4 mr-1 rotate-180" /> Back to Ledger
       </button>
       
       <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
@@ -534,7 +562,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
           <div className="flex items-center space-x-3 mb-2">
             <h2 className="text-3xl font-bold tracking-tight">{activeCase.title}</h2>
             <button onClick={openEditModal} className="p-1.5 text-gray-400 hover:text-[#111111] hover:bg-gray-100 rounded-md transition-colors" title="Edit Case Details">
-              <Edit3 className="w-4 h-4"/>
+              <Edit3 className="w-4 h-4" />
             </button>
           </div>
           <div className="flex flex-wrap items-center text-sm text-gray-600 gap-x-3 gap-y-2 mb-3">
@@ -550,7 +578,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
           </div>
         </div>
         <Button variant="secondary" onClick={() => setShowBriefModal(true)} className="flex items-center shadow-sm shrink-0">
-          <FileCheck className="w-4 h-4 mr-2"/> Export Case Brief
+          <FileCheck className="w-4 h-4 mr-2" /> Export Case Brief
         </Button>
       </div>
 
@@ -599,7 +627,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                 <div className="flex flex-wrap items-center gap-2">
                   <input type="file" id="ledger-attachment" name="ledgerAttachment" className="hidden" onChange={(e) => { setUpdateAttachmentFile(e.target.files[0]); setUpdateAttachmentName(e.target.files[0]?.name || ''); }} accept=".pdf,.doc,.docx,.jpg,.png" />
                   <label htmlFor="ledger-attachment" className="flex items-center text-xs font-bold text-gray-600 hover:text-[#111111] cursor-pointer transition-colors bg-white border border-[#E5E5E5] px-3 py-1.5 rounded-md shadow-sm">
-                    <Paperclip className="w-3.5 h-3.5 mr-2"/>
+                    <Paperclip className="w-3.5 h-3.5 mr-2" />
                     {updateAttachmentFile ? <span className="truncate max-w-[120px]">{updateAttachmentFile.name}</span> : 'Attach File'}
                   </label>
                   
@@ -614,7 +642,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                          onChange={e => setUpdateAttachmentName(e.target.value)}
                          className="px-2 py-1.5 text-xs border border-gray-300 rounded focus:border-black outline-none w-48 shadow-inner"
                        />
-                       <button type="button" onClick={() => { setUpdateAttachmentFile(null); setUpdateAttachmentName(""); }} className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-3.5 h-3.5"/></button>
+                       <button type="button" onClick={() => { setUpdateAttachmentFile(null); setUpdateAttachmentName(""); }} className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-3.5 h-3.5" /></button>
                     </div>
                   )}
                 </div>
@@ -638,14 +666,14 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                     {u.attachment && (
                       <div className="mb-4 inline-block">
                         <button className="flex items-center text-xs font-semibold bg-gray-50 border border-gray-200 px-3 py-2 rounded-md hover:bg-gray-100 hover:border-black transition-colors">
-                          <Paperclip className="w-3.5 h-3.5 mr-2 text-[#4F46E5]"/>
+                          <Paperclip className="w-3.5 h-3.5 mr-2 text-[#4F46E5]" />
                           {u.attachment}
                         </button>
                       </div>
                     )}
                     <div className="flex items-center space-x-2 pt-3 border-t border-gray-100">
                       <span className="text-xs font-semibold text-[#111111]">{author?.name || 'Unknown'}</span>
-                      <RoleBadge role={author?.role || 'PENDING'}/>
+                      <RoleBadge role={author?.role || 'PENDING'} />
                     </div>
                   </Card>
                 </div>
@@ -657,9 +685,9 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
         <div className="space-y-6">
           <Card className="p-5">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold flex items-center"><CheckCircle2 className="w-4 h-4 mr-2 text-gray-400"/> Active Tasks</h3>
+              <h3 className="font-semibold flex items-center"><CheckCircle2 className="w-4 h-4 mr-2 text-gray-400" /> Active Tasks</h3>
               <button onClick={onOpenNewTask} className="text-[10px] uppercase tracking-wider font-bold bg-[#111111] text-white px-2.5 py-1.5 rounded flex items-center hover:bg-black transition-colors shadow-sm">
-                <Plus className="w-3 h-3 mr-1"/> Add Task
+                <Plus className="w-3 h-3 mr-1" /> Add Task
               </button>
             </div>
             <div className="space-y-3">
@@ -678,8 +706,13 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                       <div className="text-[10px] text-gray-500 mt-1 flex flex-wrap items-center gap-2 font-mono">
                         <span className="bg-gray-50 border border-gray-200 px-1 py-0.5 rounded">Due: {t.dueDate}</span>
                         <div className="flex -space-x-1 overflow-hidden ml-1">
-                           {assignees.map((user) => (
-                             <div key={user.id} className="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-[#111111] text-white text-center text-[8px] font-bold leading-5" title={user.name}>
+                           {assignees.map((user, idx) => (
+                             <div 
+                               key={user.id} 
+                               style={{zIndex: 10-idx}} 
+                               className={`inline-flex items-center justify-center h-5 w-5 rounded-full ring-2 ring-white text-[8px] font-bold shadow-sm ${ROLE_CONFIG[user.role]?.bg || 'bg-gray-500'} ${ROLE_CONFIG[user.role]?.text || 'text-white'}`}
+                               title={user.name}
+                             >
                                {user.name.charAt(0)}
                              </div>
                            ))}
@@ -710,9 +743,9 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
           
           <Card className="p-5">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold flex items-center"><Download className="w-4 h-4 mr-2 text-gray-400"/> Document Vault</h3>
+              <h3 className="font-semibold flex items-center"><Download className="w-4 h-4 mr-2 text-gray-400" /> Document Vault</h3>
               <button onClick={() => setIsDocModalOpen(true)} className="text-xs font-bold bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 px-2.5 py-1.5 rounded flex items-center transition-colors">
-                <Upload className="w-3 h-3 mr-1"/> Upload
+                <Upload className="w-3 h-3 mr-1" /> Upload
               </button>
             </div>
             <div className="space-y-2">
@@ -723,7 +756,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                     <span className="text-[#111111] font-medium truncate group-hover:text-[#4F46E5] transition-colors">{doc.name}</span>
                     <span className="text-[10px] font-mono text-gray-400 mt-0.5 bg-gray-50 px-1 py-0.5 rounded w-fit">{new Date(doc.date).toLocaleDateString('en-US')}</span>
                   </div>
-                  <Download className="w-4 h-4 text-gray-400 group-hover:text-black flex-shrink-0 transition-colors"/>
+                  <Download className="w-4 h-4 text-gray-400 group-hover:text-black flex-shrink-0 transition-colors" />
                 </button>
               ))}
             </div>
@@ -777,7 +810,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                      <div className="flex-1">
                        <input aria-label={`Plaintiff Mobile ${i + 1}`} name={`partyOneMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyOne]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyOne: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
                      </div>
-                     <button type="button" onClick={() => { const newP = [...editCaseData.partyOne]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyOne: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
+                     <button type="button" onClick={() => { const newP = [...editCaseData.partyOne]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyOne: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
                    </div>
                  ))}
                  {(!editCaseData.partyOne || editCaseData.partyOne.length === 0) && <div className="text-xs text-gray-400 italic">No parties added.</div>}
@@ -796,7 +829,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                      <div className="flex-1">
                        <input aria-label={`Defendant Mobile ${i + 1}`} name={`partyTwoMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyTwo]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyTwo: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
                      </div>
-                     <button type="button" onClick={() => { const newP = [...editCaseData.partyTwo]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyTwo: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
+                     <button type="button" onClick={() => { const newP = [...editCaseData.partyTwo]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyTwo: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
                    </div>
                  ))}
                  {(!editCaseData.partyTwo || editCaseData.partyTwo.length === 0) && <div className="text-xs text-gray-400 italic">No parties added.</div>}
@@ -846,7 +879,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
           ))}
         </div>
         <Button className="w-full" onClick={() => setShowBriefModal(false)}>
-          <Download className="w-4 h-4 mr-2"/> Download Print-Ready PDF
+          <Download className="w-4 h-4 mr-2" /> Download Print-Ready PDF
         </Button>
       </Modal>
 
@@ -872,7 +905,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
             <label htmlFor="upload-doc-date" className="block text-xs font-bold text-gray-700 mb-1">Document Date</label>
             <input id="upload-doc-date" name="documentDate" required type="date" value={newDocDate} onChange={e => setNewDocDate(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all" />
           </div>
-          <Button type="submit" className="w-full py-3.5 mt-6"><Upload className="w-4 h-4 mr-2"/> Upload to Vault</Button>
+          <Button type="submit" className="w-full py-3.5 mt-6"><Upload className="w-4 h-4 mr-2" /> Upload to Vault</Button>
         </form>
       </Modal>
     </div>
@@ -1061,7 +1094,12 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
       attachment: invoiceFile ? invoiceFile.name : null
     };
 
+    // Save to Firestore
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'invoices', invId), newInvoice);
+    
+    // Sync to Google Sheets automatically
+    await syncToGoogleSheets('invoice', newInvoice);
+
     setIsInvoiceModalOpen(false);
     setInvoiceCaseId("");
     setInvoiceAmount("");
@@ -1085,7 +1123,13 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
       status: 'Active',
       trackingNumber: newTrackingNumber ? newTrackingNumber.toUpperCase().trim() : `TRK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
     };
+    
+    // Save to Firestore
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', caseId), newCase);
+    
+    // Sync to Google Sheets automatically
+    await syncToGoogleSheets('case', newCase);
+    
     setIsNewMatterOpen(false);
     setNewTitle("");
     setNewCaseNumber("");
@@ -1117,7 +1161,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
     return (
       <div className="min-h-screen bg-[#F9F9F9] flex flex-col items-center justify-center p-6">
         <Card className="p-8 text-center max-w-md w-full">
-          <AlertCircle className="w-12 h-12 text-[#D97706] mx-auto mb-4"/>
+          <AlertCircle className="w-12 h-12 text-[#D97706] mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">Account Pending Approval</h2>
           <p className="text-gray-600 text-sm mb-6">Your request to join the workspace has been received. Please wait for a Senior Advocate or Manager to assign your role access.</p>
           <Button onClick={onLogout} variant="secondary" className="w-full">Sign Out</Button>
@@ -1130,7 +1174,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
     return (
       <div className="min-h-screen bg-[#F9F9F9] flex flex-col items-center justify-center p-6">
         <Card className="p-8 text-center max-w-md w-full border-t-4 border-t-red-600">
-          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4"/>
+          <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">Access Revoked</h2>
           <p className="text-gray-600 text-sm mb-4">Your access to this workspace has been permanently terminated.</p>
           <div className="bg-red-50 text-red-800 p-4 rounded-md text-sm text-left mb-6 border border-red-100">
@@ -1150,7 +1194,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           onClick={() => handleTabChange('overview')} 
           className="h-16 flex items-center px-6 border-b border-[#E5E5E5] hover:bg-gray-50 transition-colors group text-left w-full focus:outline-none"
         >
-          <Scale className="w-5 h-5 mr-2 text-black group-hover:scale-110 transition-transform"/>
+          <Scale className="w-5 h-5 mr-2 text-black group-hover:scale-110 transition-transform" />
           <h1 className="font-bold tracking-tight text-lg">Chambers</h1>
         </button>
         <div className="px-6 py-4 border-b border-[#E5E5E5] bg-gray-50 flex items-center justify-between shrink-0">
@@ -1159,13 +1203,13 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           </span>
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          <SidebarItem id="overview" name="Overview" icon={Clock} activeTab={activeTab} onClick={handleTabChange}/>
-          <SidebarItem id="ledger" name="Master Ledger" icon={Briefcase} activeTab={activeTab} onClick={handleTabChange}/>
-          <SidebarItem id="tasks" name="Task Pipeline" icon={CheckCircle2} activeTab={activeTab} onClick={handleTabChange}/>
+          <SidebarItem id="overview" name="Overview" icon={Clock} activeTab={activeTab} onClick={handleTabChange} />
+          <SidebarItem id="ledger" name="Master Ledger" icon={Briefcase} activeTab={activeTab} onClick={handleTabChange} />
+          <SidebarItem id="tasks" name="Task Pipeline" icon={CheckCircle2} activeTab={activeTab} onClick={handleTabChange} />
           {isSeniorOrManager && (
             <>
-              <SidebarItem id="financials" name="Financials" icon={FileText} activeTab={activeTab} onClick={handleTabChange}/>
-              <SidebarItem id="team" name="Team & Access" icon={Users} activeTab={activeTab} onClick={handleTabChange}/>
+              <SidebarItem id="financials" name="Financials" icon={FileText} activeTab={activeTab} onClick={handleTabChange} />
+              <SidebarItem id="team" name="Team & Access" icon={Users} activeTab={activeTab} onClick={handleTabChange} />
             </>
           )}
         </nav>
@@ -1176,9 +1220,9 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
             <div className="flex flex-col text-left flex-1 overflow-hidden">
               <span className="text-sm font-semibold truncate group-hover:text-[#4F46E5] transition-colors">{currentUser.name}</span>
-              <RoleBadge role={currentUser.role}/>
+              <RoleBadge role={currentUser.role} />
             </div>
-            <LogOut className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors shrink-0"/>
+            <LogOut className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors shrink-0" />
           </div>
         </div>
       </aside>
@@ -1186,19 +1230,18 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
       <main className="flex-1 flex flex-col overflow-hidden relative z-10">
         <header className="md:hidden h-14 bg-white border-b border-[#E5E5E5] flex justify-between items-center px-4 shrink-0">
            <button onClick={() => handleTabChange('overview')} className="flex items-center space-x-2 font-bold focus:outline-none">
-              <Scale className="w-5 h-5 text-black"/>
+              <Scale className="w-5 h-5 text-black" />
               <span>Chambers</span>
            </button>
            <div className="flex space-x-2">
-             <button onClick={() => handleTabChange('ledger')} className="p-2 text-gray-500 hover:text-black" aria-label="Master Ledger"><Briefcase className="w-5 h-5"/></button>
-             <button onClick={() => handleTabChange('tasks')} className="p-2 text-gray-500 hover:text-black" aria-label="Task Pipeline"><CheckCircle2 className="w-5 h-5"/></button>
-             <button onClick={onLogout} className="p-2 text-gray-500 hover:text-red-600" aria-label="Log Out"><LogOut className="w-5 h-5"/></button>
+             <button onClick={() => handleTabChange('ledger')} className="p-2 text-gray-500 hover:text-black" aria-label="Master Ledger"><Briefcase className="w-5 h-5" /></button>
+             <button onClick={() => handleTabChange('tasks')} className="p-2 text-gray-500 hover:text-black" aria-label="Task Pipeline"><CheckCircle2 className="w-5 h-5" /></button>
+             <button onClick={onLogout} className="p-2 text-gray-500 hover:text-red-600" aria-label="Log Out"><LogOut className="w-5 h-5" /></button>
            </div>
         </header>
 
         <div className="flex-1 overflow-auto bg-[#F9F9F9]">
           
-          {}
           {activeTab === 'overview' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
               <header className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
@@ -1211,7 +1254,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 </div>
                 {isSeniorOrManager && (
                   <Button onClick={() => setIsNewMatterOpen(true)} className="py-3 px-5 shadow-sm shrink-0">
-                    <Plus className="w-4 h-4 mr-2"/> New matter
+                    <Plus className="w-4 h-4 mr-2" /> New matter
                   </Button>
                 )}
               </header>
@@ -1256,7 +1299,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                           <div className="text-sm text-gray-600 line-clamp-1">{up.text}</div>
                           <div className="mt-3 flex items-center space-x-2 text-xs border-t border-gray-50 pt-3">
                             <span className="font-semibold text-[#111111]">{u?.name || 'Unknown'}</span>
-                            <RoleBadge role={u?.role || 'PENDING'}/>
+                            <RoleBadge role={u?.role || 'PENDING'} />
                           </div>
                         </Card>
                       );
@@ -1319,7 +1362,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
-          {}
           {activeTab === 'ledger' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-6xl mx-auto h-full flex flex-col animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1328,12 +1370,12 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                   <p className="text-sm text-gray-500 mt-1">Directory of all active and inactive matters in your chambers.</p>
                 </div>
                 {isSeniorOrManager && (
-                  <Button onClick={() => setIsNewMatterOpen(true)} className="shrink-0"><Plus className="w-4 h-4 mr-2"/> New Matter</Button>
+                  <Button onClick={() => setIsNewMatterOpen(true)} className="shrink-0"><Plus className="w-4 h-4 mr-2" /> New Matter</Button>
                 )}
               </header>
               <Card className="flex-1 overflow-hidden flex flex-col min-h-[400px]">
                 <div className="p-4 md:p-5 border-b border-[#E5E5E5] flex items-center bg-gray-50 shrink-0">
-                  <Search className="w-5 h-5 text-gray-400 mr-3 shrink-0"/>
+                  <Search className="w-5 h-5 text-gray-400 mr-3 shrink-0" />
                   <label htmlFor="ledger-search-input" className="sr-only">Search Case Number, CNR, Client, or Matter</label>
                   <input id="ledger-search-input" name="ledgerSearch" type="text" placeholder="Search Case Number, CNR, Client, or Matter..." className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 font-medium" />
                 </div>
@@ -1348,7 +1390,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                     </div>
                     {myOfficeCases.length === 0 && (
                       <div className="flex flex-col items-center justify-center p-12 text-center animate-in fade-in">
-                        <Briefcase className="w-12 h-12 text-gray-300 mb-4"/>
+                        <Briefcase className="w-12 h-12 text-gray-300 mb-4" />
                         <h3 className="text-lg font-bold text-[#111111] mb-2">No Active Matters</h3>
                         <p className="text-gray-500 text-sm max-w-sm mb-6">Your workspace is completely empty.</p>
                         {isSeniorOrManager && (
@@ -1385,7 +1427,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                                 <div className="text-sm font-bold text-[#111111]">{c.nextHearing ? new Date(c.nextHearing).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}) : 'TBD'}</div>
                               </div>
                               <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-white border border-transparent group-hover:border-gray-200 transition-all shrink-0">
-                                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-black"/>
+                                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-black" />
                               </div>
                             </div>
                           </div>
@@ -1416,7 +1458,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             />
           )}
 
-          {}
           {activeTab === 'tasks' && !activeCaseId && (
             <div className="p-6 md:p-10 h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
@@ -1432,7 +1473,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                   setNewTaskAssigneeIds([]);
                   setNewTaskCaseId(myOfficeCases[0]?.id || '');
                   setIsNewTaskModalOpen(true);
-                }} className="shrink-0"><Plus className="w-4 h-4 mr-2"/> Add Task</Button>
+                }} className="shrink-0"><Plus className="w-4 h-4 mr-2" /> Add Task</Button>
               </header>
               <div className="flex-1 flex gap-6 overflow-x-auto pb-4">
                 {['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'].map(status => {
@@ -1479,8 +1520,13 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                               <div className="flex justify-between items-center border-t border-gray-100 pt-3">
                                 <div className="flex -space-x-1.5 overflow-hidden pointer-events-none">
                                   {assignees.length === 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest border border-dashed px-1 py-0.5 rounded">Unassigned</span>}
-                                  {assignees.map((user, i) => (
-                                     <div key={user.id} style={{zIndex: 10-i}} className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-[#111111] text-white text-center text-[10px] font-bold leading-6 shadow-sm" title={user.name}>
+                                  {assignees.map((user, idx) => (
+                                     <div 
+                                       key={user.id} 
+                                       style={{zIndex: 10-idx}} 
+                                       className={`inline-flex items-center justify-center h-6 w-6 rounded-full ring-2 ring-white text-[10px] font-bold shadow-sm ${ROLE_CONFIG[user.role]?.bg || 'bg-gray-500'} ${ROLE_CONFIG[user.role]?.text || 'text-white'}`}
+                                       title={user.name}
+                                     >
                                        {user.name.charAt(0)}
                                      </div>
                                   ))}
@@ -1514,7 +1560,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
-          {}
           {activeTab === 'team' && isSeniorOrManager && (
              <div className="p-6 md:p-10 max-w-4xl mx-auto animate-in fade-in duration-300">
                <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1543,7 +1588,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                           </div>
                        </div>
                        <div className="flex items-center space-x-4">
-                         <RoleBadge role={user.role}/>
+                         <RoleBadge role={user.role} />
                          {currentUser.id !== user.id && (
                            <div className="flex items-center space-x-2">
                              <label htmlFor={`user-role-select-${user.id}`} className="sr-only">User Role</label>
@@ -1570,7 +1615,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                                  title="Terminate Employee"
                                  aria-label={`Terminate ${user.name}`}
                                >
-                                 <X className="w-4 h-4"/>
+                                 <X className="w-4 h-4" />
                                </button>
                              )}
                            </div>
@@ -1590,7 +1635,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                     <h2 className="text-3xl font-bold tracking-tight">Financials</h2>
                     <p className="text-sm text-gray-500 mt-1">Track billables and sent invoices strictly restricted to management.</p>
                  </div>
-                 <Button onClick={() => setIsInvoiceModalOpen(true)} className="shrink-0"><Plus className="w-4 h-4 mr-2"/> Generate Invoice</Button>
+                 <Button onClick={() => setIsInvoiceModalOpen(true)} className="shrink-0"><Plus className="w-4 h-4 mr-2" /> Generate Invoice</Button>
                </header>
                <Card className="overflow-hidden overflow-x-auto">
                  <table className="w-full text-left text-sm min-w-[700px]">
@@ -1611,7 +1656,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                        <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
                          <td className="p-5 font-mono font-bold text-[#111111]">
                            {inv.id}
-                           {inv.attachment && <div className="text-[10px] text-[#4F46E5] font-sans mt-0.5 flex items-center font-medium"><Paperclip className="w-3 h-3 mr-1"/> {inv.attachment}</div>}
+                           {inv.attachment && <div className="text-[10px] text-[#4F46E5] font-sans mt-0.5 flex items-center font-medium"><Paperclip className="w-3 h-3 mr-1" /> {inv.attachment}</div>}
                          </td>
                          <td className="p-5 font-medium">{dbData.cases.find(c=>c.id===inv.caseId)?.title || 'Unknown'}</td>
                          <td className="p-5 text-gray-500 font-medium">{new Date(inv.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</td>
@@ -1640,7 +1685,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
              </div>
           )}
 
-          {}
           <Modal title="Open New Matter" isOpen={isNewMatterOpen} onClose={() => setIsNewMatterOpen(false)}>
             <form onSubmit={handleCreateMatter} className="space-y-5">
               <div className="space-y-4 pb-4 border-b border-gray-100">
@@ -1687,7 +1731,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                        <input aria-label={`New Plaintiff Mobile ${i + 1}`} name={`newPartyOneMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...newPartyOne]; newP[i].mobile = e.target.value; setNewPartyOne(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all font-mono shadow-sm" />
                      </div>
                      {newPartyOne.length > 1 && (
-                       <button type="button" onClick={() => { const newP = [...newPartyOne]; newP.splice(i, 1); setNewPartyOne(newP); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
+                       <button type="button" onClick={() => { const newP = [...newPartyOne]; newP.splice(i, 1); setNewPartyOne(newP); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
                      )}
                    </div>
                  ))}
@@ -1707,7 +1751,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                        <input aria-label={`New Defendant Mobile ${i + 1}`} name={`newPartyTwoMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...newPartyTwo]; newP[i].mobile = e.target.value; setNewPartyTwo(newP); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all font-mono shadow-sm" />
                      </div>
                      {newPartyTwo.length > 1 && (
-                       <button type="button" onClick={() => { const newP = [...newPartyTwo]; newP.splice(i, 1); setNewPartyTwo(newP); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
+                       <button type="button" onClick={() => { const newP = [...newPartyTwo]; newP.splice(i, 1); setNewPartyTwo(newP); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4" /></button>
                      )}
                    </div>
                  ))}
@@ -1731,7 +1775,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                     title={isRecording ? "Stop Recording" : "Record Voice Note"}
                     aria-label={isRecording ? "Stop Recording" : "Record Voice Note"}
                   >
-                    {isRecording ? <Square className="w-4 h-4"/> : <Mic className="w-4 h-4"/>}
+                    {isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                   </button>
                 </div>
                 {isRecording && <div className="text-xs text-red-600 mt-1.5 font-bold animate-pulse">Listening... Speak clearly into your microphone.</div>}
@@ -1940,7 +1984,7 @@ export default function App() {
       <div className="min-h-screen bg-[#F9F9F9] text-[#111111] font-sans flex flex-col">
         <header className="flex justify-between items-center p-6 lg:px-12 bg-[#F9F9F9] shrink-0">
           <div className="flex items-center space-x-2 cursor-pointer hover:scale-105 transition-transform" onClick={() => setCurrentView('landing')}>
-            <Scale className="w-5 h-5 text-black"/>
+            <Scale className="w-5 h-5 text-black" />
             <span className="font-bold tracking-tight">Chambers</span>
           </div>
           <div className="flex items-center space-x-4">
@@ -1948,13 +1992,13 @@ export default function App() {
               Track Case
             </button>
             <button onClick={() => { setAuthMode('login'); setCurrentView('auth'); }} className="text-sm font-bold flex items-center hover:text-gray-600 transition-colors">
-              Log in <ChevronRight className="w-4 h-4 ml-1"/>
+              Log in <ChevronRight className="w-4 h-4 ml-1" />
             </button>
           </div>
         </header>
         <main className="flex-1 flex flex-col items-center justify-center text-center px-6 max-w-4xl mx-auto -mt-20">
           <div className="text-xs font-bold tracking-[0.2em] text-gray-400 mb-8 uppercase flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <Scale className="w-3 h-3 mr-2"/> A calmer way to run your practice
+            <Scale className="w-3 h-3 mr-2" /> A calmer way to run your practice
           </div>
           <h1 className="text-6xl md:text-8xl font-bold tracking-tighter leading-[0.95] mb-8 text-[#111111] animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
             Make room <br/> for the law.
@@ -1964,7 +2008,7 @@ export default function App() {
           </p>
           <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 w-full sm:w-auto">
             <Button onClick={() => { setAuthMode('login'); setCurrentView('auth'); }} className="w-full sm:w-auto px-8 py-3.5 text-base shadow-lg shadow-black/20 hover:shadow-xl hover:scale-105 transition-all">
-              Log in to your workspace <ArrowRight className="w-4 h-4 ml-2"/>
+              Log in to your workspace <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
             <Button variant="secondary" onClick={() => { setAuthMode('track'); setCurrentView('auth'); }} className="w-full sm:w-auto px-8 py-3.5 text-base font-bold bg-white text-black border border-[#E5E5E5] hover:bg-gray-50 hover:border-black shadow-sm transition-all">
               Client Case Tracking
@@ -1991,11 +2035,11 @@ export default function App() {
   }
 
   if (currentView === 'client') {
-    return <ClientPortalView trackingCode={trackedCode} dbData={dbData} onExit={handleLogout}/>;
+    return <ClientPortalView trackingCode={trackedCode} dbData={dbData} onExit={handleLogout} />;
   }
 
   if (currentView === 'dashboard' && appUser) {
-    return <DashboardView currentUser={appUser} dbData={dbData} onLogout={handleLogout}/>;
+    return <DashboardView currentUser={appUser} dbData={dbData} onLogout={handleLogout} />;
   }
 
   return (
