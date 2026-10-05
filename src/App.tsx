@@ -1783,4 +1783,3 @@ export default function App() {
 
   return <SplashLoader />;
 }
-```eof
