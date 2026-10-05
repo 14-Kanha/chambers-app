@@ -393,7 +393,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
                 </div>
                 <div className="border-t border-gray-100 pt-4 mt-4 flex justify-between items-center text-sm">
                   <span className="text-gray-500">Next Hearing Date:</span>
-                  <span className="font-bold text-[#D97706]">{activeCase.nextHearing ? new Date(activeCase.nextHearing).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}) : 'TBD'}</span>
+                  <span className="font-bold text-[#D97706]">{activeCase.nextHearing ? new Date(activeCase.nextHearing).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric', timeZone: 'UTC'}) : 'TBD'}</span>
                 </div>
               </Card>
 
@@ -535,14 +535,14 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
               <span className="font-mono bg-gray-100 border border-[#E5E5E5] px-2 py-0.5 rounded text-gray-800 text-xs font-medium">CNR: {activeCase.cnr || 'N/A'}</span>
               <span>{activeCase.court || 'Pending Court Assignment'}</span>
               <span>•</span>
-              <span className="text-[#D97706] font-medium">Next Hearing: {activeCase.nextHearing ? new Date(activeCase.nextHearing).toLocaleDateString('en-US') : 'TBD'}</span>
+              <span className="text-[#D97706] font-medium">Next Hearing: {activeCase.nextHearing ? new Date(activeCase.nextHearing).toLocaleDateString('en-US', {timeZone: 'UTC'}) : 'TBD'}</span>
             </div>
             
             {activeCase.previousHearings && activeCase.previousHearings.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 mb-3 text-xs">
                  <span className="font-bold text-gray-400 uppercase tracking-widest text-[10px]">Previous Dates:</span>
                  {activeCase.previousHearings.map((hd, i) => (
-                    <span key={i} className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">{new Date(hd).toLocaleDateString('en-US')}</span>
+                    <span key={i} className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">{new Date(hd).toLocaleDateString('en-US', {timeZone: 'UTC'})}</span>
                  ))}
               </div>
             )}
@@ -1053,12 +1053,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
      return 0;
   });
 
-  // Calendar Math
-  const daysInMonth = new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() + 1, 0).getDate();
-  const startDay = new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth(), 1).getDay();
-  const calendarCasesForSelectedDay = selectedCalendarDateStr ? myOfficeCases.filter(c => c.nextHearing && c.nextHearing.startsWith(selectedCalendarDateStr)) : [];
-  const selectedDayInfo = selectedCalendarDateStr ? (dbData.calendar || []).find(c => c.date === selectedCalendarDateStr && c.officeId === currentUser.officeId) : null;
-
   if (currentUser.role === 'PENDING') {
     return (
       <div className="min-h-screen bg-[#F9F9F9] flex flex-col items-center justify-center p-6">
@@ -1346,7 +1340,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                               </div>
                               <div className="col-span-2 flex items-center justify-end space-x-4">
                                 <div className="text-right">
-                                  <div className="text-sm font-bold text-[#111111]">{c.nextHearing ? new Date(c.nextHearing).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}) : 'TBD'}</div>
+                                  <div className="text-sm font-bold text-[#111111]">{c.nextHearing ? new Date(c.nextHearing).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'}) : 'TBD'}</div>
                                 </div>
                                 <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-white border border-transparent group-hover:border-gray-200 transition-all shrink-0">
                                   <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-black"/>
@@ -1402,13 +1396,16 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                           <div key={day} className="bg-gray-50 text-center py-3 text-xs font-bold text-gray-500 uppercase tracking-widest">{day}</div>
                        ))}
-                       {Array.from({length: startDay}).map((_, i) => <div key={`empty-${i}`} className="bg-gray-50 min-h-[120px] opacity-40"></div>)}
-                       {Array.from({length: daysInMonth}).map((_, i) => {
+                       {Array.from({length: new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth(), 1).getDay()}).map((_, i) => <div key={`empty-${i}`} className="bg-gray-50 min-h-[120px] opacity-40"></div>)}
+                       {Array.from({length: new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() + 1, 0).getDate()}).map((_, i) => {
                            const dayNum = i + 1;
                            const dateStr = `${currentCalendarMonth.getFullYear()}-${String(currentCalendarMonth.getMonth()+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
                            const dayInfo = (dbData.calendar || []).find(c => c.date === dateStr && c.officeId === currentUser.officeId);
                            const dayCases = myOfficeCases.filter(c => c.nextHearing && c.nextHearing.startsWith(dateStr));
-                           const isToday = dateStr === todayStr;
+                           
+                           const tzOffset = new Date().getTimezoneOffset() * 60000;
+                           const localTodayStr = new Date(Date.now() - tzOffset).toISOString().split('T')[0];
+                           const isToday = dateStr === localTodayStr;
                            
                            return (
                                <div key={dayNum} onClick={() => {
@@ -1728,6 +1725,75 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
               </div>
               <Button type="submit" className="w-full py-3.5 mt-6">{editingTaskId ? 'Save Changes' : 'Create Task'}</Button>
             </form>
+          </Modal>
+
+          <Modal title={selectedCalendarDateStr ? `Day Info: ${new Date(selectedCalendarDateStr).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'})}` : ''} isOpen={!!selectedCalendarDateStr} onClose={() => setSelectedCalendarDateStr(null)}>
+             <div className="space-y-6">
+                 {(() => {
+                     const calendarCasesForSelectedDay = selectedCalendarDateStr ? myOfficeCases.filter(c => c.nextHearing && c.nextHearing.startsWith(selectedCalendarDateStr)) : [];
+                     const selectedDayInfo = selectedCalendarDateStr ? (dbData.calendar || []).find(c => c.date === selectedCalendarDateStr && c.officeId === currentUser.officeId) : null;
+                     
+                     return (
+                         <>
+                           {calendarCasesForSelectedDay.length > 0 && (
+                               <div>
+                                   <h4 className="font-bold text-sm mb-3">Cases Listed</h4>
+                                   <div className="space-y-2">
+                                       {calendarCasesForSelectedDay.map(c => (
+                                           <button key={c.id} onClick={() => { setSelectedCalendarDateStr(null); setActiveTab('ledger'); setActiveCaseId(c.id); }} className="w-full text-left p-3 border border-gray-200 rounded-lg hover:border-black transition-colors group">
+                                               <div className="font-bold text-[#111111] group-hover:text-[#4F46E5] text-sm">{c.title}</div>
+                                               <div className="text-xs text-gray-500 flex gap-3 mt-1 font-mono"><span>No: {c.caseNumber || 'N/A'}</span><span>Court: {c.court}</span></div>
+                                           </button>
+                                       ))}
+                                   </div>
+                               </div>
+                           )}
+                           {calendarCasesForSelectedDay.length === 0 && (
+                               <div className="text-sm text-gray-500 italic p-4 bg-gray-50 rounded-lg border border-dashed text-center">No hearings listed for this date.</div>
+                           )}
+                           
+                           {isSeniorOrManager && (
+                               <form onSubmit={handleSaveDayInfo} className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 space-y-4">
+                                   <h4 className="font-bold text-xs tracking-wider uppercase text-gray-500 mb-2">Configure Office Schedule</h4>
+                                   <div>
+                                       <label htmlFor="cal-day-type" className="block text-xs font-bold text-gray-700 mb-1">Day Status</label>
+                                       <select id="cal-day-type" value={calDayType} onChange={e=>setCalDayType(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-black outline-none text-sm shadow-sm bg-white cursor-pointer">
+                                           <option value="Working Day">Working Day</option>
+                                           <option value="Holiday">Office Holiday</option>
+                                       </select>
+                                   </div>
+                                   {calDayType !== 'Holiday' && (
+                                       <div className="grid grid-cols-2 gap-3">
+                                           <div>
+                                               <label htmlFor="cal-office-time" className="block text-xs font-bold text-gray-700 mb-1">Office Timings</label>
+                                               <input id="cal-office-time" type="text" value={calOfficeTime} onChange={e=>setCalOfficeTime(e.target.value)} placeholder="e.g. 10 AM - 7 PM" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-black outline-none text-sm shadow-sm bg-white" />
+                                           </div>
+                                           <div>
+                                               <label htmlFor="cal-court-time" className="block text-xs font-bold text-gray-700 mb-1">Court Timings</label>
+                                               <input id="cal-court-time" type="text" value={calCourtTime} onChange={e=>setCalCourtTime(e.target.value)} placeholder="e.g. 10:30 AM - 4 PM" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-black outline-none text-sm shadow-sm bg-white" />
+                                           </div>
+                                       </div>
+                                   )}
+                                   <Button type="submit" className="w-full py-2">Update Schedule</Button>
+                               </form>
+                           )}
+                           
+                           {!isSeniorOrManager && selectedDayInfo && (
+                               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mt-4">
+                                   <h4 className="font-bold text-xs tracking-wider uppercase text-blue-800 mb-2">Office Schedule</h4>
+                                   <div className="text-sm font-semibold text-blue-900 mb-2">{selectedDayInfo.dayType}</div>
+                                   {selectedDayInfo.dayType !== 'Holiday' && (
+                                       <div className="space-y-1 text-xs text-blue-800 font-medium">
+                                           {selectedDayInfo.officeTime && <div>Office: {selectedDayInfo.officeTime}</div>}
+                                           {selectedDayInfo.courtTime && <div>Court: {selectedDayInfo.courtTime}</div>}
+                                       </div>
+                                   )}
+                               </div>
+                           )}
+                         </>
+                     );
+                 })()}
+             </div>
           </Modal>
 
           {/* Terminate Modal */}
