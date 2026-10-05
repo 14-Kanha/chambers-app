@@ -117,7 +117,7 @@ const SidebarItem = ({ id, name, icon: Icon, activeTab, onClick }) => {
         active ? 'bg-[#111111] text-white shadow-sm' : 'text-gray-600 hover:bg-[#F0F0F0] hover:text-black'
       }`}
     >
-      <Icon className={`w-4 h-4 mr-3 transition-transform duration-200 ${active ? 'scale-110' : 'group-hover:scale-110'}`}/>
+      <Icon ${active 'group-hover:scale-110'}`} 'scale-110' : ? className="{`w-4" duration-200 h-4 mr-3 transition-transform/>
       {name}
     </button>
   );
@@ -126,10 +126,10 @@ const SidebarItem = ({ id, name, icon: Icon, activeTab, onClick }) => {
 const SplashLoader = () => (
   <div className="min-h-screen bg-[#F9F9F9] flex flex-col items-center justify-center animate-in fade-in duration-500 z-50">
     <div className="relative flex items-center justify-center w-20 h-20 bg-[#111111] rounded-2xl shadow-xl animate-pulse">
-      <Scale className="w-10 h-10 text-white" />
+      <Scale className="w-10 h-10 text-white"/>
     </div>
     <div className="mt-8 flex items-center space-x-2 text-sm font-bold tracking-[0.2em] text-gray-400 uppercase">
-      <Loader2 className="w-4 h-4 animate-spin" />
+      <Loader2 className="w-4 h-4 animate-spin"/>
       <span>Loading Workspace</span>
     </div>
   </div>
@@ -286,9 +286,9 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
             </>
           )}
 
-          <Button type="submit" disabled={isLoading || isSuccessAnim} className={`w-full py-3.5 mt-2 rounded-xl text-base ${isSuccessAnim ? 'bg-green-600 hover:bg-green-700 !text-white' : ''}`}>
+          <Button !text-white' ${isSuccessAnim ''}`} 'bg-green-600 : ? className="{`w-full" disabled="{isLoading" hover:bg-green-700 isSuccessAnim} mt-2 py-3.5 rounded-xl text-base type="submit" ||>
             {isLoading && !isSuccessAnim ? <Loader2 className="w-5 h-5 animate-spin"/> : isSuccessAnim ? (
-              <span className="flex items-center animate-in zoom-in duration-300"><CheckCircle2 className="w-5 h-5 mr-2" /> Authenticated</span>
+              <span className="flex items-center animate-in zoom-in duration-300"><CheckCircle2 className="w-5 h-5 mr-2"/> Authenticated</span>
             ) : (
               <>
                 {mode === 'login' && 'Log in'}
@@ -313,7 +313,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
             <p>Already have an account? <button onClick={() => { setMode('login'); setErrorMsg(""); setSuccessMsg(""); setIsSuccessAnim(false); }} className="text-black font-bold hover:underline transition-all">Return to Log in</button></p>
           )}
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
@@ -336,7 +336,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
          <AlertCircle className="w-16 h-16 text-amber-500 mb-6"/>
          <h2 className="text-2xl font-bold mb-3">No Cases Found</h2>
          <p className="text-gray-500 text-base mb-8 max-w-sm">We couldn't find any active matters linked to tracking code <strong className="font-mono bg-white px-2 py-1 rounded border shadow-sm">{trackingCode}</strong>.</p>
-         <Button onClick={onExit} className="px-8 py-3">Return to Home</Button>
+         <Button className="px-8 py-3" onClick="{onExit}">Return to Home</Button>
       </div>
     );
   }
@@ -348,7 +348,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
           <div className="bg-black p-1.5 rounded-md"><Scale className="w-4 h-4 text-white"/></div>
           <span className="font-bold tracking-tight text-lg">Client Portal</span>
         </div>
-        <Button variant="secondary" onClick={() => setIsExitModalOpen(true)} className="py-1.5 px-4 text-xs font-bold rounded-full">Exit Portal</Button>
+        <Button onClick="{()" variant="secondary"> setIsExitModalOpen(true)} className="py-1.5 px-4 text-xs font-bold rounded-full">Exit Portal</Button>
       </header>
       <main className="flex-1 max-w-4xl w-full mx-auto p-6 md:p-10 overflow-y-auto">
         <div className="mb-8">
@@ -421,13 +421,13 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
         )}
       </main>
 
-      <Modal title="Exit Client Portal" isOpen={isExitModalOpen} onClose={() => setIsExitModalOpen(false)}>
+      <Modal isOpen="{isExitModalOpen}" onClose="{()" title="Exit Client Portal"> setIsExitModalOpen(false)}>
         <div className="bg-gray-50 text-gray-800 p-5 rounded-xl text-sm border border-gray-200 mb-6 shadow-inner leading-relaxed">
           Are you sure you want to securely exit the portal? You will need to re-enter your <strong className="font-mono">Tracking Code</strong> to view updates again.
         </div>
         <div className="flex space-x-4">
-          <Button variant="secondary" className="flex-1 py-3" onClick={() => setIsExitModalOpen(false)}>Cancel</Button>
-          <Button variant="danger" type="button" onClick={onExit} className="flex-1 py-3 bg-red-600 text-white hover:bg-red-700">Secure Exit</Button>
+          <Button className="flex-1 py-3" onClick="{()" variant="secondary"> setIsExitModalOpen(false)}>Cancel</Button>
+          <Button className="flex-1 py-3 bg-red-600 text-white hover:bg-red-700" onClick="{onExit}" type="button" variant="danger">Secure Exit</Button>
         </div>
       </Modal>
     </div>
@@ -491,7 +491,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
         <div>
           <div className="flex items-center space-x-4 mb-3">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#111111]">{activeCase.title}</h2>
-            <Button variant="secondary" onClick={openEditModal} className="text-xs px-3 py-1.5 shadow-sm hidden sm:flex">
+            <Button className="text-xs px-3 py-1.5 shadow-sm hidden sm:flex" onClick="{openEditModal}" variant="secondary">
               <Edit3 className="w-3.5 h-3.5 mr-2"/> Edit Case
             </Button>
           </div>
@@ -509,7 +509,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
             <span className="text-[#D97706] font-bold bg-amber-50 px-2 py-0.5 rounded">Hearing: {activeCase.nextHearing ? new Date(activeCase.nextHearing).toLocaleDateString('en-US') : 'TBD'}</span>
           </div>
           <div className="flex sm:hidden mb-4">
-             <Button variant="secondary" onClick={openEditModal} className="text-xs px-3 py-1.5 shadow-sm">
+             <Button className="text-xs px-3 py-1.5 shadow-sm" onClick="{openEditModal}" variant="secondary">
               <Edit3 className="w-3.5 h-3.5 mr-2"/> Edit Case Details
             </Button>
           </div>
@@ -571,10 +571,15 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
           <div className="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wider">Post New Update</div>
           <form onSubmit={async (e) => {
               e.preventDefault();
-              const form = e.target;
-              const title = form.updateTitle.value;
-              const text = form.updateText.value;
-              const newHearing = form.newNextHearing.value;
+              const form = e.target as HTMLFormElement;
+              const titleInput = form.elements.namedItem('updateTitle') as HTMLInputElement;
+              const textInput = form.elements.namedItem('updateText') as HTMLTextAreaElement;
+              const hearingInput = form.elements.namedItem('newNextHearing') as HTMLInputElement;
+              
+              const title = titleInput.value;
+              const text = textInput.value;
+              const newHearing = hearingInput.value;
+
               if (!title || !text) return;
               
               const updateId = `up_${Date.now()}`;
@@ -586,7 +591,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                  const currentHearingStr = activeCase.nextHearing ? (activeCase.nextHearing.includes('T') ? activeCase.nextHearing.split('T')[0] : activeCase.nextHearing) : null;
                  if (currentHearingStr !== newHearing) {
                     const prev = activeCase.previousHearings || [];
-                    const updatesForCase = { nextHearing: newHearing };
+                    const updatesForCase: any = { nextHearing: newHearing };
                     if (currentHearingStr && !prev.includes(currentHearingStr)) {
                        updatesForCase.previousHearings = [...prev, currentHearingStr];
                     }
@@ -610,7 +615,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
               <textarea id="update-text" name="updateText" placeholder="Detail the proceedings or notes for the team and client..." className="w-full px-4 py-3 text-sm border border-[#E5E5E5] rounded-lg focus:border-black focus:ring-1 focus:ring-black outline-none min-h-[100px] resize-y bg-[#F9F9F9] focus:bg-white transition-all" required />
             </div>
             <div className="flex justify-end pt-2">
-              <Button type="submit" className="py-2.5 px-6">Post Update to Ledger</Button>
+              <Button className="py-2.5 px-6" type="submit">Post Update to Ledger</Button>
             </div>
           </form>
         </Card>
@@ -635,7 +640,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                       {author?.name ? author.name.charAt(0) : '?'}
                     </div>
                     <span className="text-xs font-bold text-[#111111]">{author?.name || 'Unknown User'}</span>
-                    <RoleBadge role={author?.role || 'PENDING'}/>
+                    <RoleBadge 'PENDING'} role="{author?.role" ||/>
                   </div>
                 </Card>
               </div>
@@ -645,7 +650,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
       </div>
       
       {/* Edit Modal */}
-      <Modal title="Edit Case Details" isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+      <Modal isOpen="{isEditModalOpen}" onClose="{()" title="Edit Case Details"> setIsEditModalOpen(false)}>
          <form onSubmit={async (e) => {
             e.preventDefault();
             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', activeCaseId), {
@@ -670,8 +675,9 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                  <input id="edit-case-cnr" name="cnrNumber" type="text" value={editCaseData.cnr || ''} onChange={e=>setEditCaseData({...editCaseData, cnr: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm font-mono transition-all" />
                </div>
                <div className="col-span-2">
-                 <label htmlFor="edit-case-tracking" className="block text-xs font-bold text-gray-700 mb-1">Client Tracking ID</label>
-                 <input id="edit-case-tracking" name="trackingNumber" type="text" value={editCaseData.trackingNumber || ''} onChange={e=>setEditCaseData({...editCaseData, trackingNumber: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-black rounded-md focus:ring-1 focus:ring-black outline-none text-sm font-mono uppercase transition-all shadow-sm" />
+                 <label htmlFor="edit-case-tracking" className="block text-xs font-bold text-gray-700 mb-1">Client Tracking ID (Group multiple cases for one client)</label>
+                 <input id="edit-case-tracking" name="trackingNumber" type="text" value={editCaseData.trackingNumber || ''} onChange={e=>setEditCaseData({...editCaseData, trackingNumber: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-black rounded-md focus:ring-1 focus:ring-black outline-none text-sm font-mono uppercase transition-all shadow-sm" placeholder="e.g. TRK-ABC123" />
+                 <p className="text-[10px] text-gray-500 mt-1">Clients use this exact code to view their dashboard. Paste an existing code to group matters.</p>
                </div>
                <div>
                  <label htmlFor="edit-case-status" className="block text-xs font-bold text-gray-700 mb-1">Matter Status</label>
@@ -689,7 +695,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                  <input id="edit-case-court" name="courtName" type="text" value={editCaseData.court || ''} onChange={e=>setEditCaseData({...editCaseData, court: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
                </div>
             </div>
-            <Button type="submit" className="w-full py-3.5 mt-4">Save Changes</Button>
+            <Button className="w-full py-3.5 mt-4" type="submit">Save Changes</Button>
          </form>
       </Modal>
 
@@ -963,7 +969,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           </div>
           <h2 className="text-2xl font-bold mb-3">Account Pending Approval</h2>
           <p className="text-gray-600 text-base mb-8 leading-relaxed">Your request to join the workspace has been received. Please wait for a Senior Advocate or Manager to assign your role access.</p>
-          <Button onClick={onLogout} variant="secondary" className="w-full py-3">Sign Out</Button>
+          <Button className="w-full py-3" onClick="{onLogout}" variant="secondary">Sign Out</Button>
         </Card>
       </div>
     );
@@ -982,7 +988,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             <span className="font-bold block mb-2 uppercase tracking-wider text-xs">Reason for termination:</span>
             {currentUser.firedReason || 'No specific reason provided.'}
           </div>
-          <Button onClick={onLogout} variant="secondary" className="w-full py-3">Sign Out</Button>
+          <Button className="w-full py-3" onClick="{onLogout}" variant="secondary">Sign Out</Button>
         </Card>
       </div>
     );
@@ -1009,12 +1015,12 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           </div>
         </div>
         <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
-          <SidebarItem id="overview" name="Overview" icon={Clock} activeTab={activeTab} onClick={handleTabChange}/>
-          <SidebarItem id="ledger" name="Master Ledger" icon={Briefcase} activeTab={activeTab} onClick={handleTabChange}/>
-          <SidebarItem id="calendar" name="Calendar" icon={CalendarDays} activeTab={activeTab} onClick={handleTabChange}/>
-          <SidebarItem id="tasks" name="Task Pipeline" icon={CheckCircle2} activeTab={activeTab} onClick={handleTabChange}/>
+          <SidebarItem activeTab="{activeTab}" icon="{Clock}" id="overview" name="Overview" onClick="{handleTabChange}"/>
+          <SidebarItem activeTab="{activeTab}" icon="{Briefcase}" id="ledger" name="Master Ledger" onClick="{handleTabChange}"/>
+          <SidebarItem activeTab="{activeTab}" icon="{CalendarDays}" id="calendar" name="Calendar" onClick="{handleTabChange}"/>
+          <SidebarItem activeTab="{activeTab}" icon="{CheckCircle2}" id="tasks" name="Task Pipeline" onClick="{handleTabChange}"/>
           {isSeniorOrManager && (
-            <SidebarItem id="team" name="Team & Access" icon={Users} activeTab={activeTab} onClick={handleTabChange}/>
+            <SidebarItem activeTab="{activeTab}" icon="{Users}" id="team" name="Team & Access" onClick="{handleTabChange}"/>
           )}
         </nav>
         <div className="p-5 border-t border-[#E5E5E5] cursor-pointer hover:bg-gray-50 transition-colors group shrink-0" onClick={() => setIsLogoutModalOpen(true)}>
@@ -1024,7 +1030,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
             <div className="flex flex-col text-left flex-1 overflow-hidden">
               <span className="text-sm font-bold truncate text-[#111111]">{currentUser.name}</span>
-              <RoleBadge role={currentUser.role}/>
+              <RoleBadge role="{currentUser.role}"/>
             </div>
             <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-600 transition-colors shrink-0"/>
           </div>
@@ -1042,619 +1048,19 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
              <button onClick={() => handleTabChange('calendar')} className={`p-2 rounded-lg transition-colors ${activeTab==='calendar'?'bg-gray-100 text-black':'text-gray-500 hover:text-black hover:bg-gray-50'}`} aria-label="Calendar"><CalendarDays className="w-5 h-5"/></button>
              <button onClick={() => handleTabChange('tasks')} className={`p-2 rounded-lg transition-colors ${activeTab==='tasks'?'bg-gray-100 text-black':'text-gray-500 hover:text-black hover:bg-gray-50'}`} aria-label="Task Pipeline"><CheckCircle2 className="w-5 h-5"/></button>
              {isSeniorOrManager && (
-                <button onClick={() => handleTabChange('team')} className={`p-2 rounded-lg transition-colors ${activeTab==='team'?'bg-gray-100 text-black':'text-gray-500 hover:text-black hover:bg-gray-50'}`} aria-label="Team Access"><Users className="w-5 h-5" /></button>
+                <button onClick={() => handleTabChange('team')} className={`p-2 rounded-lg transition-colors ${activeTab==='team'?'bg-gray-100 text-black':'text-gray-500 hover:text-black hover:bg-gray-50'}`} aria-label="Team Access"><Users className="w-5 h-5"/></button>
              )}
              <button onClick={() => setIsLogoutModalOpen(true)} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" aria-label="Log Out"><LogOut className="w-5 h-5"/></button>
            </div>
         </header>
 
         <div className="flex-1 overflow-auto bg-[#F9F9F9] relative">
-          
-          {/* Overview Tab */}
-          {activeTab === 'overview' && !activeCaseId && (
-            <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in zoom-in-95 duration-500">
-              <header className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-6">
-                <div>
-                  <div className="text-xs font-bold tracking-[0.2em] text-gray-400 mb-2 uppercase">{new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
-                  <h2 className="text-4xl font-bold tracking-tight text-[#111111]">
-                    {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'}, {currentUser.name.split(' ')[0]}.
-                  </h2>
-                  <p className="text-gray-500 mt-2 text-lg">Here's the shape of <strong className="text-gray-800 font-semibold">{officeName}</strong> today.</p>
-                </div>
-                {isSeniorOrManager && (
-                  <Button onClick={() => setIsNewMatterOpen(true)} className="py-3 px-6 shadow-md shrink-0">
-                    <Plus className="w-5 h-5 mr-2"/> Open New Matter
-                  </Button>
-                )}
-              </header>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <Card className="p-8 border-l-4 border-l-[#111111]">
-                  <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><Briefcase className="w-5 h-5 mr-2 text-gray-800"/> Active matters</div>
-                  <div className="text-6xl font-bold text-[#111111] tracking-tighter">{activeCasesCount.toString().padStart(2, '0')}</div>
-                  <div className="text-xs text-gray-500 font-bold uppercase tracking-wider bg-gray-100 px-3 py-1.5 rounded-md w-fit mt-4 border border-gray-200">Currently Open</div>
-                </Card>
-                <Card className="p-8 border-l-4 border-l-[#111111]">
-                  <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><CheckCircle2 className="w-5 h-5 mr-2 text-gray-800"/> My assigned tasks</div>
-                  <div className="text-6xl font-bold text-[#111111] tracking-tighter">
-                    {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length.toString().padStart(2, '0')}
-                  </div>
-                  <div className="text-xs text-amber-700 font-bold uppercase tracking-wider bg-amber-50 px-3 py-1.5 rounded-md w-fit mt-4 border border-amber-200">Requires Attention</div>
-                </Card>
-                <Card className="p-8 border-l-4 border-l-[#111111]">
-                  <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><CalendarIcon className="w-5 h-5 mr-2 text-gray-800"/> Upcoming hearings</div>
-                  <div className="text-6xl font-bold text-[#111111] tracking-tighter">{futureHearings.length.toString().padStart(2, '0')}</div>
-                  <div className="text-xs text-blue-700 font-bold uppercase tracking-wider bg-blue-50 px-3 py-1.5 rounded-md w-fit mt-4 border border-blue-200 shadow-sm">
-                     {daysUntilNearest !== null ? (daysUntilNearest === 0 ? 'Hearing Today' : `Next in ${daysUntilNearest} day${daysUntilNearest > 1 ? 's' : ''}`) : 'No Schedule'}
-                  </div>
-                </Card>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <div>
-                  <div className="flex justify-between items-center mb-6 border-b border-[#E5E5E5] pb-3">
-                    <h3 className="font-bold text-xl tracking-tight text-[#111111]">Recent Activity</h3>
-                    <button onClick={()=>setActiveTab('ledger')} className="text-sm font-bold text-[#4F46E5] hover:text-indigo-700 hover:underline transition-all">View Ledger &rarr;</button>
-                  </div>
-                  <div className="space-y-4">
-                    {dbData.updates.sort((a,b)=>new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0,4).map(up => {
-                      const c = dbData.cases.find(c=>c.id === up.caseId);
-                      const u = dbData.users.find(u=>u.id === up.authorId);
-                      if(!c || c.officeId !== currentUser.officeId) return null;
-                      return (
-                        <Card key={up.id} onClick={() => {setActiveTab('ledger'); setActiveCaseId(c.id);}} className="p-5 group">
-                          <div className="flex justify-between items-start mb-2 gap-3">
-                            <span className="font-bold text-base text-[#111111] group-hover:text-[#4F46E5] transition-colors leading-tight">{c.title}</span>
-                            <span className="text-[10px] font-bold text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded border border-gray-200 shrink-0">{new Date(up.timestamp).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</span>
-                          </div>
-                          <div className="text-sm text-gray-600 line-clamp-2 leading-relaxed bg-gray-50 p-2 rounded">{up.text}</div>
-                          <div className="mt-4 flex items-center space-x-2 text-xs pt-1">
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[8px] ${ROLE_CONFIG[u?.role]?.bg || 'bg-gray-200'} ${ROLE_CONFIG[u?.role]?.text || 'text-black'}`}>
-                               {u?.name ? u.name.charAt(0) : '?'}
-                            </div>
-                            <span className="font-bold text-gray-800">{u?.name || 'Unknown'}</span>
-                          </div>
-                        </Card>
-                      );
-                    })}
-                    {dbData.updates.filter(up => { const c = dbData.cases.find(c=>c.id === up.caseId); return c && c.officeId === currentUser.officeId; }).length === 0 && (
-                      <div className="p-8 text-center text-gray-500 bg-white border border-dashed border-gray-300 rounded-xl text-sm">
-                        No activity recorded in the workspace yet.
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-6 border-b border-[#E5E5E5] pb-3">
-                    <h3 className="font-bold text-xl tracking-tight text-[#111111]">Your Priority Tasks</h3>
-                    <span className="bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold px-3 py-1 rounded-full shrink-0 shadow-sm">
-                      {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length} Pending
-                    </span>
-                  </div>
-                  <div className="space-y-4">
-                    {myOfficeTasks
-                      .filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED')
-                      .sort((a, b) => {
-                        if (!a.dueDate) return 1;
-                        if (!b.dueDate) return -1;
-                        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-                      })
-                      .slice(0, 4)
-                      .map(t => {
-                        const c = dbData.cases.find(c=>c.id === t.caseId);
-                        const canModify = canUserModifyTask(t);
-                        return (
-                          <Card key={t.id} className="p-5 flex items-center group bg-white border-l-4 border-l-amber-400">
-                            <div className="flex flex-col flex-1 pr-5">
-                              <span className="font-bold text-base text-[#111111] mb-1.5 group-hover:text-amber-700 transition-colors leading-tight">{t.title}</span>
-                              <div className="flex items-center text-xs text-gray-600 space-x-2 bg-gray-50 w-fit px-2 py-1 rounded border border-gray-100">
-                                <span className="font-bold truncate max-w-[150px]">{c?.title || 'Unknown Case'}</span>
-                                <span className="text-gray-300">|</span>
-                                <span className="font-mono text-[10px] uppercase font-bold text-amber-700">Due: {t.dueDate}</span>
-                              </div>
-                            </div>
-                            <div className="shrink-0 flex items-center justify-center p-2">
-                              <input 
-                                id={`overview-task-check-${t.id}`}
-                                name={`overviewTaskCheck_${t.id}`}
-                                aria-label={`Mark task ${t.title} as completed`}
-                                type="checkbox" 
-                                disabled={!canModify}
-                                className={`w-6 h-6 rounded-md border-gray-300 text-green-600 focus:ring-green-600 shadow-sm ${canModify ? 'cursor-pointer hover:scale-110 transition-transform' : 'opacity-40 cursor-not-allowed'}`} 
-                                onChange={async () => {
-                                  if (!canModify) return;
-                                  await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), { status: 'COMPLETED' });
-                                }} 
-                                title={canModify ? "Mark as Completed" : "Insufficient permissions"} 
-                              />
-                            </div>
-                          </Card>
-                        );
-                      })}
-                    {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length === 0 && (
-                      <Card className="p-10 text-center flex flex-col items-center justify-center text-gray-500 text-sm border-dashed border-2 bg-gray-50">
-                        <CheckCircle2 className="w-10 h-10 text-green-500 mb-3 opacity-50"/>
-                        <span className="font-bold text-gray-700 mb-1">All caught up!</span>
-                        <span>You have no pending tasks assigned.</span>
-                      </Card>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Master Ledger Tab */}
-          {activeTab === 'ledger' && !activeCaseId && (
-            <div className="p-6 md:p-10 max-w-6xl mx-auto h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <header className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
-                <div>
-                  <h2 className="text-4xl font-bold tracking-tight text-[#111111]">Master Ledger</h2>
-                  <p className="text-base text-gray-500 mt-2">Comprehensive directory of all matters in the workspace.</p>
-                </div>
-                {isSeniorOrManager && (
-                  <Button onClick={() => setIsNewMatterOpen(true)} className="shrink-0 py-3 shadow-md"><Plus className="w-5 h-5 mr-2"/> Open New Matter</Button>
-                )}
-              </header>
-              
-              <Card className="flex-1 overflow-hidden flex flex-col min-h-[500px] shadow-lg border-[#E5E5E5]">
-                <div className="flex flex-col lg:flex-row gap-3 p-4 md:p-5 border-b border-[#E5E5E5] bg-white shrink-0 z-10 relative">
-                  <div className="flex-1 flex items-center bg-[#F9F9F9] px-4 py-2.5 rounded-lg border border-[#E5E5E5] focus-within:border-black transition-colors shadow-inner">
-                    <Search className="w-5 h-5 text-gray-400 mr-3 shrink-0"/>
-                    <label htmlFor="ledger-search-input" className="sr-only">Search Matters</label>
-                    <input id="ledger-search-input" value={ledgerSearch} onChange={e=>setLedgerSearch(e.target.value)} placeholder="Search by title, case number, or CNR..." className="bg-transparent border-none outline-none text-sm w-full font-medium text-[#111111] placeholder-gray-400" />
-                  </div>
-                  <div className="flex space-x-3">
-                     <div className="flex items-center bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg px-3 py-2.5 shadow-sm">
-                        <Filter className="w-4 h-4 text-gray-500 mr-2 shrink-0"/>
-                        <label htmlFor="ledger-filter-select" className="sr-only">Filter by Status</label>
-                        <select id="ledger-filter-select" value={ledgerFilter} onChange={e=>setLedgerFilter(e.target.value)} className="bg-transparent border-none outline-none text-sm font-bold text-gray-700 cursor-pointer">
-                           <option value="ALL">All Statuses</option>
-                           <option value="Active">Active</option>
-                           <option value="Disposed">Disposed</option>
-                        </select>
-                     </div>
-                     <div className="flex items-center bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg px-3 py-2.5 shadow-sm">
-                        <label htmlFor="ledger-sort-select" className="sr-only">Sort by</label>
-                        <select id="ledger-sort-select" value={ledgerSort} onChange={e=>setLedgerSort(e.target.value)} className="bg-transparent border-none outline-none text-sm font-bold text-gray-700 cursor-pointer">
-                           <option value="HEARING_ASC">Nearest Hearing</option>
-                           <option value="HEARING_DESC">Furthest Hearing</option>
-                           <option value="TITLE_ASC">Title (A-Z)</option>
-                        </select>
-                     </div>
-                  </div>
-                </div>
-                <div className="overflow-y-auto overflow-x-auto flex-1 bg-[#F9F9F9] p-4">
-                  <div className="min-w-[900px] bg-white rounded-xl border border-[#E5E5E5] shadow-sm overflow-hidden">
-                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-[#E5E5E5] text-[11px] font-bold text-gray-500 uppercase tracking-widest bg-gray-50">
-                      <div className="col-span-4 pl-2">Matter Title & Court</div>
-                      <div className="col-span-2">Case No.</div>
-                      <div className="col-span-2">CNR</div>
-                      <div className="col-span-2 text-right">Next Hearing</div>
-                      <div className="col-span-2 text-center">Status</div>
-                    </div>
-                    {sortedFilteredCases.length === 0 && (
-                      <div className="flex flex-col items-center justify-center p-16 text-center">
-                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 shadow-inner">
-                          <Briefcase className="w-10 h-10 text-gray-300"/>
-                        </div>
-                        <h3 className="text-xl font-bold text-[#111111] mb-2">No Matters Found</h3>
-                        <p className="text-gray-500 text-base max-w-sm mb-6">There are no records matching your current search criteria.</p>
-                        {isSeniorOrManager && !ledgerSearch && ledgerFilter === 'ALL' && (
-                          <Button onClick={() => setIsNewMatterOpen(true)} className="px-6 py-3"><Plus className="w-5 h-5 mr-2"/> Create Matter</Button>
-                        )}
-                      </div>
-                    )}
-                    <div className="divide-y divide-gray-100">
-                      {sortedFilteredCases.map((c) => (
-                        <div key={c.id} onClick={() => setActiveCaseId(c.id)} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-gray-50 transition-colors cursor-pointer group">
-                          <div className="col-span-4 pl-2 pr-4 space-y-1.5 border-r border-transparent group-hover:border-gray-200 transition-colors">
-                            <div className="font-bold text-base text-[#111111] group-hover:text-[#4F46E5] truncate transition-colors">{c.title}</div>
-                            <div className="text-xs text-gray-500 font-medium truncate flex items-center"><Scale className="w-3 h-3 mr-1.5 opacity-50"/> {c.court || 'Pending Court'}</div>
-                          </div>
-                          <div className="col-span-2">
-                            <span className="font-mono bg-white border border-[#E5E5E5] px-2.5 py-1 rounded text-[#111111] text-xs font-bold shadow-sm inline-block truncate max-w-full">{c.caseNumber || 'N/A'}</span>
-                          </div>
-                          <div className="col-span-2">
-                            <span className="font-mono bg-gray-50 border border-[#E5E5E5] px-2.5 py-1 rounded text-gray-600 text-xs font-medium inline-block truncate max-w-full">{c.cnr || 'N/A'}</span>
-                          </div>
-                          <div className="col-span-2 text-right pr-4">
-                             <div className="text-sm font-bold text-[#111111]">{c.nextHearing ? new Date(c.nextHearing).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}) : <span className="text-gray-400 font-medium italic">Unscheduled</span>}</div>
-                          </div>
-                          <div className="col-span-2 flex items-center justify-between pl-4 border-l border-gray-100">
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${c.status === 'Active' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-600 border border-gray-200'}`}>{c.status}</span>
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-gray-200 shadow-sm group-hover:border-black group-hover:bg-black transition-all shrink-0">
-                              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors"/>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          )}
-
-          {activeCaseId && (
-            <CaseDetailView 
-              activeCaseId={activeCaseId} 
-              goBack={() => setActiveCaseId(null)} 
-              dbData={dbData} 
-              currentUser={currentUser} 
-              onOpenNewTask={() => {
-                setEditingTaskId(null);
-                setNewTaskTitle("");
-                setNewTaskDueDate("");
-                setNewTaskAssigneeIds([]);
-                setNewTaskCaseId(activeCaseId);
-                setIsNewTaskModalOpen(true);
-              }}
-            />
-          )}
-
-          {/* Task Pipeline Tab */}
-          {activeTab === 'tasks' && !activeCaseId && (
-            <div className="p-6 md:p-10 h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
-                <div>
-                  <h2 className="text-4xl font-bold tracking-tight text-[#111111]">Task Pipeline</h2>
-                  <p className="text-base text-gray-500 mt-2">Manage workflow across the chambers. Drag cards to update status.</p>
-                </div>
-                <Button onClick={() => {
-                  setEditingTaskId(null);
-                  setNewTaskTitle("");
-                  setNewTaskDueDate("");
-                  setNewTaskAssigneeIds([]);
-                  setNewTaskCaseId(myOfficeCases[0]?.id || '');
-                  setIsNewTaskModalOpen(true);
-                }} className="shrink-0 py-3 shadow-md"><Plus className="w-5 h-5 mr-2"/> Add New Task</Button>
-              </header>
-              <div className="flex-1 flex gap-6 overflow-x-auto pb-6 scrollbar-hide px-2">
-                {['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'].map(status => {
-                  const colTasks = myOfficeTasks.filter(t => t.status === status);
-                  const isDraggingOver = draggingColumn === status;
-                  
-                  const colHeaders = {
-                    'TODO': { title: 'To Do', color: 'bg-gray-100 border-gray-300 text-gray-800' },
-                    'IN_PROGRESS': { title: 'In Progress', color: 'bg-blue-100 border-blue-300 text-blue-800' },
-                    'REVIEW': { title: 'Review', color: 'bg-amber-100 border-amber-300 text-amber-800' },
-                    'COMPLETED': { title: 'Completed', color: 'bg-green-100 border-green-300 text-green-800' }
-                  };
-                  
-                  return (
-                    <div 
-                      key={status} 
-                      onDragOver={(e) => handleDragOver(e, status)}
-                      onDrop={(e) => handleDrop(e, status)}
-                      onDragLeave={() => setDraggingColumn(null)}
-                      className={`w-80 lg:w-96 flex-shrink-0 flex flex-col rounded-2xl border-2 transition-all duration-200 ${isDraggingOver ? 'bg-gray-100 border-[#111111] border-dashed shadow-inner' : 'bg-gray-50 border-[#E5E5E5] border-solid'} max-h-full`}
-                    >
-                      <div className="p-4 border-b border-[#E5E5E5] flex justify-between items-center bg-white rounded-t-xl pointer-events-none shrink-0 shadow-sm z-10">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-3 h-3 rounded-full border ${colHeaders[status].color}`}></div>
-                          <h3 className="text-sm font-bold tracking-wider text-[#111111] uppercase">{colHeaders[status].title}</h3>
-                        </div>
-                        <span className="text-xs bg-gray-100 border border-gray-200 text-[#111111] px-2.5 py-1 rounded-lg font-bold shadow-inner">{colTasks.length}</span>
-                      </div>
-                      <div className="flex-1 p-4 overflow-y-auto space-y-4 min-h-[200px]">
-                        {colTasks.length === 0 && (
-                          <div className="h-full flex items-center justify-center opacity-50 border-2 border-dashed border-transparent">
-                            <span className="text-sm font-bold text-gray-400 uppercase tracking-widest">Drop Here</span>
-                          </div>
-                        )}
-                        {colTasks.map(t => {
-                           const c = dbData.cases.find(c=>c.id===t.caseId);
-                           const assignees = (t.assigneeIds || []).map(id => dbData.users.find(u=>u.id===id)).filter(Boolean);
-                           const canModify = canUserModifyTask(t);
-                           return (
-                            <Card 
-                              key={t.id} 
-                              draggable={canModify}
-                              onDragStart={(e) => handleDragStart(e, t.id)}
-                              onDragEnd={handleDragEnd}
-                              className={`p-5 shadow-sm hover:shadow-lg transition-all group bg-white relative border ${status === 'COMPLETED' ? 'opacity-70 grayscale-[50%]' : 'border-[#E5E5E5]'} ${canModify ? 'cursor-grab active:cursor-grabbing hover:border-black' : 'opacity-90'}`}
-                            >
-                              <div className="flex justify-between items-start mb-3">
-                                <div className="text-[10px] font-bold text-[#4F46E5] uppercase tracking-wider truncate bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 w-fit pointer-events-none">{c?.title || 'Unknown Matter'}</div>
-                                <button onClick={() => openEditTaskModal(t)} className="text-[10px] font-bold uppercase tracking-wider text-gray-500 hover:text-black bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all shadow-sm active:scale-95">
-                                  Edit
-                                </button>
-                              </div>
-                              <h4 className={`font-bold text-base mb-4 leading-snug pointer-events-none ${status === 'COMPLETED' ? 'line-through text-gray-500' : 'text-[#111111]'}`}>{t.title}</h4>
-                              
-                              <div className="flex items-center justify-between border-t border-gray-100 pt-4 mt-2">
-                                <div className="flex -space-x-2 overflow-hidden pointer-events-none p-1">
-                                  {assignees.length === 0 && <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest border border-dashed border-gray-300 px-2 py-1 rounded">Unassigned</span>}
-                                  {assignees.map((user, i) => {
-                                    const userCfg = ROLE_CONFIG[user.role] || { bg: 'bg-[#111111]', text: 'text-white', label: user.role };
-                                    return (
-                                      <div key={user.id} style={{zIndex: 10-i}} className={`inline-flex items-center justify-center h-7 w-7 rounded-full ring-2 ring-white ${userCfg.bg} ${userCfg.text} text-[10px] font-bold shadow-sm`} title={`${user.name} (${userCfg.label})`}>
-                                        {user.name.charAt(0)}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                                <div className="text-[10px] text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100 font-bold shadow-inner">
-                                  {t.dueDate === 'No date' ? 'No Due Date' : `Due: ${t.dueDate}`}
-                                </div>
-                              </div>
-                            </Card>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Calendar Tab */}
-          {activeTab === 'calendar' && !activeCaseId && (
-            <div className="p-6 md:p-10 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 shrink-0">
-                 <div>
-                   <h2 className="text-4xl font-bold tracking-tight text-[#111111]">Office Calendar</h2>
-                   <p className="text-base text-gray-500 mt-2">Track upcoming hearings and manage office availability.</p>
-                 </div>
-                 <div className="flex space-x-3 items-center">
-                    <Button variant="secondary" onClick={() => setCurrentCalendarDate(new Date(curYear, curMonth - 1, 1))} className="px-3"><ChevronLeft className="w-5 h-5"/></Button>
-                    <div className="text-lg font-bold w-40 text-center uppercase tracking-widest">{currentCalendarDate.toLocaleDateString('en-US', {month: 'long', year:'numeric'})}</div>
-                    <Button variant="secondary" onClick={() => setCurrentCalendarDate(new Date(curYear, curMonth + 1, 1))} className="px-3"><ChevronRight className="w-5 h-5"/></Button>
-                 </div>
-               </header>
-
-               <Card className="p-1 border border-[#E5E5E5] bg-gray-50 shadow-inner">
-                 <div className="grid grid-cols-7 gap-1 text-center bg-white rounded-t-lg">
-                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-                     <div key={d} className="py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">{d}</div>
-                   ))}
-                 </div>
-                 <div className="grid grid-cols-7 gap-px bg-[#E5E5E5]">
-                   {calendarGrid.map((dayDate, idx) => {
-                     if (!dayDate) return <div key={idx} className="bg-gray-50 min-h-[80px] lg:min-h-[100px]"></div>;
-                     const dayStr = getLocalDateStr(dayDate);
-                     
-                     // Cases scheduled for this day
-                     const dayCases = myOfficeCases.filter(c => {
-                       if(!c.nextHearing) return false;
-                       const hStr = c.nextHearing.includes('T') ? c.nextHearing.split('T')[0] : c.nextHearing;
-                       return hStr === dayStr;
-                     });
-                     
-                     // Global office event for this day
-                     const evtId = `${currentUser.officeId}_${dayStr}`;
-                     const officeEvt = dbData.calendarEvents?.find(e => e.id === evtId);
-
-                     const isToday = dayStr === todayStr;
-
-                     return (
-                       <div 
-                         key={idx} 
-                         onClick={() => {
-                           setSelectedCalDateStr(dayStr);
-                           setCalEventType(officeEvt ? officeEvt.type : 'WORKING');
-                           setCalEventTime(officeEvt ? officeEvt.timeBox : '');
-                           setCalEventNote(officeEvt ? officeEvt.notes : '');
-                           setIsCalendarModalOpen(true);
-                         }}
-                         className={`bg-white h-20 lg:h-24 p-1.5 flex flex-col group relative transition-colors overflow-hidden cursor-pointer hover:bg-gray-50 ${officeEvt?.type === 'HOLIDAY' ? 'bg-red-50/30' : ''}`}
-                       >
-                         <div className="flex justify-between items-start mb-1.5">
-                           <span className={`text-[11px] font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-[#111111] text-white shadow-md' : 'text-gray-600 group-hover:text-black'}`}>{dayDate.getDate()}</span>
-                           {officeEvt && (
-                              <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm truncate max-w-[60px] ${officeEvt.type === 'HOLIDAY' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>
-                                {officeEvt.type === 'HOLIDAY' ? 'Holiday' : 'Work'}
-                              </span>
-                           )}
-                         </div>
-                         
-                         {officeEvt?.timeBox && officeEvt.type !== 'HOLIDAY' && (
-                           <div className="text-[9px] text-gray-500 font-mono mb-1.5 px-1 truncate">{officeEvt.timeBox}</div>
-                         )}
-
-                         <div className="flex-1 space-y-1 overflow-y-auto scrollbar-hide pb-1">
-                            {dayCases.map(c => (
-                              <div key={c.id} className="text-[9px] font-bold text-white bg-[#4F46E5] truncate px-1.5 py-0.5 rounded shadow-sm leading-tight border border-indigo-700">
-                                {c.title}
-                              </div>
-                            ))}
-                         </div>
-                       </div>
-                     );
-                   })}
-                 </div>
-               </Card>
-
-               <Modal title="Calendar Day Details" isOpen={isCalendarModalOpen} onClose={() => setIsCalendarModalOpen(false)}>
-                 <div className="space-y-6">
-                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                     <div>
-                       <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Selected Date</div>
-                       <div className="text-base font-bold text-[#111111]">
-                         {selectedCalDateStr ? new Date(selectedCalDateStr + "T00:00:00").toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'}) : ''}
-                       </div>
-                     </div>
-                     {selectedOfficeEvt && (
-                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full w-fit ${selectedOfficeEvt.type === 'HOLIDAY' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>
-                         {selectedOfficeEvt.type === 'HOLIDAY' ? 'Office Holiday' : 'Working Day'}
-                       </span>
-                     )}
-                   </div>
-
-                   <div>
-                     <div className="flex items-center justify-between mb-3">
-                       <h4 className="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center">
-                         <Briefcase className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
-                         Hearings Listed Today ({selectedDayCases.length})
-                       </h4>
-                     </div>
-
-                     {selectedDayCases.length === 0 ? (
-                       <div className="p-6 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                         <Scale className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                         <p className="text-sm font-medium text-gray-500">No hearings or matters scheduled on this date.</p>
-                       </div>
-                     ) : (
-                       <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                         {selectedDayCases.map(c => (
-                           <div key={c.id} className="p-4 bg-white border border-[#E5E5E5] rounded-xl hover:border-black transition-all shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                             <div className="flex-1 min-w-0">
-                               <div className="flex items-center space-x-2 mb-1">
-                                 <span className="font-bold text-sm text-[#111111] truncate">{c.title}</span>
-                                 <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded ${c.status === 'Active' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-600'}`}>{c.status || 'Active'}</span>
-                               </div>
-                               <div className="flex flex-wrap items-center text-xs text-gray-500 gap-x-2 gap-y-1 font-mono">
-                                 <span><strong className="font-sans text-[10px] uppercase text-gray-400">No:</strong> {c.caseNumber || 'N/A'}</span>
-                                 <span>•</span>
-                                 <span><strong className="font-sans text-[10px] uppercase text-gray-400">CNR:</strong> {c.cnr || 'N/A'}</span>
-                                 <span>•</span>
-                                 <span className="font-sans text-gray-600">{c.court || 'Court Pending'}</span>
-                               </div>
-                             </div>
-                             <Button
-                               variant="primary"
-                               className="text-xs py-2 px-3 shrink-0 shadow-sm font-bold flex items-center"
-                               onClick={() => {
-                                 setIsCalendarModalOpen(false);
-                                 setActiveTab('ledger');
-                                 setActiveCaseId(c.id);
-                               }}
-                             >
-                               <Briefcase className="w-3.5 h-3.5 mr-1.5" />
-                               Access Ledger &rarr;
-                             </Button>
-                           </div>
-                         ))}
-                       </div>
-                     )}
-                   </div>
-
-                   {isSeniorOrManager ? (
-                     <form onSubmit={handleSaveCalendarEvent} className="border-t border-[#E5E5E5] pt-5 space-y-4">
-                       <div className="text-xs font-bold uppercase tracking-wider text-gray-700">Office & Court Schedule Settings</div>
-                       
-                       <div>
-                         <label htmlFor="cal-type-select" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Day Classification</label>
-                         <select id="cal-type-select" value={calEventType} onChange={e=>setCalEventType(e.target.value)} className="w-full px-4 py-2.5 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm font-bold shadow-sm cursor-pointer transition-all">
-                           <option value="WORKING">Working / Court Day</option>
-                           <option value="HOLIDAY">Office Holiday / Closed</option>
-                         </select>
-                       </div>
-
-                       {calEventType !== 'HOLIDAY' && (
-                         <div className="animate-in fade-in slide-in-from-top-2">
-                           <label htmlFor="cal-time-input" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Office / Court Timing</label>
-                           <input id="cal-time-input" type="text" value={calEventTime} onChange={e=>setCalEventTime(e.target.value)} placeholder="e.g. 10:00 AM - 5:00 PM" className="w-full px-4 py-2.5 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm shadow-sm transition-all" />
-                         </div>
-                       )}
-
-                       <div>
-                         <label htmlFor="cal-notes-textarea" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Internal Schedule Notes (Optional)</label>
-                         <textarea id="cal-notes-textarea" value={calEventNote} onChange={e=>setCalEventNote(e.target.value)} placeholder="e.g. High Court closing early today..." className="w-full px-4 py-2.5 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm min-h-[60px] resize-y shadow-inner transition-all" />
-                       </div>
-
-                       <div className="flex space-x-3 pt-2">
-                         <Button variant="secondary" type="button" className="flex-1 py-2.5" onClick={() => setIsCalendarModalOpen(false)}>Close</Button>
-                         <Button variant="primary" type="submit" className="flex-1 py-2.5">Save Schedule</Button>
-                       </div>
-                     </form>
-                   ) : (
-                     selectedOfficeEvt && (
-                       <div className="border-t border-[#E5E5E5] pt-4 space-y-2">
-                         <div className="text-xs font-bold uppercase tracking-wider text-gray-400">Office Timings & Notes</div>
-                         {selectedOfficeEvt.timeBox && (
-                           <div className="text-sm font-mono text-gray-800"><strong>Hours:</strong> {selectedOfficeEvt.timeBox}</div>
-                         )}
-                         {selectedOfficeEvt.notes && (
-                           <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200">{selectedOfficeEvt.notes}</div>
-                         )}
-                       </div>
-                     )
-                   )}
-                 </div>
-               </Modal>
-            </div>
-          )}
-
-          {/* Team Access Tab */}
-          {activeTab === 'team' && isSeniorOrManager && !activeCaseId && (
-             <div className="p-6 md:p-10 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <header className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 shrink-0">
-                 <div>
-                   <h2 className="text-4xl font-bold tracking-tight text-[#111111]">Team Access</h2>
-                   <p className="text-base text-gray-500 mt-2">Manage roles, approve pending members, and secure your workspace.</p>
-                 </div>
-                 <div className="bg-white border border-[#E5E5E5] text-[#111111] px-5 py-3 rounded-xl text-sm font-bold flex items-center shadow-md shrink-0">
-                   Workspace Invite Code: 
-                   <span className="ml-4 font-mono text-lg tracking-widest text-[#4F46E5] bg-indigo-50 px-3 py-1 rounded-lg border border-indigo-100 select-all">
-                     {myOffice?.inviteCode}
-                 </span>
-                 </div>
-               </header>
-               <Card className="overflow-hidden shadow-lg border-[#E5E5E5]">
-                 <div className="p-5 bg-gray-50 border-b border-[#E5E5E5] text-xs font-bold text-gray-500 uppercase tracking-widest pl-8 flex items-center shadow-sm z-10 relative">
-                   <Users className="w-4 h-4 mr-2"/> Active & Pending Members
-                 </div>
-                 <div className="divide-y divide-gray-100 bg-white">
-                   {sortedTeam.map(user => (
-                     <div key={user.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition-colors pl-8 gap-4 group">
-                       <div className="flex items-center space-x-5">
-                          <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-base shadow-md shrink-0 border-2 border-white ring-1 ring-black/5 ${ROLE_CONFIG[user.role]?.bg} ${ROLE_CONFIG[user.role]?.text}`}>
-                            {user.name.split(' ').map(n=>n[0]).join('').substring(0,2)}
-                          </div>
-                          <div>
-                            <div className="font-bold text-lg text-[#111111] mb-0.5">{user.name} {user.id === currentUser.id && <span className="text-[10px] font-bold uppercase tracking-wider bg-gray-200 text-gray-600 px-2 py-0.5 rounded ml-2 align-middle">You</span>}</div>
-                            <div className="text-sm text-gray-500 font-medium flex items-center"><Mail className="w-3.5 h-3.5 mr-1.5"/> {user.email}</div>
-                          </div>
-                       </div>
-                       <div className="flex items-center space-x-6 sm:pr-4">
-                         <RoleBadge role={user.role}/>
-                         {currentUser.id !== user.id && (
-                           <div className="flex items-center space-x-3 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                             <label htmlFor={`user-role-select-${user.id}`} className="sr-only">Change Role</label>
-                             <select 
-                               id={`user-role-select-${user.id}`}
-                               name={`userRole_${user.id}`}
-                               className="text-xs font-bold uppercase tracking-wider border border-gray-300 rounded-lg p-2.5 outline-none focus:border-black cursor-pointer bg-white shadow-sm hover:bg-gray-50 transition-all focus:ring-2 focus:ring-black/20"
-                               value={user.role}
-                               onChange={async (e) => {
-                                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user.id), { role: e.target.value });
-                               }}
-                             >
-                               <option value="PENDING">Pending Approval</option>
-                               <option value="INTERN">Intern</option>
-                               <option value="EMPLOYEE">Associate</option>
-                               <option value="MANAGER">Manager</option>
-                               <option value="SENIOR_ADVOCATE">Senior Advocate</option>
-                               {user.role === 'FIRED' && <option value="FIRED">Terminated</option>}
-                             </select>
-                             {user.role !== 'FIRED' && (
-                               <button 
-                                 onClick={() => { setUserToFire(user); setIsFireModalOpen(true); }}
-                                 className="p-2.5 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-lg border border-red-100 transition-all shadow-sm active:scale-95 shrink-0"
-                                 title="Revoke Access"
-                                 aria-label={`Revoke Access for ${user.name}`}
-                               >
-                                 <LogOut className="w-4 h-4"/>
-                               </button>
-                             )}
-                           </div>
-                         )}
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-               </Card>
-             </div>
-          )}
-
+          {renderContent()}
         </div>
       </main>
       
       {/* Global Modals that exist outside activeTab flow */}
-      <Modal title="Open New Matter" isOpen={isNewMatterOpen} onClose={() => setIsNewMatterOpen(false)}>
+      <Modal isOpen="{isNewMatterOpen}" onClose="{()" title="Open New Matter"> setIsNewMatterOpen(false)}>
         <form onSubmit={handleCreateMatter} className="space-y-6">
           <div className="space-y-5 pb-5 border-b border-gray-100">
             <div>
@@ -1728,11 +1134,11 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
            </div>
           </div>
           
-          <Button type="submit" className="w-full py-4 mt-8 rounded-xl text-base shadow-lg">Create Matter File</Button>
+          <Button className="w-full py-4 mt-8 rounded-xl text-base shadow-lg" type="submit">Create Matter File</Button>
         </form>
       </Modal>
 
-      <Modal title={editingTaskId ? "Edit Task" : "Create New Task"} isOpen={isNewTaskModalOpen} onClose={() => { setIsNewTaskModalOpen(false); setEditingTaskId(null); setNewTaskAssigneeIds([]); }}>
+      <Modal "Create "Edit : ? New Task" Task"} isOpen="{isNewTaskModalOpen}" onClose="{()" title="{editingTaskId"> { setIsNewTaskModalOpen(false); setEditingTaskId(null); setNewTaskAssigneeIds([]); }}>
         <form onSubmit={handleCreateTask} className="space-y-5">
           <div>
             <label htmlFor="task-title-input" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Task Title *</label>
@@ -1775,11 +1181,11 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             <label htmlFor="task-due-date" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Due Date</label>
             <input id="task-due-date" name="dueDate" type="date" value={newTaskDueDate} onChange={e=>setNewTaskDueDate(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all shadow-sm" />
           </div>
-          <Button type="submit" className="w-full py-4 mt-8 rounded-xl text-base shadow-lg">{editingTaskId ? 'Save Task Changes' : 'Create Task'}</Button>
+          <Button className="w-full py-4 mt-8 rounded-xl text-base shadow-lg" type="submit">{editingTaskId ? 'Save Task Changes' : 'Create Task'}</Button>
         </form>
       </Modal>
 
-      <Modal title="Terminate Employee" isOpen={isFireModalOpen} onClose={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>
+      <Modal isOpen="{isFireModalOpen}" onClose="{()" title="Terminate Employee"> { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>
         <form onSubmit={handleFireUser} className="space-y-4">
           <div className="bg-red-50 text-red-800 p-5 rounded-xl text-sm border border-red-200 mb-4 shadow-sm leading-relaxed">
             You are about to terminate <strong>{userToFire?.name}</strong>. Their access to the workspace will be immediately revoked.
@@ -1789,19 +1195,19 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             <textarea id="fire-reason-textarea" name="terminationReason" required value={fireReason} onChange={e=>setFireReason(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none text-sm transition-all min-h-[120px] resize-y shadow-inner" placeholder="Detail the reason for immediate termination. This will be visible to the employee." />
           </div>
           <div className="flex space-x-4 mt-8">
-            <Button variant="secondary" className="flex-1 py-3" onClick={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>Cancel</Button>
-            <Button variant="danger" type="submit" className="flex-1 py-3">Confirm Termination</Button>
+            <Button className="flex-1 py-3" onClick="{()" variant="secondary"> { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>Cancel</Button>
+            <Button className="flex-1 py-3" type="submit" variant="danger">Confirm Termination</Button>
           </div>
         </form>
       </Modal>
       
-      <Modal title="Sign Out" isOpen={isLogoutModalOpen} onClose={() => setIsLogoutModalOpen(false)}>
+      <Modal isOpen="{isLogoutModalOpen}" onClose="{()" title="Sign Out"> setIsLogoutModalOpen(false)}>
         <div className="bg-gray-50 text-gray-800 p-5 rounded-xl text-sm border border-gray-200 mb-8 shadow-inner leading-relaxed">
           Are you sure you want to sign out of your workspace? You will need your credentials to access it again.
         </div>
         <div className="flex space-x-4">
-          <Button variant="secondary" className="flex-1 py-3" onClick={() => setIsLogoutModalOpen(false)}>Cancel</Button>
-          <Button variant="primary" type="button" onClick={onLogout} className="flex-1 py-3 bg-[#111111] hover:bg-black">Yes, Sign Out</Button>
+          <Button className="flex-1 py-3" onClick="{()" variant="secondary"> setIsLogoutModalOpen(false)}>Cancel</Button>
+          <Button className="flex-1 py-3 bg-[#111111] hover:bg-black" onClick="{onLogout}" type="button" variant="primary">Yes, Sign Out</Button>
         </div>
       </Modal>
 
@@ -1905,9 +1311,11 @@ export default function App() {
   };
 
   const handleJoinOffice = async (name, email, password, code) => {
+    // 1. Create the Auth account first so the user is authenticated for Firestore rules
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
 
+    // 2. Query the office using the invite code now that the user is authenticated
     const officesRef = collection(db, 'artifacts', appId, 'public', 'data', 'offices');
     const q = query(officesRef, where('inviteCode', '==', code.toUpperCase().trim()));
     const querySnapshot = await getDocs(q);
@@ -1919,6 +1327,7 @@ export default function App() {
     const foundOfficeDoc = querySnapshot.docs[0];
     const foundOffice = { id: foundOfficeDoc.id, ...foundOfficeDoc.data() };
     
+    // 3. Save the pending user profile
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), {
       id: uid, officeId: foundOffice.id, name, email, role: 'PENDING'
     });
@@ -1941,7 +1350,7 @@ export default function App() {
 
   // If the app is booting up or resolving auth, block all rendering with the SplashLoader
   if (isInitializing) {
-    return <SplashLoader />;
+    return <SplashLoader/>;
   }
 
   if (currentView === 'landing') {
@@ -1974,10 +1383,10 @@ export default function App() {
             Chambers brings cases, people, and progress into one focused workspace built for the way modern law offices actually work.
           </p>
           <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 w-full sm:w-auto">
-            <Button onClick={() => { setAuthMode('login'); setCurrentView('auth'); }} className="w-full sm:w-auto px-8 py-4 rounded-xl text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
+            <Button onClick="{()"> { setAuthMode('login'); setCurrentView('auth'); }} className="w-full sm:w-auto px-8 py-4 rounded-xl text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
               Log in to your workspace <ArrowRight className="w-4 h-4 ml-2"/>
             </Button>
-            <Button variant="secondary" onClick={() => { setAuthMode('track'); setCurrentView('auth'); }} className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold bg-white text-black border border-[#E5E5E5] hover:bg-gray-50 hover:border-black shadow-sm hover:-translate-y-0.5 transition-all">
+            <Button onClick="{()" variant="secondary"> { setAuthMode('track'); setCurrentView('auth'); }} className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold bg-white text-black border border-[#E5E5E5] hover:bg-gray-50 hover:border-black shadow-sm hover:-translate-y-0.5 transition-all">
               Client Case Tracking
             </Button>
           </div>
@@ -1988,28 +1397,20 @@ export default function App() {
 
   if (currentView === 'auth') {
     return (
-      <AuthView 
-        mode={authMode} 
-        setMode={setAuthMode} 
-        onLogin={handleLogin} 
-        onCreateOffice={handleCreateOffice} 
-        onJoinOffice={handleJoinOffice} 
-        onTrackCase={handleTrackCase} 
-        onResetPassword={handleResetPassword}
-        goBack={() => setCurrentView('landing')} 
+      <AuthView goBack="{()" mode="{authMode}" onCreateOffice="{handleCreateOffice}" onJoinOffice="{handleJoinOffice}" onLogin="{handleLogin}" onResetPassword="{handleResetPassword}" onTrackCase="{handleTrackCase}" setMode="{setAuthMode}"> setCurrentView('landing')} 
       />
     );
   }
 
   if (currentView === 'client') {
-    return <ClientPortalView trackingCode={trackedCode} dbData={dbData} onExit={handleLogout}/>;
+    return <ClientPortalView dbData="{dbData}" onExit="{handleLogout}" trackingCode="{trackedCode}"/>;
   }
 
   if (currentView === 'dashboard' && appUser) {
-    return <DashboardView currentUser={appUser} dbData={dbData} onLogout={handleLogout}/>;
+    return <DashboardView currentUser="{appUser}" dbData="{dbData}" onLogout="{handleLogout}"/>;
   }
 
   // Final fallback (should not be reached)
-  return <SplashLoader />;
+  return <SplashLoader/>;
 }
 ```eof
