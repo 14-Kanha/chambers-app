@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Scale, Briefcase, Calendar, CheckCircle2, Search, 
   Users, Plus, Clock, LogOut, ChevronRight, Download, 
   FileCheck, Edit3, X, AlertCircle, ArrowRight, Layers,
-  Mail, Lock, User
+  Mail, Lock, User, Loader2
 } from 'lucide-react';
 
 import { initializeApp } from 'firebase/app';
 import { 
-  getAuth, signInAnonymously, onAuthStateChanged, 
+  getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
   createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut,
   setPersistence, browserLocalPersistence, browserSessionPersistence
 } from 'firebase/auth';
@@ -16,7 +16,7 @@ import {
   getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, query, where, getDocs 
 } from 'firebase/firestore';
 
-const getEnvVar = (viteKey: string, nextKey: string) => {
+const getEnvVar = (viteKey, nextKey) => {
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[viteKey]) {
     return import.meta.env[viteKey];
   }
@@ -26,7 +26,6 @@ const getEnvVar = (viteKey: string, nextKey: string) => {
   return '';
 };
 
-// Initialize Firebase securely via environment variables
 let firebaseConfig = {
   apiKey: getEnvVar('VITE_FIREBASE_API_KEY', 'NEXT_PUBLIC_FIREBASE_API_KEY'),
   authDomain: getEnvVar('VITE_FIREBASE_AUTH_DOMAIN', 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'),
@@ -37,16 +36,20 @@ let firebaseConfig = {
   measurementId: getEnvVar('VITE_FIREBASE_MEASUREMENT_ID', 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID')
 };
 
-// @ts-ignore - Support for preview environments
-try { if (typeof __firebase_config !== 'undefined' && __firebase_config) { firebaseConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config; } } catch (e) { console.error("Firebase config parsing error", e); }
+try {
+  if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+    firebaseConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+  }
+} catch (e) {
+  console.error("Firebase config parsing error", e);
+}
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-// @ts-ignore
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'chambers-prod-app';
 
-const ROLE_HIERARCHY: Record<string, number> = {
+const ROLE_HIERARCHY = {
   'SENIOR_ADVOCATE': 4,
   'MANAGER': 3,
   'EMPLOYEE': 2,
@@ -54,7 +57,7 @@ const ROLE_HIERARCHY: Record<string, number> = {
   'CLIENT': 0
 };
 
-const ROLE_CONFIG: Record<string, {label: string, bg: string, text: string}> = {
+const ROLE_CONFIG = {
   'SENIOR_ADVOCATE': { label: 'Senior Advocate', bg: 'bg-[#4F46E5]', text: 'text-white' },
   'MANAGER': { label: 'Office Manager', bg: 'bg-[#0284C7]', text: 'text-white' },
   'EMPLOYEE': { label: 'Associate', bg: 'bg-[#059669]', text: 'text-white' },
@@ -63,13 +66,13 @@ const ROLE_CONFIG: Record<string, {label: string, bg: string, text: string}> = {
   'FIRED': { label: 'Terminated', bg: 'bg-red-100', text: 'text-red-700' }
 };
 
-const Card = ({ children, className = "", onClick, ...props }: any) => (
+const Card = ({ children, className = "", onClick, ...props }) => (
   <div onClick={onClick} className={`bg-white border border-[#E5E5E5] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${className}`} {...props}>
     {children}
   </div>
 );
 
-const Button = ({ children, onClick, variant = 'primary', type = 'button', className = "", disabled = false }: any) => {
+const Button = ({ children, onClick, variant = 'primary', type = 'button', className = "", disabled = false }) => {
   const base = "px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center cursor-pointer active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed";
   const styles = variant === 'primary' 
     ? `${base} bg-[#111111] text-white hover:bg-black shadow-sm`
@@ -77,12 +80,12 @@ const Button = ({ children, onClick, variant = 'primary', type = 'button', class
   return <button type={type} onClick={onClick} disabled={disabled} className={`${styles} ${className}`}>{children}</button>;
 };
 
-const RoleBadge = ({ role }: { role: string }) => {
+const RoleBadge = ({ role }) => {
   const config = ROLE_CONFIG[role] || { label: role, bg: 'bg-gray-100', text: 'text-gray-800' };
   return <span className={`px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold rounded ${config.bg} ${config.text}`}>{config.label}</span>;
 };
 
-const Modal = ({ title, isOpen, onClose, children }: any) => {
+const Modal = ({ title, isOpen, onClose, children }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
@@ -97,7 +100,7 @@ const Modal = ({ title, isOpen, onClose, children }: any) => {
   );
 };
 
-const SidebarItem = ({ id, name, icon: Icon, activeTab, onClick }: any) => {
+const SidebarItem = ({ id, name, icon: Icon, activeTab, onClick }) => {
   const active = activeTab === id;
   return (
     <button
@@ -112,7 +115,19 @@ const SidebarItem = ({ id, name, icon: Icon, activeTab, onClick }: any) => {
   );
 };
 
-const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrackCase, onResetPassword, goBack }: any) => {
+const SplashLoader = () => (
+  <div className="min-h-screen bg-[#F9F9F9] flex flex-col items-center justify-center animate-in fade-in duration-300">
+    <div className="w-16 h-16 bg-[#111111] rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+      <Scale className="w-8 h-8 text-white"/>
+    </div>
+    <div className="mt-6 flex items-center space-x-2 text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">
+      <Loader2 className="w-4 h-4 animate-spin"/>
+      <span>Loading Workspace</span>
+    </div>
+  </div>
+);
+
+const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrackCase, onResetPassword, goBack }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -126,7 +141,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccessAnim, setIsSuccessAnim] = useState(false);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
@@ -148,7 +163,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
         await onResetPassword(email);
         setSuccessMsg("If an account exists, a password reset link has been sent to your email.");
       }
-    } catch (err: any) {
+    } catch (err) {
       setErrorMsg(err.message || "An error occurred. Please try again.");
     } finally {
       if (mode === 'reset' || mode === 'track' || errorMsg) {
@@ -158,7 +173,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
   };
 
   return (
-    <div className="min-h-screen bg-[#F9F9F9] flex flex-col justify-center items-center p-6 relative">
+    <div className="min-h-screen bg-[#F9F9F9] flex flex-col justify-center items-center p-6 relative animate-in fade-in duration-300">
       <button onClick={goBack} className="absolute top-6 left-6 flex items-center text-sm font-medium text-gray-500 hover:text-black transition-colors">
         <ChevronRight className="w-4 h-4 mr-1 rotate-180"/> Back to Home
       </button>
@@ -234,10 +249,8 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
 
                   {mode === 'login' && (
                     <div className="flex items-center justify-between mt-3">
-                      <label htmlFor="remember-me-checkbox" className="flex items-center text-xs font-medium text-gray-700 cursor-pointer group select-none">
+                      <label className="flex items-center text-xs font-medium text-gray-700 cursor-pointer group select-none">
                         <input 
-                          id="remember-me-checkbox"
-                          name="rememberMe"
                           type="checkbox" 
                           checked={rememberMe} 
                           onChange={(e) => setRememberMe(e.target.checked)} 
@@ -297,17 +310,18 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
   );
 };
 
-const ClientPortalView = ({ trackingCode, dbData, onExit }: any) => {
+const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
-  const clientCases = dbData.cases.filter((c: any) => c.trackingNumber === trackingCode);
+  const clientCases = dbData.cases.filter(c => c.trackingNumber === trackingCode);
   const [selectedCaseId, setSelectedCaseId] = useState(clientCases[0]?.id || null);
 
   useEffect(() => {
     if (!selectedCaseId && clientCases.length > 0) setSelectedCaseId(clientCases[0].id);
   }, [clientCases, selectedCaseId]);
 
-  const activeCase = clientCases.find((c: any) => c.id === selectedCaseId) || clientCases[0];
-  const updates = dbData.updates.filter((u: any) => u.caseId === activeCase?.id).sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  const activeCase = clientCases.find(c => c.id === selectedCaseId) || clientCases[0];
+  
+  const updates = dbData.updates.filter(u => u.caseId === activeCase?.id).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
 
   if (clientCases.length === 0) {
     return (
@@ -341,7 +355,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }: any) => {
           <div className="mb-8 flex items-center space-x-2 overflow-x-auto pb-2">
             <Layers className="w-4 h-4 text-gray-400 mr-1 shrink-0"/>
             <span className="text-xs font-bold text-gray-500 uppercase shrink-0 mr-2">Your Matters:</span>
-            {clientCases.map((c: any) => (
+            {clientCases.map(c => (
               <button 
                 key={c.id} 
                 onClick={() => setSelectedCaseId(c.id)}
@@ -377,7 +391,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }: any) => {
               <h3 className="font-bold text-lg mb-4 flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-400"/> Recent Updates</h3>
               <div className="space-y-4">
                 {updates.length === 0 && <p className="text-sm text-gray-500 italic">No updates posted yet.</p>}
-                {updates.map((u: any) => (
+                {updates.map(u => (
                   <div key={u.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
                     <div className="flex justify-between text-xs text-gray-400 mb-1 font-mono">
                       <span>{new Date(u.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</span>
@@ -405,19 +419,19 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }: any) => {
   );
 };
 
-const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTask }: any) => {
+const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTask }) => {
   const [updateTitle, setUpdateTitle] = useState("");
   const [updateText, setUpdateText] = useState("");
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editCaseData, setEditCaseData] = useState<any>({});
+  const [editCaseData, setEditCaseData] = useState({});
   const [showBriefModal, setShowBriefModal] = useState(false);
 
-  const activeCase = dbData.cases.find((c: any) => c.id === activeCaseId);
-  const caseUpdates = dbData.updates.filter((u: any) => u.caseId === activeCaseId).sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  const caseTasks = dbData.tasks.filter((t: any) => t.caseId === activeCaseId);
+  const activeCase = dbData.cases.find(c => c.id === activeCaseId);
+  const caseUpdates = dbData.updates.filter(u => u.caseId === activeCaseId).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const caseTasks = dbData.tasks.filter(t => t.caseId === activeCaseId);
 
-  const handlePostUpdate = async (e: any) => {
+  const handlePostUpdate = async (e) => {
     e.preventDefault();
     if (!updateTitle || !updateText) return;
     
@@ -450,26 +464,25 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEdits = async (e: any) => {
+  const handleSaveEdits = async (e) => {
     e.preventDefault();
-    const formattedHearing = editCaseData.nextHearing ? new Date(editCaseData.nextHearing).toISOString() : null;
     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', activeCaseId), {
       ...editCaseData,
       trackingNumber: editCaseData.trackingNumber ? editCaseData.trackingNumber.toUpperCase().trim() : activeCase.trackingNumber,
-      nextHearing: formattedHearing
+      nextHearing: editCaseData.nextHearing ? new Date(editCaseData.nextHearing).toISOString() : null
     });
     setIsEditModalOpen(false);
   };
 
-  const canUserModifyTask = (task: any) => {
+  const canUserModifyTask = (task) => {
     if (currentUser.role === 'SENIOR_ADVOCATE') return true;
     const assigneeIds = task.assigneeIds || [];
     if (!assigneeIds.includes(currentUser.id)) return false;
     if (currentUser.role === 'MANAGER') return true;
     
-    const assignees = assigneeIds.map((id: string) => dbData.users.find((u: any) => u.id === id)).filter(Boolean);
+    const assignees = assigneeIds.map(id => dbData.users.find(u => u.id === id)).filter(Boolean);
     const myRank = ROLE_HIERARCHY[currentUser.role] || 0;
-    const hasHigherRankAssigned = assignees.some((a: any) => (ROLE_HIERARCHY[a.role] || 0) > myRank);
+    const hasHigherRankAssigned = assignees.some(a => (ROLE_HIERARCHY[a.role] || 0) > myRank);
     
     return !hasHigherRankAssigned;
   };
@@ -513,7 +526,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
               <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Plaintiff / Petitioner / Applicant</div>
               <div className="space-y-3">
                 {(!activeCase.partyOne || activeCase.partyOne.length === 0) && <div className="text-gray-500 italic">Not specified</div>}
-                {activeCase.partyOne?.map((p: any, i: number) => (
+                {activeCase.partyOne?.map((p, i) => (
                   <div key={i}>
                     <div className="font-semibold text-gray-800">{p.name || 'Unknown'}</div>
                     {p.mobile && <div className="text-gray-500 font-mono mt-0.5 text-xs">Ph: {p.mobile}</div>}
@@ -525,7 +538,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
               <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Defendant / Respondent / Non-Applicant</div>
               <div className="space-y-3">
                 {(!activeCase.partyTwo || activeCase.partyTwo.length === 0) && <div className="text-gray-500 italic">Not specified</div>}
-                {activeCase.partyTwo?.map((p: any, i: number) => (
+                {activeCase.partyTwo?.map((p, i) => (
                   <div key={i}>
                     <div className="font-semibold text-gray-800">{p.name || 'Unknown'}</div>
                     {p.mobile && <div className="text-gray-500 font-mono mt-0.5 text-xs">Ph: {p.mobile}</div>}
@@ -555,8 +568,8 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
           </Card>
 
           <div className="space-y-6 border-l-2 ml-4 border-[#E5E5E5] pl-6 relative py-4">
-            {caseUpdates.map((u: any) => {
-              const author = dbData.users.find((user: any) => user.id === u.authorId);
+            {caseUpdates.map((u) => {
+              const author = dbData.users.find(user=>user.id === u.authorId);
               return (
                 <div key={u.id} className="relative group">
                   <div className="absolute -left-[31px] top-1.5 w-3 h-3 bg-white border-2 border-[#111111] rounded-full group-hover:scale-125 transition-transform"></div>
@@ -586,8 +599,8 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
               </button>
             </div>
             <div className="space-y-3">
-              {caseTasks.length === 0 ? <div className="text-sm text-gray-500 italic p-4 text-center bg-gray-50 rounded border border-dashed border-gray-200">No active tasks.</div> : caseTasks.map((t: any) => {
-                const assignees = (t.assigneeIds || []).map((id: string) => dbData.users.find((u: any) => u.id===id)).filter(Boolean);
+              {caseTasks.length === 0 ? <div className="text-sm text-gray-500 italic p-4 text-center bg-gray-50 rounded border border-dashed border-gray-200">No active tasks.</div> : caseTasks.map(t => {
+                const assignees = (t.assigneeIds || []).map(id => dbData.users.find(u=>u.id===id)).filter(Boolean);
                 const canModify = canUserModifyTask(t);
                 return (
                   <div key={t.id} className="flex justify-between items-start text-sm border-b border-gray-100 pb-3 last:border-0 last:pb-0 group">
@@ -596,7 +609,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                       <div className="text-[10px] text-gray-500 mt-1 flex flex-wrap items-center gap-2 font-mono">
                         <span className="bg-gray-50 border border-gray-200 px-1 py-0.5 rounded">Due: {t.dueDate}</span>
                         <div className="flex -space-x-1 overflow-hidden ml-1">
-                           {assignees.map((user: any) => {
+                           {assignees.map((user) => {
                              const userCfg = ROLE_CONFIG[user.role] || { bg: 'bg-[#111111]', text: 'text-white', label: user.role };
                              return (
                                <div key={user.id} className={`inline-block h-5 w-5 rounded-full ring-2 ring-white ${userCfg.bg} ${userCfg.text} text-center text-[8px] font-bold leading-5 shadow-sm`} title={`${user.name} (${userCfg.label})`}>
@@ -669,7 +682,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                    <span>Plaintiff / Petitioner / Applicant</span>
                    <button type="button" onClick={() => setEditCaseData({...editCaseData, partyOne: [...(editCaseData.partyOne||[]), {name:'', mobile:''}]})} className="text-white bg-[#111111] hover:bg-black px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors">+ Add</button>
                  </div>
-                 {(editCaseData.partyOne || []).map((p: any, i: number) => (
+                 {(editCaseData.partyOne || []).map((p, i) => (
                    <div key={i} className="flex space-x-2 mb-2 items-start animate-in fade-in slide-in-from-top-2">
                      <div className="flex-1">
                        <input aria-label={`Plaintiff Name ${i + 1}`} name={`partyOneName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...editCaseData.partyOne]; newP[i].name = e.target.value; setEditCaseData({...editCaseData, partyOne: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
@@ -688,7 +701,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                    <span>Defendant / Respondent / Non-Applicant</span>
                    <button type="button" onClick={() => setEditCaseData({...editCaseData, partyTwo: [...(editCaseData.partyTwo||[]), {name:'', mobile:''}]})} className="text-white bg-[#111111] hover:bg-black px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors">+ Add</button>
                  </div>
-                 {(editCaseData.partyTwo || []).map((p: any, i: number) => (
+                 {(editCaseData.partyTwo || []).map((p, i) => (
                    <div key={i} className="flex space-x-2 mb-2 items-start animate-in fade-in slide-in-from-top-2">
                      <div className="flex-1">
                        <input aria-label={`Defendant Name ${i + 1}`} name={`partyTwoName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...editCaseData.partyTwo]; newP[i].name = e.target.value; setEditCaseData({...editCaseData, partyTwo: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
@@ -710,7 +723,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
       <Modal title="Generate Case Brief" isOpen={showBriefModal} onClose={() => setShowBriefModal(false)}>
         <div className="bg-gray-50 p-6 rounded-md border border-gray-200 font-serif text-sm h-64 overflow-y-auto mb-4">
           <div className="text-center mb-6 border-b pb-4">
-            <h1 className="font-bold text-lg uppercase tracking-widest">{dbData.offices.find((o: any) => o.id === activeCase.officeId)?.name || 'Chambers'}</h1>
+            <h1 className="font-bold text-lg uppercase tracking-widest">{dbData.offices.find(o=>o.id === activeCase.officeId)?.name || 'Chambers'}</h1>
             <div className="text-gray-500 text-xs mt-1 font-sans">CONFIDENTIAL CASE BRIEF</div>
           </div>
           <h2 className="font-bold text-lg mb-1">{activeCase.title}</h2>
@@ -723,14 +736,14 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
               <div className="flex-1 pr-4">
                 <strong className="block text-[10px] uppercase text-gray-500 mb-1">Plaintiff / Petitioner</strong>
                 {(!activeCase.partyOne || activeCase.partyOne.length === 0) && 'N/A'}
-                {activeCase.partyOne?.map((p: any, i: number) => (
+                {activeCase.partyOne?.map((p,i) => (
                    <div key={i}>{p.name} {p.mobile && `(${p.mobile})`}</div>
                 ))}
               </div>
               <div className="flex-1 text-right pl-4">
                 <strong className="block text-[10px] uppercase text-gray-500 mb-1">Defendant / Respondent</strong>
                 {(!activeCase.partyTwo || activeCase.partyTwo.length === 0) && 'N/A'}
-                {activeCase.partyTwo?.map((p: any, i: number) => (
+                {activeCase.partyTwo?.map((p,i) => (
                    <div key={i}>{p.name} {p.mobile && `(${p.mobile})`}</div>
                 ))}
               </div>
@@ -738,7 +751,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
           )}
 
           <h3 className="font-bold underline mb-2 tracking-wider text-xs uppercase font-sans">Procedural History</h3>
-          {caseUpdates.map((u: any) => (
+          {caseUpdates.map(u => (
             <div key={u.id} className="mb-3 pl-4 border-l-2 border-black font-sans text-xs">
               <strong className="block mb-0.5">{new Date(u.timestamp).toLocaleDateString('en-US')} - {u.title}</strong> 
               <span className="text-gray-700">{u.text}</span>
@@ -753,7 +766,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
   );
 };
 
-const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
+const DashboardView = ({ currentUser, dbData, onLogout }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [activeCaseId, setActiveCaseId] = useState(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -775,88 +788,88 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
 
   const [isFireModalOpen, setIsFireModalOpen] = useState(false);
-  const [userToFire, setUserToFire] = useState<any>(null);
+  const [userToFire, setUserToFire] = useState(null);
   const [fireReason, setFireReason] = useState("");
 
-  const [draggingColumn, setDraggingColumn] = useState<string | null>(null);
+  const [draggingColumn, setDraggingColumn] = useState(null);
 
-  const myOfficeCases = dbData.cases.filter((c: any) => c.officeId === currentUser.officeId);
-  const activeCasesCount = myOfficeCases.filter((c: any) => c.status === 'Active').length;
-  const myOfficeTasks = dbData.tasks.filter((t: any) => myOfficeCases.map((c: any) => c.id).includes(t.caseId));
-
-  const isSeniorOrManager = currentUser.role === 'SENIOR_ADVOCATE' || currentUser.role === 'MANAGER';
-  const myOffice = dbData.offices.find((o: any) => o.id === currentUser.officeId);
+  const myOfficeCases = dbData.cases.filter(c => c.officeId === currentUser.officeId);
+  const activeCasesCount = myOfficeCases.filter(c => c.status === 'Active').length;
+  const myOfficeTasks = dbData.tasks.filter(t => myOfficeCases.map(c=>c.id).includes(t.caseId));
+  const myOffice = dbData.offices.find(o => o.id === currentUser.officeId);
   const officeName = myOffice ? myOffice.name : 'your practice';
 
-  // Reliable Date Calculation using normalized strict local YYYY-MM-DD
-  const getLocalDateStr = (d: Date) => {
+  const isSeniorOrManager = currentUser.role === 'SENIOR_ADVOCATE' || currentUser.role === 'MANAGER';
+
+  // Reliable Date calculation for Overview
+  const getLocalDateStr = (d) => {
     const tzOffset = d.getTimezoneOffset() * 60000;
     return new Date(d.getTime() - tzOffset).toISOString().split('T')[0];
   };
-
   const todayStr = getLocalDateStr(new Date());
 
   const futureHearings = myOfficeCases
-    .filter((c: any) => {
+    .filter(c => {
       if (!c.nextHearing) return false;
       const hStr = c.nextHearing.includes('T') ? c.nextHearing.split('T')[0] : c.nextHearing;
       return hStr >= todayStr;
     })
-    .sort((a: any, b: any) => {
+    .sort((a, b) => {
       const aStr = a.nextHearing.includes('T') ? a.nextHearing.split('T')[0] : a.nextHearing;
       const bStr = b.nextHearing.includes('T') ? b.nextHearing.split('T')[0] : b.nextHearing;
       return aStr.localeCompare(bStr);
     });
-    
+
   let daysUntilNearest = null;
   if (futureHearings.length > 0) {
     const nStr = futureHearings[0].nextHearing.includes('T') ? futureHearings[0].nextHearing.split('T')[0] : futureHearings[0].nextHearing;
-    const d1 = new Date(todayStr);
-    const d2 = new Date(nStr);
+    const d1 = new Date(todayStr + "T00:00:00");
+    const d2 = new Date(nStr + "T00:00:00");
     daysUntilNearest = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
   }
 
-  const canUserModifyTask = (task: any) => {
+  const canUserModifyTask = (task) => {
     if (currentUser.role === 'SENIOR_ADVOCATE') return true; 
+    
     const assigneeIds = task.assigneeIds || [];
     if (!assigneeIds.includes(currentUser.id)) return false; 
     if (currentUser.role === 'MANAGER') return true;
     
-    const assignees = assigneeIds.map((id: string) => dbData.users.find((u: any) => u.id === id)).filter(Boolean);
+    const assignees = assigneeIds.map(id => dbData.users.find(u => u.id === id)).filter(Boolean);
     const myRank = ROLE_HIERARCHY[currentUser.role] || 0;
-    const hasHigherRankAssigned = assignees.some((a: any) => (ROLE_HIERARCHY[a.role] || 0) > myRank);
+    const hasHigherRankAssigned = assignees.some(a => (ROLE_HIERARCHY[a.role] || 0) > myRank);
     
     return !hasHigherRankAssigned;
   };
 
-  const handleDragStart = (e: any, taskId: string) => {
+  const handleDragStart = (e, taskId) => {
     e.dataTransfer.setData('text/plain', taskId);
     e.dataTransfer.effectAllowed = 'move';
     setTimeout(() => { e.target.classList.add('opacity-40'); }, 0);
   };
 
-  const handleDragEnd = (e: any) => {
+  const handleDragEnd = (e) => {
     e.target.classList.remove('opacity-40');
     setDraggingColumn(null);
   };
 
-  const handleDragOver = (e: any, status: string) => {
+  const handleDragOver = (e, status) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     if (draggingColumn !== status) setDraggingColumn(status);
   };
 
-  const handleDrop = async (e: any, newStatus: string) => {
+  const handleDrop = async (e, newStatus) => {
     e.preventDefault();
     setDraggingColumn(null);
     const taskId = e.dataTransfer.getData('text/plain');
-    const task = dbData.tasks.find((t: any) => t.id === taskId);
+    const task = dbData.tasks.find(t => t.id === taskId);
     if (task && canUserModifyTask(task)) {
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId), { status: newStatus });
     }
   };
 
-  const openEditTaskModal = (task: any) => {
+  const openEditTaskModal = (task) => {
     setEditingTaskId(task.id);
     setNewTaskTitle(task.title);
     setNewTaskCaseId(task.caseId);
@@ -865,13 +878,13 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
     setIsNewTaskModalOpen(true);
   };
 
-  const handleCreateTask = async (e: any) => {
+  const handleCreateTask = async (e) => {
     e.preventDefault();
     if (!newTaskTitle || !newTaskCaseId) return;
 
     const finalAssigneeIds = newTaskAssigneeIds.length > 0 ? newTaskAssigneeIds : [currentUser.id];
     const dueDateStr = newTaskDueDate || 'No date';
-    const todayFormattedStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
     if (editingTaskId) {
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', editingTaskId), {
@@ -886,7 +899,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
         assigneeIds: finalAssigneeIds,
         status: 'TODO',
         dueDate: dueDateStr,
-        createdAt: todayFormattedStr
+        createdAt: todayStr
       };
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId), newTask);
     }
@@ -899,7 +912,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
     setNewTaskDueDate("");
   };
 
-  const handleCreateMatter = async (e: any) => {
+  const handleCreateMatter = async (e) => {
     e.preventDefault();
     if (!newTitle) return;
     const caseId = `c_${Date.now()}`;
@@ -928,7 +941,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
     setActiveTab('ledger');
   };
 
-  const handleFireUser = async (e: any) => {
+  const handleFireUser = async (e) => {
     e.preventDefault();
     if (!userToFire || !fireReason) return;
     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', userToFire.id), {
@@ -939,7 +952,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
     setFireReason("");
   };
 
-  const handleTabChange = (tabId: string) => {
+  const handleTabChange = (tabId) => {
     setActiveTab(tabId);
     setActiveCaseId(null);
   };
@@ -1000,7 +1013,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
         <div className="p-4 border-t border-[#E5E5E5] cursor-pointer hover:bg-gray-50 transition-colors group shrink-0" onClick={() => setIsLogoutModalOpen(true)}>
           <div className="flex items-center space-x-3">
             <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shadow-inner ${ROLE_CONFIG[currentUser.role]?.bg} ${ROLE_CONFIG[currentUser.role]?.text}`}>
-              {currentUser.name.split(' ').map((n: string) => n[0]).join('').substring(0,2)}
+              {currentUser.name.split(' ').map(n=>n[0]).join('').substring(0,2)}
             </div>
             <div className="flex flex-col text-left flex-1 overflow-hidden">
               <span className="text-sm font-semibold truncate group-hover:text-[#4F46E5] transition-colors">{currentUser.name}</span>
@@ -1056,7 +1069,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
                 <Card className="p-6 border-l-4 border-l-[#111111] hover:shadow-md transition-shadow">
                   <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><CheckCircle2 className="w-4 h-4 mr-2"/> My assigned tasks</div>
                   <div className="text-5xl font-bold text-[#111111]">
-                    {myOfficeTasks.filter((t: any) => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length.toString().padStart(2, '0')}
+                    {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length.toString().padStart(2, '0')}
                   </div>
                   <div className="text-xs text-amber-700 font-medium bg-amber-50 px-2 py-1 rounded w-fit mt-3 border border-amber-200">Requires attention</div>
                 </Card>
@@ -1076,9 +1089,9 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
                     <button onClick={()=>setActiveTab('ledger')} className="text-sm font-medium text-gray-500 hover:text-black transition-colors">View all</button>
                   </div>
                   <div className="space-y-4">
-                    {dbData.updates.sort((a: any, b: any)=>new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0,4).map((up: any) => {
-                      const c = dbData.cases.find((c: any)=>c.id === up.caseId);
-                      const u = dbData.users.find((u: any)=>u.id === up.authorId);
+                    {dbData.updates.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,4).map(up => {
+                      const c = dbData.cases.find(c=>c.id === up.caseId);
+                      const u = dbData.users.find(u=>u.id === up.authorId);
                       if(!c || c.officeId !== currentUser.officeId) return null;
                       return (
                         <Card key={up.id} onClick={() => {setActiveTab('ledger'); setActiveCaseId(c.id);}} className="p-5 hover:border-black transition-all cursor-pointer group">
@@ -1100,20 +1113,20 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="font-bold text-xl tracking-tight">Assigned tasks (by due date)</h3>
                     <span className="bg-[#111111] text-white text-[10px] font-bold px-2 py-1 rounded-full shrink-0">
-                      {myOfficeTasks.filter((t: any) => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length} left
+                      {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length} left
                     </span>
                   </div>
                   <div className="space-y-4">
                     {myOfficeTasks
-                      .filter((t: any) => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED')
-                      .sort((a: any, b: any) => {
+                      .filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED')
+                      .sort((a, b) => {
                         if (!a.dueDate) return 1;
                         if (!b.dueDate) return -1;
-                        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+                        return new Date(a.dueDate) - new Date(b.dueDate);
                       })
                       .slice(0, 4)
-                      .map((t: any) => {
-                        const c = dbData.cases.find((c: any)=>c.id === t.caseId);
+                      .map(t => {
+                        const c = dbData.cases.find(c=>c.id === t.caseId);
                         const canModify = canUserModifyTask(t);
                         return (
                           <Card key={t.id} className="p-5 flex items-center hover:border-black transition-colors group">
@@ -1141,7 +1154,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
                           </Card>
                         );
                       })}
-                    {myOfficeTasks.filter((t: any) => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length === 0 && (
+                    {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length === 0 && (
                       <Card className="p-8 text-center text-gray-500 text-sm border-dashed border-2">
                         You have no pending tasks assigned to you. All caught up! 🎉
                       </Card>
@@ -1189,8 +1202,8 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
                         )}
                       </div>
                     )}
-                    {myOfficeCases.map((c: any, idx: number) => {
-                      const latestUpdate = dbData.updates.filter((u: any)=>u.caseId === c.id).sort((a: any, b: any)=>new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+                    {myOfficeCases.map((c, idx) => {
+                      const latestUpdate = dbData.updates.filter(u=>u.caseId === c.id).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];
                       return (
                         <div key={c.id} onClick={() => setActiveCaseId(c.id)} className={`p-4 mx-2 flex items-center hover:bg-[#F9F9F9] rounded-lg transition-colors cursor-pointer group ${idx !== 0 ? 'border-t border-[#E5E5E5]' : ''}`}>
                           <div className="grid grid-cols-12 gap-4 w-full items-center">
@@ -1267,7 +1280,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
               </header>
               <div className="flex-1 flex gap-6 overflow-x-auto pb-4">
                 {['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'].map(status => {
-                  const colTasks = myOfficeTasks.filter((t: any) => t.status === status);
+                  const colTasks = myOfficeTasks.filter(t => t.status === status);
                   const isDraggingOver = draggingColumn === status;
                   return (
                     <div 
@@ -1282,15 +1295,15 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
                         <span className="text-xs bg-gray-100 border border-gray-200 text-[#111111] px-2 py-0.5 rounded-full font-bold">{colTasks.length}</span>
                       </div>
                       <div className="flex-1 p-3 overflow-y-auto space-y-3 min-h-[150px]">
-                        {colTasks.map((t: any) => {
-                           const c = dbData.cases.find((c: any) => c.id===t.caseId);
-                           const assignees = (t.assigneeIds || []).map((id: string) => dbData.users.find((u: any)=>u.id===id)).filter(Boolean);
+                        {colTasks.map(t => {
+                           const c = dbData.cases.find(c=>c.id===t.caseId);
+                           const assignees = (t.assigneeIds || []).map(id => dbData.users.find(u=>u.id===id)).filter(Boolean);
                            const canModify = canUserModifyTask(t);
                            return (
                             <Card 
                               key={t.id} 
                               draggable={canModify}
-                              onDragStart={(e: any) => handleDragStart(e, t.id)}
+                              onDragStart={(e) => handleDragStart(e, t.id)}
                               onDragEnd={handleDragEnd}
                               className={`p-4 shadow-sm hover:shadow-md transition-all group bg-white relative border border-[#E5E5E5] ${canModify ? 'cursor-grab active:cursor-grabbing hover:border-black' : 'opacity-90'}`}
                             >
@@ -1305,7 +1318,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
                               <div className="flex justify-between items-center border-t border-gray-100 pt-3">
                                 <div className="flex -space-x-1.5 overflow-hidden pointer-events-none">
                                   {assignees.length === 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest border border-dashed px-1 py-0.5 rounded">Unassigned</span>}
-                                  {assignees.map((user: any, i: number) => {
+                                  {assignees.map((user, i) => {
                                      const userCfg = ROLE_CONFIG[user.role] || { bg: 'bg-[#111111]', text: 'text-white', label: user.role };
                                      return (
                                        <div key={user.id} style={{zIndex: 10-i}} className={`inline-block h-6 w-6 rounded-full ring-2 ring-white ${userCfg.bg} ${userCfg.text} text-center text-[10px] font-bold leading-6 shadow-sm`} title={`${user.name} (${userCfg.label})`}>
@@ -1352,7 +1365,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
                    <p className="text-sm text-gray-500 mt-1">Manage office members and set role-based permissions.</p>
                  </div>
                  <div className="bg-white border border-[#E5E5E5] text-[#111111] px-4 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm shrink-0">
-                   Invite Code: <span className="ml-3 font-mono font-bold tracking-widest text-[#4F46E5] bg-indigo-50 px-2 py-0.5 rounded">{dbData.offices.find((o: any) => o.id === currentUser.officeId)?.inviteCode}</span>
+                   Invite Code: <span className="ml-3 font-mono font-bold tracking-widest text-[#4F46E5] bg-indigo-50 px-2 py-0.5 rounded">{dbData.offices.find(o=>o.id === currentUser.officeId)?.inviteCode}</span>
                  </div>
                </header>
                <Card className="overflow-hidden">
@@ -1360,11 +1373,11 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
                    Workspace Members
                  </div>
                  <div className="divide-y divide-[#E5E5E5]">
-                   {dbData.users.filter((u: any) => u.officeId === currentUser.officeId && u.role !== 'CLIENT').map((user: any) => (
+                   {dbData.users.filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT').map(user => (
                      <div key={user.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition-colors pl-6 gap-4">
                        <div className="flex items-center space-x-4">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-inner shrink-0 ${ROLE_CONFIG[user.role]?.bg} ${ROLE_CONFIG[user.role]?.text}`}>
-                            {user.name.split(' ').map((n: string) => n[0]).join('').substring(0,2)}
+                            {user.name.split(' ').map(n=>n[0]).join('').substring(0,2)}
                           </div>
                           <div>
                             <div className="font-bold text-[#111111]">{user.name}</div>
@@ -1504,7 +1517,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
                 <label htmlFor="task-matter-select" className="block text-xs font-bold text-gray-700 mb-1">Linked Matter *</label>
                 <select id="task-matter-select" name="linkedMatterId" required value={newTaskCaseId} onChange={e=>setNewTaskCaseId(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all cursor-pointer shadow-sm">
                   <option value="" disabled>Select a matter...</option>
-                  {myOfficeCases.map((c: any) => (
+                  {myOfficeCases.map(c => (
                     <option key={c.id} value={c.id}>{c.title}</option>
                   ))}
                 </select>
@@ -1512,14 +1525,14 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
               <div>
                 <span className="block text-xs font-bold text-gray-700 mb-1">Assign To (Multiple allowed)</span>
                 <div className="max-h-32 overflow-y-auto border border-[#E5E5E5] rounded-lg bg-[#F9F9F9] p-2 space-y-1 shadow-inner">
-                  {dbData.users.filter((u: any) => u.officeId === currentUser.officeId && u.role !== 'CLIENT' && u.role !== 'PENDING').map((u: any) => (
+                  {dbData.users.filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT' && u.role !== 'PENDING').map(u => (
                     <label key={u.id} className="flex items-center space-x-3 p-2 hover:bg-white rounded-md cursor-pointer transition-colors border border-transparent hover:border-gray-200 hover:shadow-sm">
                       <input 
                         name={`assignee_${u.id}`}
                         type="checkbox" 
-                        checked={newTaskAssigneeIds.includes(u.id as never)}
+                        checked={newTaskAssigneeIds.includes(u.id)}
                         onChange={(e) => {
-                          if (e.target.checked) setNewTaskAssigneeIds([...newTaskAssigneeIds, u.id as never]);
+                          if (e.target.checked) setNewTaskAssigneeIds([...newTaskAssigneeIds, u.id]);
                           else setNewTaskAssigneeIds(newTaskAssigneeIds.filter(id => id !== u.id));
                         }}
                         className="w-4 h-4 rounded border-gray-300 text-[#111111] focus:ring-black cursor-pointer"
@@ -1572,26 +1585,39 @@ const DashboardView = ({ currentUser, dbData, onLogout }: any) => {
 };
 
 export default function App() {
-  const [dbData, setDbData] = useState<any>({
+  const [dbData, setDbData] = useState({
     offices: [], users: [], cases: [], updates: [], tasks: []
   });
   
-  const [authUser, setAuthUser] = useState<any>(null);
-  const [appUser, setAppUser] = useState<any>(null); 
-  const [trackedCode, setTrackedCode] = useState<string | null>(null);
+  const [authUser, setAuthUser] = useState(null);
+  const [appUser, setAppUser] = useState(null); 
+  const [trackedCode, setTrackedCode] = useState(null);
   const [currentView, setCurrentView] = useState('landing');
   const [authMode, setAuthMode] = useState('login');
+  const [isInitializing, setIsInitializing] = useState(true);
 
+  // Core Authentication Listener
   useEffect(() => {
+    const initAuth = async () => {
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        try { await signInWithCustomToken(auth, __initial_auth_token); } catch (e) { }
+      }
+    };
+    initAuth();
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setAuthUser(user);
+      if (!user) {
+        setAppUser(null);
+        setIsInitializing(false);
+      }
     });
     return () => unsubscribe();
   }, []);
 
-  // Only sync database collections once a user is authenticated
+  // Secure Database Tunnel (Only opens if UID exists)
   useEffect(() => {
-    if (!authUser) {
+    if (!authUser?.uid) {
        setAppUser(null);
        setDbData({ offices: [], users: [], cases: [], updates: [], tasks: [] });
        return;
@@ -1603,37 +1629,41 @@ export default function App() {
          collection(db, 'artifacts', appId, 'public', 'data', colName),
          (snapshot) => {
            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-           setDbData((prev: any) => ({ ...prev, [colName]: data }));
+           setDbData(prev => ({ ...prev, [colName]: data }));
          },
          (error) => console.error(`Error syncing ${colName}:`, error)
        );
     });
 
     return () => unsubscribes.forEach(unsub => unsub());
-  }, [authUser]);
+  }, [authUser?.uid]);
 
+  // Profile Resolution and Smooth Routing (Prevents Landing Page Flash / Jitter)
   useEffect(() => {
     if (authUser && !authUser.isAnonymous) {
-      const userProfile = dbData.users.find((u: any) => u.id === authUser.uid);
-      if (userProfile) {
+      const userProfile = dbData.users.find(u => u.id === authUser.uid);
+      if (userProfile && JSON.stringify(appUser) !== JSON.stringify(userProfile)) {
         setAppUser(userProfile);
         setCurrentView('dashboard');
+        setTimeout(() => setIsInitializing(false), 300);
       }
+    } else if (authUser?.isAnonymous) {
+      setTimeout(() => setIsInitializing(false), 300);
     }
-  }, [authUser, dbData.users]);
+  }, [authUser?.uid, dbData.users]);
 
 
-  const handleLogin = async (email: string, password: string, rememberMe: boolean) => {
+  const handleLogin = async (email, password, rememberMe) => {
     const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
     await setPersistence(auth, persistenceType);
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const handleResetPassword = async (email: string) => {
+  const handleResetPassword = async (email) => {
     await sendPasswordResetEmail(auth, email);
   };
 
-  const handleCreateOffice = async (name: string, email: string, password: string, officeName: string) => {
+  const handleCreateOffice = async (name, email, password, officeName) => {
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
     const newOfficeId = `off_${Date.now()}`;
@@ -1648,12 +1678,10 @@ export default function App() {
     });
   };
 
-  const handleJoinOffice = async (name: string, email: string, password: string, code: string) => {
-    // 1. Create the Auth account first so the user is authenticated for Firestore rules
+  const handleJoinOffice = async (name, email, password, code) => {
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
 
-    // 2. Query the office using the invite code now that the user is authenticated
     const officesRef = collection(db, 'artifacts', appId, 'public', 'data', 'offices');
     const q = query(officesRef, where('inviteCode', '==', code.toUpperCase().trim()));
     const querySnapshot = await getDocs(q);
@@ -1665,13 +1693,12 @@ export default function App() {
     const foundOfficeDoc = querySnapshot.docs[0];
     const foundOffice = { id: foundOfficeDoc.id, ...foundOfficeDoc.data() };
     
-    // 3. Save the pending user profile
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), {
       id: uid, officeId: foundOffice.id, name, email, role: 'PENDING'
     });
   };
 
-  const handleTrackCase = async (trackingNumber: string) => {
+  const handleTrackCase = async (trackingNumber) => {
     if (!authUser) {
       await signInAnonymously(auth);
     }
@@ -1686,9 +1713,14 @@ export default function App() {
     setCurrentView('landing');
   };
 
+  // If the app is booting up or resolving auth, block all rendering with the SplashLoader
+  if (isInitializing) {
+    return <SplashLoader />;
+  }
+
   if (currentView === 'landing') {
     return (
-      <div className="min-h-screen bg-[#F9F9F9] text-[#111111] font-sans flex flex-col">
+      <div className="min-h-screen bg-[#F9F9F9] text-[#111111] font-sans flex flex-col animate-in fade-in duration-300">
         <header className="flex justify-between items-center p-6 lg:px-12 bg-[#F9F9F9] shrink-0">
           <div className="flex items-center space-x-2 cursor-pointer hover:scale-105 transition-transform" onClick={() => setCurrentView('landing')}>
             <Scale className="w-5 h-5 text-black"/>
@@ -1749,9 +1781,6 @@ export default function App() {
     return <DashboardView currentUser={appUser} dbData={dbData} onLogout={handleLogout}/>;
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F9F9F9]">
-       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#111111]"></div>
-    </div>
-  );
+  return <SplashLoader />;
 }
+```eof
