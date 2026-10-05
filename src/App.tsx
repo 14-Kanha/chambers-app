@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Scale, Briefcase, Calendar, CheckCircle2, FileText, Search, Settings, 
-  Users, Plus, Filter, Clock, LogOut, ChevronRight, Download, Upload, 
-  FileCheck, Edit3, X, Paperclip, AlertCircle, Mic, Square, ArrowRight, Layers,
-  Mail, Lock, User
+  Scale, Briefcase, Calendar, CheckCircle2, Search, 
+  Users, Plus, Clock, LogOut, ChevronRight, Download, 
+  FileCheck, Edit3, X, AlertCircle, ArrowRight, Layers,
+  Mail, Lock, User, Square, Mic
 } from 'lucide-react';
 
 import { initializeApp } from 'firebase/app';
 import { 
   getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
-  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut 
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut,
+  setPersistence, browserLocalPersistence, browserSessionPersistence
 } from 'firebase/auth';
 import { 
   getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, query, where, getDocs 
@@ -121,10 +122,12 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
   const [officeName, setOfficeName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccessAnim, setIsSuccessAnim] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,18 +136,27 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
     setIsLoading(true);
 
     try {
-      if (mode === 'login') await onLogin(email, password);
-      else if (mode === 'signup') await onCreateOffice(name, email, password, officeName);
-      else if (mode === 'join') await onJoinOffice(name, email, password, inviteCode);
-      else if (mode === 'track') await onTrackCase(trackingNumber);
-      else if (mode === 'reset') {
+      if (mode === 'login') {
+        await onLogin(email, password, rememberMe);
+        setIsSuccessAnim(true);
+      } else if (mode === 'signup') {
+        await onCreateOffice(name, email, password, officeName);
+        setIsSuccessAnim(true);
+      } else if (mode === 'join') {
+        await onJoinOffice(name, email, password, inviteCode);
+        setIsSuccessAnim(true);
+      } else if (mode === 'track') {
+        await onTrackCase(trackingNumber);
+      } else if (mode === 'reset') {
         await onResetPassword(email);
         setSuccessMsg("If an account exists, a password reset link has been sent to your email.");
       }
     } catch (err) {
       setErrorMsg(err.message || "An error occurred. Please try again.");
     } finally {
-      setIsLoading(false);
+      if (mode === 'reset' || mode === 'track' || errorMsg) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -222,6 +234,20 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
                     <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/>
                     <input id="auth-password-input" name="password" required type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-9 pr-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm" />
                   </div>
+
+                  {mode === 'login' && (
+                    <div className="flex items-center justify-between mt-3">
+                      <label className="flex items-center text-xs font-medium text-gray-700 cursor-pointer group select-none">
+                        <input 
+                          type="checkbox" 
+                          checked={rememberMe} 
+                          onChange={(e) => setRememberMe(e.target.checked)} 
+                          className="w-3.5 h-3.5 mr-2 rounded border-gray-300 text-black focus:ring-black cursor-pointer" 
+                        />
+                        <span className="group-hover:text-black transition-colors">Remember me for 30 days</span>
+                      </label>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -239,8 +265,11 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
               )}
             </>
           )}
-          <Button type="submit" disabled={isLoading} className="w-full py-3.5 mt-2">
-            {isLoading ? 'Processing...' : (
+
+          <Button type="submit" disabled={isLoading || isSuccessAnim} className={`w-full py-3.5 mt-2 ${isSuccessAnim ? 'bg-green-600 hover:bg-green-700 !text-white' : ''}`}>
+            {isLoading && !isSuccessAnim ? 'Processing...' : isSuccessAnim ? (
+              <span className="flex items-center animate-in zoom-in duration-300"><CheckCircle2 className="w-4 h-4 mr-2" /> Authenticated</span>
+            ) : (
               <>
                 {mode === 'login' && 'Log in'}
                 {mode === 'signup' && 'Create Practice'}
@@ -250,6 +279,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
               </>
             )}
           </Button>
+
         </form>
         <div className="mt-6 pt-6 border-t border-[#E5E5E5] text-center text-sm text-gray-500 space-y-2">
           {mode === 'login' && (
@@ -260,7 +290,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
             </>
           )}
           {mode !== 'login' && (
-            <p>Already have an account? <button onClick={() => { setMode('login'); setErrorMsg(""); setSuccessMsg(""); }} className="text-black font-bold hover:underline">Return to Log in</button></p>
+            <p>Already have an account? <button onClick={() => { setMode('login'); setErrorMsg(""); setSuccessMsg(""); setIsSuccessAnim(false); }} className="text-black font-bold hover:underline">Return to Log in</button></p>
           )}
         </div>
       </Card>
@@ -269,6 +299,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
 };
 
 const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const clientCases = dbData.cases.filter(c => c.trackingNumber === trackingCode);
   const [selectedCaseId, setSelectedCaseId] = useState(clientCases[0]?.id || null);
 
@@ -279,8 +310,6 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
   const activeCase = clientCases.find(c => c.id === selectedCaseId) || clientCases[0];
   
   const updates = dbData.updates.filter(u => u.caseId === activeCase?.id).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-  const docs = dbData.documents.filter(d => d.caseId === activeCase?.id);
-  const invoices = dbData.invoices.filter(i => i.caseId === activeCase?.id);
 
   if (clientCases.length === 0) {
     return (
@@ -300,7 +329,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
           <Scale className="w-5 h-5 text-black"/>
           <span className="font-bold tracking-tight">Client Portal</span>
         </div>
-        <Button variant="secondary" onClick={onExit} className="py-1.5 px-3 text-xs">Exit Portal</Button>
+        <Button variant="secondary" onClick={() => setIsExitModalOpen(true)} className="py-1.5 px-3 text-xs">Exit Portal</Button>
       </header>
       <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 overflow-y-auto">
         <div className="mb-6">
@@ -346,68 +375,34 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
               </div>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="p-6">
-                <h3 className="font-bold text-lg mb-4 flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-400"/> Recent Updates</h3>
-                <div className="space-y-4">
-                  {updates.length === 0 && <p className="text-sm text-gray-500 italic">No updates posted yet.</p>}
-                  {updates.map(u => (
-                    <div key={u.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-                      <div className="flex justify-between text-xs text-gray-400 mb-1 font-mono">
-                        <span>{new Date(u.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</span>
-                      </div>
-                      <h4 className="font-bold text-sm mb-1 text-[#111111]">{u.title}</h4>
-                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{u.text}</p>
-                      {u.attachment && (
-                        <div className="mt-2 text-xs font-medium text-[#4F46E5] flex items-center">
-                           <Paperclip className="w-3 h-3 mr-1"/> Document attached to vault
-                        </div>
-                      )}
+            <Card className="p-6">
+              <h3 className="font-bold text-lg mb-4 flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-400"/> Recent Updates</h3>
+              <div className="space-y-4">
+                {updates.length === 0 && <p className="text-sm text-gray-500 italic">No updates posted yet.</p>}
+                {updates.map(u => (
+                  <div key={u.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                    <div className="flex justify-between text-xs text-gray-400 mb-1 font-mono">
+                      <span>{new Date(u.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</span>
                     </div>
-                  ))}
-                </div>
-              </Card>
-
-              <div className="space-y-8">
-                <Card className="p-6">
-                  <h3 className="font-bold text-lg mb-4 flex items-center"><FileText className="w-4 h-4 mr-2 text-gray-400"/> Documents & Filings</h3>
-                  <div className="space-y-2">
-                    {docs.length === 0 && <p className="text-sm text-gray-500 italic">No documents available.</p>}
-                    {docs.map(d => (
-                      <div key={d.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm group hover:border-black transition-colors">
-                        <div className="flex flex-col">
-                           <span className="font-medium text-gray-800">{d.name}</span>
-                           <span className="text-[10px] text-gray-400 font-mono mt-0.5">{new Date(d.date).toLocaleDateString('en-US')}</span>
-                        </div>
-                        <Download className="w-4 h-4 text-gray-400 cursor-pointer group-hover:text-[#4F46E5] transition-colors"/>
-                      </div>
-                    ))}
+                    <h4 className="font-bold text-sm mb-1 text-[#111111]">{u.title}</h4>
+                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{u.text}</p>
                   </div>
-                </Card>
-
-                <Card className="p-6">
-                  <h3 className="font-bold text-lg mb-4 flex items-center"><FileCheck className="w-4 h-4 mr-2 text-gray-400"/> Invoices & Billing</h3>
-                  <div className="space-y-2">
-                    {invoices.length === 0 && <p className="text-sm text-gray-500 italic">No invoices generated.</p>}
-                    {invoices.map(inv => (
-                      <div key={inv.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm">
-                        <div>
-                          <div className="font-bold font-mono text-[#111111]">{inv.id}</div>
-                          <div className="text-xs text-gray-500">{new Date(inv.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</div>
-                        </div>
-                        <div className="text-right flex flex-col items-end">
-                          <div className="font-bold text-[#111111]">₹{inv.amount.toLocaleString('en-IN')}</div>
-                          <span className={`mt-1 text-[10px] uppercase px-2 py-0.5 rounded font-bold ${inv.status === 'SETTLED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{inv.status}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
+                ))}
               </div>
-            </div>
+            </Card>
           </div>
         )}
       </main>
+
+      <Modal title="Exit Portal" isOpen={isExitModalOpen} onClose={() => setIsExitModalOpen(false)}>
+        <div className="bg-gray-50 text-gray-800 p-4 rounded-lg text-sm border border-gray-200 mb-6 shadow-sm">
+          Are you sure you want to exit the client portal? You will need your tracking code to enter again.
+        </div>
+        <div className="flex space-x-3">
+          <Button variant="secondary" className="flex-1" onClick={() => setIsExitModalOpen(false)}>Cancel</Button>
+          <button type="button" onClick={onExit} className="flex-1 bg-[#111111] text-white py-2 px-4 text-sm font-medium rounded-md hover:bg-black transition-colors shadow-sm active:scale-95">Yes, Exit</button>
+        </div>
+      </Modal>
     </div>
   );
 };
@@ -415,28 +410,19 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
 const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTask }) => {
   const [updateTitle, setUpdateTitle] = useState("");
   const [updateText, setUpdateText] = useState("");
-  const [updateAttachmentFile, setUpdateAttachmentFile] = useState(null);
-  const [updateAttachmentName, setUpdateAttachmentName] = useState("");
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editCaseData, setEditCaseData] = useState({});
   const [showBriefModal, setShowBriefModal] = useState(false);
-  
-  const [isDocModalOpen, setIsDocModalOpen] = useState(false);
-  const [newDocFile, setNewDocFile] = useState(null);
-  const [newDocName, setNewDocName] = useState("");
-  const [newDocDate, setNewDocDate] = useState(new Date().toISOString().split('T')[0]);
 
   const activeCase = dbData.cases.find(c => c.id === activeCaseId);
   const caseUpdates = dbData.updates.filter(u => u.caseId === activeCaseId).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
   const caseTasks = dbData.tasks.filter(t => t.caseId === activeCaseId);
-  const caseDocs = dbData.documents.filter(d => d.caseId === activeCaseId);
 
   const handlePostUpdate = async (e) => {
     e.preventDefault();
     if (!updateTitle || !updateText) return;
     
-    const docDisplayName = updateAttachmentName || updateAttachmentFile?.name;
     const updateId = `up_${Date.now()}`;
     const newUpdate = {
       id: updateId,
@@ -444,44 +430,12 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
       authorId: currentUser.id,
       title: updateTitle,
       text: updateText,
-      timestamp: new Date().toISOString(),
-      attachment: docDisplayName || null
+      timestamp: new Date().toISOString()
     };
     
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'updates', updateId), newUpdate);
-    
-    if (docDisplayName) {
-      const docId = `d_${Date.now()}`;
-      const newDoc = {
-        id: docId,
-        caseId: activeCaseId,
-        name: docDisplayName,
-        date: new Date().toISOString().split('T')[0]
-      };
-      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'documents', docId), newDoc);
-    }
-    
     setUpdateTitle("");
     setUpdateText("");
-    setUpdateAttachmentFile(null);
-    setUpdateAttachmentName("");
-  };
-
-  const handleUploadDocument = async (e) => {
-    e.preventDefault();
-    if (!newDocFile) return;
-    const docId = `d_${Date.now()}`;
-    const documentRecord = {
-      id: docId,
-      caseId: activeCaseId,
-      name: newDocName || newDocFile.name,
-      date: newDocDate
-    };
-    
-    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'documents', docId), documentRecord);
-    setIsDocModalOpen(false);
-    setNewDocFile(null);
-    setNewDocName("");
   };
 
   const openEditModal = () => {
@@ -595,29 +549,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                 <label htmlFor="update-text-input" className="block text-xs font-bold text-gray-700 mb-1">Detailed Notes</label>
                 <textarea id="update-text-input" name="updateText" placeholder="Detailed notes for the team and client timeline..." value={updateText} onChange={e=>setUpdateText(e.target.value)} className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none min-h-[80px] resize-y bg-[#F9F9F9]" required />
               </div>
-              <div className="flex justify-between items-center mt-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <input type="file" id="ledger-attachment" name="ledgerAttachment" className="hidden" onChange={(e) => { setUpdateAttachmentFile(e.target.files[0]); setUpdateAttachmentName(e.target.files[0]?.name || ''); }} accept=".pdf,.doc,.docx,.jpg,.png" />
-                  <label htmlFor="ledger-attachment" className="flex items-center text-xs font-bold text-gray-600 hover:text-[#111111] cursor-pointer transition-colors bg-white border border-[#E5E5E5] px-3 py-1.5 rounded-md shadow-sm">
-                    <Paperclip className="w-3.5 h-3.5 mr-2"/>
-                    {updateAttachmentFile ? <span className="truncate max-w-[120px]">{updateAttachmentFile.name}</span> : 'Attach File'}
-                  </label>
-                  
-                  {updateAttachmentFile && (
-                    <div className="flex items-center space-x-1 animate-in fade-in">
-                       <input 
-                         id="update-attachment-display-input"
-                         name="attachmentDisplayName"
-                         type="text" 
-                         placeholder="Display Name (e.g. Signed Order)" 
-                         value={updateAttachmentName} 
-                         onChange={e => setUpdateAttachmentName(e.target.value)}
-                         className="px-2 py-1.5 text-xs border border-gray-300 rounded focus:border-black outline-none w-48 shadow-inner"
-                       />
-                       <button type="button" onClick={() => { setUpdateAttachmentFile(null); setUpdateAttachmentName(""); }} className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-3.5 h-3.5"/></button>
-                    </div>
-                  )}
-                </div>
+              <div className="flex justify-end items-center mt-3">
                 <Button type="submit" className="py-1.5 text-xs shrink-0">Post to Ledger</Button>
               </div>
             </form>
@@ -635,14 +567,6 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                       <span className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-0.5 rounded border border-gray-100">{new Date(u.timestamp).toLocaleDateString('en-US')}</span>
                     </div>
                     <p className="text-sm text-gray-600 mb-4 whitespace-pre-wrap">{u.text}</p>
-                    {u.attachment && (
-                      <div className="mb-4 inline-block">
-                        <button className="flex items-center text-xs font-semibold bg-gray-50 border border-gray-200 px-3 py-2 rounded-md hover:bg-gray-100 hover:border-black transition-colors">
-                          <Paperclip className="w-3.5 h-3.5 mr-2 text-[#4F46E5]"/>
-                          {u.attachment}
-                        </button>
-                      </div>
-                    )}
                     <div className="flex items-center space-x-2 pt-3 border-t border-gray-100">
                       <span className="text-xs font-semibold text-[#111111]">{author?.name || 'Unknown'}</span>
                       <RoleBadge role={author?.role || 'PENDING'}/>
@@ -670,19 +594,17 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                   <div key={t.id} className="flex justify-between items-start text-sm border-b border-gray-100 pb-3 last:border-0 last:pb-0 group">
                     <div className="flex-1 pr-3">
                       <div className={`font-medium mb-1 ${t.status === 'COMPLETED' ? 'line-through text-gray-400' : 'text-[#111111]'}`}>{t.title}</div>
-                      {t.voiceNote && (
-                        <div className="mt-1.5 mb-1.5 text-[11px] bg-purple-50 text-purple-800 p-2 rounded-md border border-purple-100 italic leading-snug">
-                          🎤 Voice Note: "{t.voiceNote}"
-                        </div>
-                      )}
                       <div className="text-[10px] text-gray-500 mt-1 flex flex-wrap items-center gap-2 font-mono">
                         <span className="bg-gray-50 border border-gray-200 px-1 py-0.5 rounded">Due: {t.dueDate}</span>
                         <div className="flex -space-x-1 overflow-hidden ml-1">
-                           {assignees.map((user) => (
-                             <div key={user.id} className="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-[#111111] text-white text-center text-[8px] font-bold leading-5" title={user.name}>
-                               {user.name.charAt(0)}
-                             </div>
-                           ))}
+                           {assignees.map((user) => {
+                             const userCfg = ROLE_CONFIG[user.role] || { bg: 'bg-[#111111]', text: 'text-white', label: user.role };
+                             return (
+                               <div key={user.id} className={`inline-block h-5 w-5 rounded-full ring-2 ring-white ${userCfg.bg} ${userCfg.text} text-center text-[8px] font-bold leading-5 shadow-sm`} title={`${user.name} (${userCfg.label})`}>
+                                 {user.name.charAt(0)}
+                               </div>
+                             );
+                           })}
                         </div>
                       </div>
                     </div>
@@ -705,27 +627,6 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                   </div>
                 );
               })}
-            </div>
-          </Card>
-          
-          <Card className="p-5">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold flex items-center"><Download className="w-4 h-4 mr-2 text-gray-400"/> Document Vault</h3>
-              <button onClick={() => setIsDocModalOpen(true)} className="text-xs font-bold bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-700 px-2.5 py-1.5 rounded flex items-center transition-colors">
-                <Upload className="w-3 h-3 mr-1"/> Upload
-              </button>
-            </div>
-            <div className="space-y-2">
-              {caseDocs.length === 0 && <div className="text-sm text-gray-500 italic p-4 text-center bg-gray-50 rounded border border-dashed border-gray-200">No documents uploaded.</div>}
-              {caseDocs.map((doc) => (
-                <button key={doc.id} className="w-full flex items-center justify-between p-2.5 text-sm hover:bg-[#F9F9F9] rounded-lg border border-transparent hover:border-black transition-colors group">
-                  <div className="flex flex-col text-left overflow-hidden pr-2">
-                    <span className="text-[#111111] font-medium truncate group-hover:text-[#4F46E5] transition-colors">{doc.name}</span>
-                    <span className="text-[10px] font-mono text-gray-400 mt-0.5 bg-gray-50 px-1 py-0.5 rounded w-fit">{new Date(doc.date).toLocaleDateString('en-US')}</span>
-                  </div>
-                  <Download className="w-4 h-4 text-gray-400 group-hover:text-black flex-shrink-0 transition-colors"/>
-                </button>
-              ))}
             </div>
           </Card>
         </div>
@@ -849,32 +750,6 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
           <Download className="w-4 h-4 mr-2"/> Download Print-Ready PDF
         </Button>
       </Modal>
-
-      <Modal title="Upload Document" isOpen={isDocModalOpen} onClose={() => { setIsDocModalOpen(false); setNewDocFile(null); setNewDocName(""); }}>
-        <form onSubmit={handleUploadDocument} className="space-y-4">
-          <div>
-            <label htmlFor="upload-doc-file" className="block text-xs font-bold text-gray-700 mb-1">Select File</label>
-            <input id="upload-doc-file" name="documentFile" required type="file" onChange={e => {
-                setNewDocFile(e.target.files[0]);
-                if (!newDocName && e.target.files[0]) {
-                  setNewDocName(e.target.files[0].name);
-                }
-              }} className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none bg-[#F9F9F9]" accept=".pdf,.doc,.docx,.jpg,.png" />
-          </div>
-          {newDocFile && (
-             <div className="animate-in fade-in">
-               <label htmlFor="upload-doc-name" className="block text-xs font-bold text-gray-700 mb-1">Document Display Name</label>
-               <input id="upload-doc-name" name="documentName" required type="text" value={newDocName} onChange={e => setNewDocName(e.target.value)} placeholder="e.g. Affidavit of Evidence" className="w-full px-4 py-3 bg-[#F9F9F9] border border-black rounded-lg focus:ring-1 focus:ring-black outline-none text-sm transition-all shadow-sm" />
-               <p className="text-[10px] text-gray-500 mt-1">This name will be displayed in the vault instead of the raw filename.</p>
-             </div>
-          )}
-          <div>
-            <label htmlFor="upload-doc-date" className="block text-xs font-bold text-gray-700 mb-1">Document Date</label>
-            <input id="upload-doc-date" name="documentDate" required type="date" value={newDocDate} onChange={e => setNewDocDate(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all" />
-          </div>
-          <Button type="submit" className="w-full py-3.5 mt-6"><Upload className="w-4 h-4 mr-2"/> Upload to Vault</Button>
-        </form>
-      </Modal>
     </div>
   );
 };
@@ -882,6 +757,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
 const DashboardView = ({ currentUser, dbData, onLogout }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [activeCaseId, setActiveCaseId] = useState(null);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   
   const [isNewMatterOpen, setIsNewMatterOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -892,20 +768,12 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
   const [newPartyOne, setNewPartyOne] = useState([{name: '', mobile: ''}]);
   const [newPartyTwo, setNewPartyTwo] = useState([{name: '', mobile: ''}]);
 
-  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
-  const [invoiceCaseId, setInvoiceCaseId] = useState("");
-  const [invoiceAmount, setInvoiceAmount] = useState("");
-  const [invoiceFile, setInvoiceFile] = useState(null);
-
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskCaseId, setNewTaskCaseId] = useState("");
   const [newTaskAssigneeIds, setNewTaskAssigneeIds] = useState([]);
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
-  const [newTaskVoiceNote, setNewTaskVoiceNote] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
-  const recognitionRef = useRef(null);
 
   const [isFireModalOpen, setIsFireModalOpen] = useState(false);
   const [userToFire, setUserToFire] = useState(null);
@@ -919,6 +787,21 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
   const isSeniorOrManager = currentUser.role === 'SENIOR_ADVOCATE' || currentUser.role === 'MANAGER';
 
+  // Dynamic Date calculation for Overview
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  
+  const futureHearings = myOfficeCases
+    .filter(c => c.nextHearing && new Date(c.nextHearing) >= today)
+    .sort((a,b) => new Date(a.nextHearing) - new Date(b.nextHearing));
+    
+  const nearestHearing = futureHearings.length > 0 ? futureHearings[0].nextHearing : null;
+  let daysUntilNearest = null;
+  if (nearestHearing) {
+    const diffTime = new Date(nearestHearing) - today;
+    daysUntilNearest = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
   const canUserModifyTask = (task) => {
     if (currentUser.role === 'SENIOR_ADVOCATE') return true; 
     
@@ -931,43 +814,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
     const hasHigherRankAssigned = assignees.some(a => (ROLE_HIERARCHY[a.role] || 0) > myRank);
     
     return !hasHigherRankAssigned;
-  };
-
-  const handleStartVoiceRecording = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Speech recognition is not supported in this browser.");
-      return;
-    }
-
-    if (isRecording) {
-      if (recognitionRef.current) recognitionRef.current.stop();
-      setIsRecording(false);
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    recognition.onstart = () => setIsRecording(true);
-    recognition.onerror = () => setIsRecording(false);
-    recognition.onend = () => setIsRecording(false);
-
-    recognition.onresult = (event) => {
-      let transcript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        transcript += event.results[i][0].transcript;
-      }
-      setNewTaskVoiceNote(transcript);
-      if (!newTaskTitle) {
-        setNewTaskTitle(transcript.slice(0, 50));
-      }
-    };
-
-    recognitionRef.current = recognition;
-    recognition.start();
   };
 
   const handleDragStart = (e, taskId) => {
@@ -1002,7 +848,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
     setNewTaskTitle(task.title);
     setNewTaskCaseId(task.caseId);
     setNewTaskAssigneeIds(task.assigneeIds || []);
-    setNewTaskVoiceNote(task.voiceNote || '');
     setNewTaskDueDate(task.dueDate || ''); 
     setIsNewTaskModalOpen(true);
   };
@@ -1017,7 +862,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
     if (editingTaskId) {
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', editingTaskId), {
-         title: newTaskTitle, caseId: newTaskCaseId, assigneeIds: finalAssigneeIds, voiceNote: newTaskVoiceNote, dueDate: newTaskDueDate || dueDateStr
+         title: newTaskTitle, caseId: newTaskCaseId, assigneeIds: finalAssigneeIds, dueDate: newTaskDueDate || dueDateStr
       });
     } else {
       const taskId = `t_${Date.now()}`;
@@ -1028,44 +873,17 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
         assigneeIds: finalAssigneeIds,
         status: 'TODO',
         dueDate: dueDateStr,
-        createdAt: todayStr,
-        voiceNote: newTaskVoiceNote
+        createdAt: todayStr
       };
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId), newTask);
     }
 
-    if (recognitionRef.current) recognitionRef.current.stop();
-    setIsRecording(false);
     setIsNewTaskModalOpen(false);
     setEditingTaskId(null);
     setNewTaskTitle("");
     setNewTaskCaseId("");
     setNewTaskAssigneeIds([]);
     setNewTaskDueDate("");
-    setNewTaskVoiceNote("");
-  };
-
-  const handleGenerateInvoice = async (e) => {
-    e.preventDefault();
-    if (!invoiceCaseId || !invoiceAmount) return;
-    
-    const randomId = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    const invId = `INV-${randomId}`;
-    const newInvoice = {
-      id: invId,
-      officeId: currentUser.officeId,
-      caseId: invoiceCaseId,
-      amount: parseFloat(invoiceAmount),
-      status: 'DRAFT',
-      date: new Date().toLocaleDateString('en-CA'),
-      attachment: invoiceFile ? invoiceFile.name : null
-    };
-
-    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'invoices', invId), newInvoice);
-    setIsInvoiceModalOpen(false);
-    setInvoiceCaseId("");
-    setInvoiceAmount("");
-    setInvoiceFile(null);
   };
 
   const handleCreateMatter = async (e) => {
@@ -1163,13 +981,10 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           <SidebarItem id="ledger" name="Master Ledger" icon={Briefcase} activeTab={activeTab} onClick={handleTabChange}/>
           <SidebarItem id="tasks" name="Task Pipeline" icon={CheckCircle2} activeTab={activeTab} onClick={handleTabChange}/>
           {isSeniorOrManager && (
-            <>
-              <SidebarItem id="financials" name="Financials" icon={FileText} activeTab={activeTab} onClick={handleTabChange}/>
-              <SidebarItem id="team" name="Team & Access" icon={Users} activeTab={activeTab} onClick={handleTabChange}/>
-            </>
+            <SidebarItem id="team" name="Team & Access" icon={Users} activeTab={activeTab} onClick={handleTabChange}/>
           )}
         </nav>
-        <div className="p-4 border-t border-[#E5E5E5] cursor-pointer hover:bg-gray-50 transition-colors group shrink-0" onClick={onLogout}>
+        <div className="p-4 border-t border-[#E5E5E5] cursor-pointer hover:bg-gray-50 transition-colors group shrink-0" onClick={() => setIsLogoutModalOpen(true)}>
           <div className="flex items-center space-x-3">
             <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shadow-inner ${ROLE_CONFIG[currentUser.role]?.bg} ${ROLE_CONFIG[currentUser.role]?.text}`}>
               {currentUser.name.split(' ').map(n=>n[0]).join('').substring(0,2)}
@@ -1178,7 +993,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
               <span className="text-sm font-semibold truncate group-hover:text-[#4F46E5] transition-colors">{currentUser.name}</span>
               <RoleBadge role={currentUser.role}/>
             </div>
-            <LogOut className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors shrink-0"/>
+            <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-600 transition-colors shrink-0"/>
           </div>
         </div>
       </aside>
@@ -1189,16 +1004,19 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
               <Scale className="w-5 h-5 text-black"/>
               <span>Chambers</span>
            </button>
-           <div className="flex space-x-2">
-             <button onClick={() => handleTabChange('ledger')} className="p-2 text-gray-500 hover:text-black" aria-label="Master Ledger"><Briefcase className="w-5 h-5"/></button>
-             <button onClick={() => handleTabChange('tasks')} className="p-2 text-gray-500 hover:text-black" aria-label="Task Pipeline"><CheckCircle2 className="w-5 h-5"/></button>
-             <button onClick={onLogout} className="p-2 text-gray-500 hover:text-red-600" aria-label="Log Out"><LogOut className="w-5 h-5"/></button>
+           <div className="flex space-x-1">
+             <button onClick={() => handleTabChange('ledger')} className={`p-2 ${activeTab==='ledger'?'text-black':'text-gray-500 hover:text-black'}`} aria-label="Master Ledger"><Briefcase className="w-5 h-5"/></button>
+             <button onClick={() => handleTabChange('tasks')} className={`p-2 ${activeTab==='tasks'?'text-black':'text-gray-500 hover:text-black'}`} aria-label="Task Pipeline"><CheckCircle2 className="w-5 h-5"/></button>
+             {isSeniorOrManager && (
+                <button onClick={() => handleTabChange('team')} className={`p-2 ${activeTab==='team'?'text-black':'text-gray-500 hover:text-black'}`} aria-label="Team Access"><Users className="w-5 h-5" /></button>
+             )}
+             <button onClick={() => setIsLogoutModalOpen(true)} className="p-2 text-gray-500 hover:text-red-600" aria-label="Log Out"><LogOut className="w-5 h-5"/></button>
            </div>
         </header>
 
         <div className="flex-1 overflow-auto bg-[#F9F9F9]">
           
-          {}
+          {/* Overview Tab */}
           {activeTab === 'overview' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
               <header className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
@@ -1220,19 +1038,21 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 <Card className="p-6 border-l-4 border-l-[#111111] hover:shadow-md transition-shadow">
                   <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><Briefcase className="w-4 h-4 mr-2"/> Active matters</div>
                   <div className="text-5xl font-bold text-[#111111]">{activeCasesCount.toString().padStart(2, '0')}</div>
-                  <div className="text-xs text-green-700 font-medium bg-green-50 px-2 py-1 rounded w-fit mt-3 border border-green-200">+1 this month</div>
+                  <div className="text-xs text-gray-500 font-medium bg-gray-50 px-2 py-1 rounded w-fit mt-3 border border-gray-200">Currently open</div>
                 </Card>
                 <Card className="p-6 border-l-4 border-l-[#111111] hover:shadow-md transition-shadow">
                   <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><CheckCircle2 className="w-4 h-4 mr-2"/> My assigned tasks</div>
                   <div className="text-5xl font-bold text-[#111111]">
                     {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length.toString().padStart(2, '0')}
                   </div>
-                  <div className="text-xs text-amber-700 font-medium bg-amber-50 px-2 py-1 rounded w-fit mt-3 border border-amber-200">Pending action</div>
+                  <div className="text-xs text-amber-700 font-medium bg-amber-50 px-2 py-1 rounded w-fit mt-3 border border-amber-200">Requires attention</div>
                 </Card>
                 <Card className="p-6 border-l-4 border-l-[#111111] hover:shadow-md transition-shadow">
                   <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><Calendar className="w-4 h-4 mr-2"/> Upcoming hearings</div>
-                  <div className="text-5xl font-bold text-[#111111]">{myOfficeCases.filter(c=>c.nextHearing).length.toString().padStart(2, '0')}</div>
-                  <div className="text-xs text-blue-700 font-medium bg-blue-50 px-2 py-1 rounded w-fit mt-3 border border-blue-200">Next in 5 days</div>
+                  <div className="text-5xl font-bold text-[#111111]">{futureHearings.length.toString().padStart(2, '0')}</div>
+                  <div className="text-xs text-blue-700 font-medium bg-blue-50 px-2 py-1 rounded w-fit mt-3 border border-blue-200">
+                     {daysUntilNearest !== null ? (daysUntilNearest === 0 ? 'Hearing Today' : `Next in ${daysUntilNearest} day${daysUntilNearest > 1 ? 's' : ''}`) : 'No upcoming hearings'}
+                  </div>
                 </Card>
               </div>
 
@@ -1319,7 +1139,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
-          {}
+          {/* Master Ledger Tab */}
           {activeTab === 'ledger' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-6xl mx-auto h-full flex flex-col animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1408,7 +1228,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 setEditingTaskId(null);
                 setNewTaskTitle("");
                 setNewTaskDueDate("");
-                setNewTaskVoiceNote("");
                 setNewTaskAssigneeIds([]);
                 setNewTaskCaseId(activeCaseId);
                 setIsNewTaskModalOpen(true);
@@ -1416,7 +1235,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             />
           )}
 
-          {}
+          {/* Task Pipeline Tab */}
           {activeTab === 'tasks' && !activeCaseId && (
             <div className="p-6 md:p-10 h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
@@ -1428,7 +1247,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                   setEditingTaskId(null);
                   setNewTaskTitle("");
                   setNewTaskDueDate("");
-                  setNewTaskVoiceNote("");
                   setNewTaskAssigneeIds([]);
                   setNewTaskCaseId(myOfficeCases[0]?.id || '');
                   setIsNewTaskModalOpen(true);
@@ -1470,20 +1288,18 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                                 </button>
                               </div>
                               <h4 className="font-bold text-sm mb-2 leading-snug pointer-events-none text-[#111111]">{t.title}</h4>
-                              {t.voiceNote && (
-                                <div className="mb-3 text-[11px] bg-purple-50 text-purple-800 p-2 rounded-md border border-purple-100 italic">
-                                  🎤 "{t.voiceNote}"
-                                </div>
-                              )}
                               <div className="text-[10px] text-gray-400 mb-3 font-mono bg-gray-50 p-1 rounded inline-block w-full">Created: {t.createdAt || 'N/A'} | Due: {t.dueDate}</div>
                               <div className="flex justify-between items-center border-t border-gray-100 pt-3">
                                 <div className="flex -space-x-1.5 overflow-hidden pointer-events-none">
                                   {assignees.length === 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest border border-dashed px-1 py-0.5 rounded">Unassigned</span>}
-                                  {assignees.map((user, i) => (
-                                     <div key={user.id} style={{zIndex: 10-i}} className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-[#111111] text-white text-center text-[10px] font-bold leading-6 shadow-sm" title={user.name}>
-                                       {user.name.charAt(0)}
-                                     </div>
-                                  ))}
+                                  {assignees.map((user, i) => {
+                                     const userCfg = ROLE_CONFIG[user.role] || { bg: 'bg-[#111111]', text: 'text-white', label: user.role };
+                                     return (
+                                       <div key={user.id} style={{zIndex: 10-i}} className={`inline-block h-6 w-6 rounded-full ring-2 ring-white ${userCfg.bg} ${userCfg.text} text-center text-[10px] font-bold leading-6 shadow-sm`} title={`${user.name} (${userCfg.label})`}>
+                                         {user.name.charAt(0)}
+                                       </div>
+                                     );
+                                  })}
                                 </div>
                                 <label htmlFor={`task-status-select-${t.id}`} className="sr-only">Task Status</label>
                                 <select 
@@ -1514,7 +1330,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
-          {}
+          {/* Team Access Tab */}
           {activeTab === 'team' && isSeniorOrManager && (
              <div className="p-6 md:p-10 max-w-4xl mx-auto animate-in fade-in duration-300">
                <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1583,64 +1399,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
              </div>
           )}
 
-          {activeTab === 'financials' && isSeniorOrManager && (
-             <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
-               <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
-                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Financials</h2>
-                    <p className="text-sm text-gray-500 mt-1">Track billables and sent invoices strictly restricted to management.</p>
-                 </div>
-                 <Button onClick={() => setIsInvoiceModalOpen(true)} className="shrink-0"><Plus className="w-4 h-4 mr-2"/> Generate Invoice</Button>
-               </header>
-               <Card className="overflow-hidden overflow-x-auto">
-                 <table className="w-full text-left text-sm min-w-[700px]">
-                   <thead className="bg-gray-50 border-b border-[#E5E5E5]">
-                     <tr>
-                       <th className="p-5 font-bold text-xs uppercase tracking-wider text-gray-500">Invoice ID</th>
-                       <th className="p-5 font-bold text-xs uppercase tracking-wider text-gray-500">Matter</th>
-                       <th className="p-5 font-bold text-xs uppercase tracking-wider text-gray-500">Date</th>
-                       <th className="p-5 font-bold text-xs uppercase tracking-wider text-gray-500">Amount</th>
-                       <th className="p-5 font-bold text-xs uppercase tracking-wider text-gray-500 text-right">Status</th>
-                     </tr>
-                   </thead>
-                   <tbody className="divide-y divide-[#E5E5E5]">
-                     {dbData.invoices.filter(i=>i.officeId === currentUser.officeId).length === 0 && (
-                        <tr><td colSpan="5" className="p-8 text-center text-gray-500 italic">No invoices generated yet.</td></tr>
-                     )}
-                     {dbData.invoices.filter(i=>i.officeId === currentUser.officeId).map(inv => (
-                       <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
-                         <td className="p-5 font-mono font-bold text-[#111111]">
-                           {inv.id}
-                           {inv.attachment && <div className="text-[10px] text-[#4F46E5] font-sans mt-0.5 flex items-center font-medium"><Paperclip className="w-3 h-3 mr-1"/> {inv.attachment}</div>}
-                         </td>
-                         <td className="p-5 font-medium">{dbData.cases.find(c=>c.id===inv.caseId)?.title || 'Unknown'}</td>
-                         <td className="p-5 text-gray-500 font-medium">{new Date(inv.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</td>
-                         <td className="p-5 font-bold">₹{inv.amount.toLocaleString('en-IN')}</td>
-                         <td className="p-5 text-right">
-                            <label htmlFor={`invoice-status-select-${inv.id}`} className="sr-only">Invoice Status</label>
-                            <select 
-                             id={`invoice-status-select-${inv.id}`}
-                             name={`invoiceStatus_${inv.id}`}
-                             className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-md cursor-pointer border-none outline-none shadow-sm transition-colors ${inv.status==='SETTLED' ? 'bg-gray-100 text-gray-400 line-through' : 'bg-[#111111] text-white hover:bg-black'}`}
-                             value={inv.status}
-                             onChange={async (e) => {
-                               await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'invoices', inv.id), { status: e.target.value });
-                             }}
-                           >
-                             <option value="DRAFT">Draft</option>
-                             <option value="SENT">Sent</option>
-                             <option value="SETTLED">Settled</option>
-                           </select>
-                         </td>
-                       </tr>
-                     ))}
-                   </tbody>
-                 </table>
-               </Card>
-             </div>
-          )}
-
-          {}
+          {/* New Matter Modal */}
           <Modal title="Open New Matter" isOpen={isNewMatterOpen} onClose={() => setIsNewMatterOpen(false)}>
             <form onSubmit={handleCreateMatter} className="space-y-5">
               <div className="space-y-4 pb-4 border-b border-gray-100">
@@ -1718,31 +1477,15 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </form>
           </Modal>
 
-          <Modal title={editingTaskId ? "Edit Task" : "Create New Task"} isOpen={isNewTaskModalOpen} onClose={() => { setIsNewTaskModalOpen(false); setEditingTaskId(null); setNewTaskAssigneeIds([]); if(recognitionRef.current) recognitionRef.current.stop(); setIsRecording(false); }}>
+          {/* New Task Modal */}
+          <Modal title={editingTaskId ? "Edit Task" : "Create New Task"} isOpen={isNewTaskModalOpen} onClose={() => { setIsNewTaskModalOpen(false); setEditingTaskId(null); setNewTaskAssigneeIds([]); }}>
             <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
                 <label htmlFor="task-title-input" className="block text-xs font-bold text-gray-700 mb-1">Task Title *</label>
                 <div className="flex items-center space-x-2">
                   <input id="task-title-input" name="taskTitle" required type="text" value={newTaskTitle} onChange={e=>setNewTaskTitle(e.target.value)} className="flex-1 px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. Draft rejoinder for arbitration" />
-                  <button 
-                    type="button" 
-                    onClick={handleStartVoiceRecording}
-                    className={`p-3 rounded-lg border flex items-center justify-center transition-all shadow-sm ${isRecording ? 'bg-red-500 text-white border-red-500 animate-pulse' : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200'}`}
-                    title={isRecording ? "Stop Recording" : "Record Voice Note"}
-                    aria-label={isRecording ? "Stop Recording" : "Record Voice Note"}
-                  >
-                    {isRecording ? <Square className="w-4 h-4"/> : <Mic className="w-4 h-4"/>}
-                  </button>
                 </div>
-                {isRecording && <div className="text-xs text-red-600 mt-1.5 font-bold animate-pulse">Listening... Speak clearly into your microphone.</div>}
               </div>
-
-              {newTaskVoiceNote && (
-                <div className="animate-in fade-in">
-                  <label htmlFor="task-voicernote-transcript" className="block text-xs font-bold text-gray-700 mb-1">Voice Note Transcript</label>
-                  <textarea id="task-voicernote-transcript" name="voiceNoteTranscript" value={newTaskVoiceNote} onChange={e=>setNewTaskVoiceNote(e.target.value)} className="w-full px-3 py-2 text-xs bg-purple-50 border border-purple-200 rounded-lg outline-none text-purple-900 italic shadow-inner" rows="2" />
-                </div>
-              )}
 
               <div>
                 <label htmlFor="task-matter-select" className="block text-xs font-bold text-gray-700 mb-1">Linked Matter *</label>
@@ -1781,29 +1524,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </form>
           </Modal>
 
-          <Modal title="Generate Invoice" isOpen={isInvoiceModalOpen} onClose={() => { setIsInvoiceModalOpen(false); setInvoiceFile(null); }}>
-             <form onSubmit={handleGenerateInvoice} className="space-y-4">
-               <div>
-                 <label htmlFor="invoice-matter-select" className="block text-xs font-bold text-gray-700 mb-1">Select Matter</label>
-                 <select id="invoice-matter-select" name="invoiceMatterId" required value={invoiceCaseId} onChange={e=>setInvoiceCaseId(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all cursor-pointer shadow-sm">
-                   <option value="" disabled>Select a matter to bill...</option>
-                   {myOfficeCases.map(c => (
-                     <option key={c.id} value={c.id}>{c.title}</option>
-                   ))}
-                 </select>
-               </div>
-               <div>
-                 <label htmlFor="invoice-amount-input" className="block text-xs font-bold text-gray-700 mb-1">Invoice Amount (₹)</label>
-                 <input id="invoice-amount-input" name="invoiceAmount" required type="number" min="0" step="0.01" value={invoiceAmount} onChange={e=>setInvoiceAmount(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. 50000" />
-               </div>
-               <div>
-                 <label htmlFor="invoice-pdf-file" className="block text-xs font-bold text-gray-700 mb-1">Attach Invoice PDF (Optional)</label>
-                 <input id="invoice-pdf-file" name="invoicePdf" type="file" onChange={e => setInvoiceFile(e.target.files[0])} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg text-sm shadow-sm" accept=".pdf" />
-               </div>
-               <Button type="submit" className="w-full py-3.5 mt-6">Create Draft Invoice</Button>
-             </form>
-          </Modal>
-
+          {/* Terminate Modal */}
           <Modal title="Terminate Employee" isOpen={isFireModalOpen} onClose={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>
             <form onSubmit={handleFireUser} className="space-y-4">
               <div className="bg-red-50 text-red-800 p-4 rounded-lg text-sm border border-red-200 mb-4 shadow-sm">
@@ -1819,6 +1540,17 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
               </div>
             </form>
           </Modal>
+          
+          {/* Logout Modal */}
+          <Modal title="Sign Out" isOpen={isLogoutModalOpen} onClose={() => setIsLogoutModalOpen(false)}>
+            <div className="bg-gray-50 text-gray-800 p-4 rounded-lg text-sm border border-gray-200 mb-6 shadow-sm">
+              Are you sure you want to sign out of your workspace? You will need your credentials to access it again.
+            </div>
+            <div className="flex space-x-3">
+              <Button variant="secondary" className="flex-1" onClick={() => setIsLogoutModalOpen(false)}>Cancel</Button>
+              <button type="button" onClick={onLogout} className="flex-1 bg-[#111111] text-white py-2 px-4 text-sm font-medium rounded-md hover:bg-black transition-colors shadow-sm active:scale-95">Yes, Sign Out</button>
+            </div>
+          </Modal>
 
         </div>
       </main>
@@ -1828,7 +1560,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
 export default function App() {
   const [dbData, setDbData] = useState({
-    offices: [], users: [], cases: [], updates: [], tasks: [], documents: [], invoices: []
+    offices: [], users: [], cases: [], updates: [], tasks: []
   });
   
   const [authUser, setAuthUser] = useState(null);
@@ -1844,14 +1576,15 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // Optimized Listener: Only reconnect if the user explicitly changes (prevents socket dropping)
   useEffect(() => {
-    if (!authUser) {
+    if (!authUser?.uid) {
        setAppUser(null);
-       setDbData({ offices: [], users: [], cases: [], updates: [], tasks: [], documents: [], invoices: [] });
+       setDbData({ offices: [], users: [], cases: [], updates: [], tasks: [] });
        return;
     }
 
-    const cols = ['offices', 'users', 'cases', 'updates', 'tasks', 'documents', 'invoices'];
+    const cols = ['offices', 'users', 'cases', 'updates', 'tasks'];
     const unsubscribes = cols.map(colName => {
        return onSnapshot(
          collection(db, 'artifacts', appId, 'public', 'data', colName),
@@ -1864,20 +1597,25 @@ export default function App() {
     });
 
     return () => unsubscribes.forEach(unsub => unsub());
-  }, [authUser]);
+  }, [authUser?.uid]);
 
+  // Deep comparison logic to update the app user profile without unnecessary renders
   useEffect(() => {
-    if (authUser && !authUser.isAnonymous) {
+    if (authUser?.uid) {
       const userProfile = dbData.users.find(u => u.id === authUser.uid);
-      if (userProfile) {
+      if (userProfile && JSON.stringify(appUser) !== JSON.stringify(userProfile)) {
         setAppUser(userProfile);
-        setCurrentView('dashboard');
+        if (currentView !== 'dashboard') {
+            setCurrentView('dashboard');
+        }
       }
     }
-  }, [authUser, dbData.users]);
+  }, [authUser?.uid, dbData.users]);
 
 
-  const handleLogin = async (email, password) => {
+  const handleLogin = async (email, password, rememberMe) => {
+    const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+    await setPersistence(auth, persistenceType);
     await signInWithEmailAndPassword(auth, email, password);
   };
 
@@ -1901,9 +1639,11 @@ export default function App() {
   };
 
   const handleJoinOffice = async (name, email, password, code) => {
+    // 1. Create the Auth account first so the user is authenticated for Firestore rules
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
 
+    // 2. Query the office using the invite code now that the user is authenticated
     const officesRef = collection(db, 'artifacts', appId, 'public', 'data', 'offices');
     const q = query(officesRef, where('inviteCode', '==', code.toUpperCase().trim()));
     const querySnapshot = await getDocs(q);
@@ -1915,6 +1655,7 @@ export default function App() {
     const foundOfficeDoc = querySnapshot.docs[0];
     const foundOffice = { id: foundOfficeDoc.id, ...foundOfficeDoc.data() };
     
+    // 3. Save the pending user profile
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), {
       id: uid, officeId: foundOffice.id, name, email, role: 'PENDING'
     });
@@ -2004,3 +1745,4 @@ export default function App() {
     </div>
   );
 }
+```eof
