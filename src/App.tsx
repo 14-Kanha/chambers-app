@@ -3,7 +3,7 @@ import {
   Scale, Briefcase, Calendar, CheckCircle2, Search, 
   Users, Plus, Clock, LogOut, ChevronRight, Download, 
   FileCheck, Edit3, X, AlertCircle, ArrowRight, Layers,
-  Mail, Lock, User, Square, Mic
+  Mail, Lock, User
 } from 'lucide-react';
 
 import { initializeApp } from 'firebase/app';
@@ -1745,4 +1745,3 @@ export default function App() {
     </div>
   );
 }
-```eof
