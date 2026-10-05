@@ -3,7 +3,7 @@ import {
   Scale, Briefcase, Calendar, CheckCircle2, Search, 
   Users, Plus, Clock, LogOut, ChevronRight, Download, 
   FileCheck, Edit3, X, AlertCircle, ArrowRight, Layers,
-  Mail, Lock, User, Square, Mic, CalendarDays, Filter
+  Mail, Lock, User, Square, Mic, CalendarDays, Filter, Loader2
 } from 'lucide-react';
 
 import { initializeApp } from 'firebase/app';
@@ -44,6 +44,7 @@ try {
   console.error("Firebase config parsing error", e);
 }
 
+/* STREAMING_CHUNK:Initializing Firebase and App Setup... */
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -68,6 +69,7 @@ const ROLE_CONFIG = {
   'FIRED': { label: 'Terminated', bg: 'bg-red-100', text: 'text-red-700' }
 };
 
+/* STREAMING_CHUNK:Defining Reusable UI Components... */
 const Card = ({ children, className = "", onClick, ...props }) => (
   <div onClick={onClick} className={`bg-white border border-[#E5E5E5] rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] ${className}`} {...props}>
     {children}
@@ -129,6 +131,7 @@ const SplashLoader = () => (
   </div>
 );
 
+/* STREAMING_CHUNK:Building Authentication Views... */
 const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrackCase, onResetPassword, goBack }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -313,6 +316,7 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
   );
 };
 
+/* STREAMING_CHUNK:Building Client Portal View... */
 const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
   const clientCases = dbData.cases.filter(c => c.trackingNumber === trackingCode);
@@ -424,6 +428,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
   );
 };
 
+/* STREAMING_CHUNK:Building Case Detail View... */
 const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTask }) => {
   const [updateTitle, setUpdateTitle] = useState("");
   const [updateText, setUpdateText] = useState("");
@@ -452,7 +457,6 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
     };
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'updates', updateId), newUpdate);
     
-    // Process new hearing date logic tracking historical dates natively
     if (newNextHearing) {
       const updatesToCase = { nextHearing: newNextHearing };
       if (activeCase.nextHearing && activeCase.nextHearing !== newNextHearing) {
@@ -805,6 +809,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
   );
 };
 
+/* STREAMING_CHUNK:Building Dashboard View... */
 const DashboardView = ({ currentUser, dbData, onLogout }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [activeCaseId, setActiveCaseId] = useState(null);
@@ -1706,22 +1711,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 <input id="task-due-date" name="dueDate" type="date" value={newTaskDueDate} onChange={e=>setNewTaskDueDate(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-black outline-none text-sm transition-all shadow-sm" />
               </div>
               <Button type="submit" className="w-full py-3.5 mt-6">{editingTaskId ? 'Save Changes' : 'Create Task'}</Button>
-            </form>
-          </Modal>
-
-          <Modal title="Terminate Employee" isOpen={isFireModalOpen} onClose={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>
-            <form onSubmit={handleFireUser} className="space-y-4">
-              <div className="bg-red-50 text-red-800 p-4 rounded-lg text-sm border border-red-200 mb-4 shadow-sm">
-                You are about to terminate <strong>{userToFire?.name}</strong>. Their access to the workspace will be immediately revoked.
-              </div>
-              <div>
-                <label htmlFor="fire-reason-textarea" className="block text-xs font-bold text-gray-700 mb-1">Reason for Termination (Mandatory)</label>
-                <textarea id="fire-reason-textarea" name="terminationReason" required value={fireReason} onChange={e=>setFireReason(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-red-500 outline-none text-sm transition-all min-h-[100px] resize-y shadow-inner" placeholder="Detail the reason for immediate termination. This will be visible to the employee." />
-              </div>
-              <div className="flex space-x-3 mt-6">
-                <Button variant="secondary" className="flex-1" onClick={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>Cancel</Button>
-                <button type="submit" className="flex-1 bg-red-600 text-white py-2 px-4 text-sm font-medium rounded-md hover:bg-red-700 transition-colors shadow-sm active:scale-95">Confirm Termination</button>
-              </div>
             </form>
           </Modal>
 
