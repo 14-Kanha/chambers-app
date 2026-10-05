@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Scale, Briefcase, Calendar as CalendarIcon, CheckCircle2, Search, 
-  Users, Plus, Clock, LogOut, ChevronRight, Download, 
+  Users, Plus, Filter, Clock, LogOut, ChevronRight,
   FileCheck, Edit3, X, AlertCircle, ArrowRight, Layers,
-  Mail, Lock, User, Square, Mic, Loader2, ChevronLeft, CalendarDays, Filter
+  Mail, Lock, User, Loader2, CalendarDays
 } from 'lucide-react';
 
 import { initializeApp } from 'firebase/app';
@@ -621,7 +621,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
   const handleSaveCalendarEvent = async (e) => {
     e.preventDefault();
     if (!selectedCalDateStr) return;
-    // Overwrite or create event for specific day
     const eventId = `${currentUser.officeId}_${selectedCalDateStr}`;
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'calendarEvents', eventId), {
        id: eventId,
@@ -646,6 +645,20 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
       
       const caseUpdates = dbData.updates.filter(u => u.caseId === activeCaseId).sort((a,b)=>new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       
+      const openEditModal = () => {
+        setEditCaseData({
+          title: activeCase.title,
+          caseNumber: activeCase.caseNumber || '',
+          cnr: activeCase.cnr || '',
+          court: activeCase.court || '',
+          trackingNumber: activeCase.trackingNumber || '',
+          nextHearing: activeCase.nextHearing ? activeCase.nextHearing.split('T')[0] : '',
+          partyOne: activeCase.partyOne ? [...activeCase.partyOne] : [],
+          partyTwo: activeCase.partyTwo ? [...activeCase.partyTwo] : []
+        });
+        setIsEditModalOpen(true);
+      };
+
       return (
         <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in slide-in-from-right-4 duration-300 w-full">
           <button onClick={() => setActiveCaseId(null)} className="mb-6 flex items-center text-sm font-bold text-gray-500 hover:text-black transition-colors group">
@@ -654,8 +667,11 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           
           <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
             <div>
-              <div className="flex items-center space-x-3 mb-3">
+              <div className="flex items-center space-x-4 mb-3">
                 <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#111111]">{activeCase.title}</h2>
+                <Button variant="secondary" onClick={openEditModal} className="text-xs px-3 py-1.5 shadow-sm hidden sm:flex">
+                  <Edit3 className="w-3.5 h-3.5 mr-2"/> Edit Case
+                </Button>
               </div>
               <div className="flex flex-wrap items-center text-sm text-gray-600 gap-x-4 gap-y-2 mb-4 bg-white p-3 rounded-lg border border-[#E5E5E5] shadow-sm w-fit">
                 <span className="font-mono text-black font-semibold"><strong className="text-gray-400 font-sans text-xs uppercase tracking-wider">No:</strong> {activeCase.caseNumber || 'N/A'}</span>
@@ -665,6 +681,11 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 <span className="font-medium">{activeCase.court || 'Pending Court'}</span>
                 <span className="text-gray-300">|</span>
                 <span className="text-[#D97706] font-bold bg-amber-50 px-2 py-0.5 rounded">Hearing: {activeCase.nextHearing ? new Date(activeCase.nextHearing).toLocaleDateString('en-US') : 'TBD'}</span>
+              </div>
+              <div className="flex sm:hidden mb-4">
+                 <Button variant="secondary" onClick={openEditModal} className="text-xs px-3 py-1.5 shadow-sm">
+                  <Edit3 className="w-3.5 h-3.5 mr-2"/> Edit Case Details
+                </Button>
               </div>
               <div className="inline-flex items-center space-x-2 bg-indigo-50 border border-indigo-200 text-indigo-800 px-3 py-1.5 rounded-lg text-xs shadow-sm">
                  <span className="font-bold uppercase tracking-wider">Client Tracking ID:</span>
@@ -704,7 +725,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
           <div className="space-y-8 max-w-3xl">
             <h3 className="text-xl font-bold border-b border-[#E5E5E5] pb-4 flex items-center">
-              <Clock className="w-5 h-5 mr-3 text-gray-400"/> Case Ledger Updates
+              <Clock className="w-5 h-5 mr-3 text-gray-400"/> Case History & Updates
             </h3>
             
             {activeCase.previousHearings && activeCase.previousHearings.length > 0 && (
@@ -730,13 +751,11 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                   const newHearing = form.newNextHearing.value;
                   if (!title || !text) return;
                   
-                  // Post the update
                   const updateId = `up_${Date.now()}`;
                   await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'updates', updateId), {
                     id: updateId, caseId: activeCaseId, authorId: currentUser.id, title, text, timestamp: new Date().toISOString()
                   });
                   
-                  // Modify next hearing date
                   if (newHearing) {
                      const currentHearingStr = activeCase.nextHearing ? (activeCase.nextHearing.includes('T') ? activeCase.nextHearing.split('T')[0] : activeCase.nextHearing) : null;
                      if (currentHearingStr !== newHearing) {
@@ -765,7 +784,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                   <textarea id="update-text" name="updateText" placeholder="Detail the proceedings or notes for the team and client..." className="w-full px-4 py-3 text-sm border border-[#E5E5E5] rounded-lg focus:border-black focus:ring-1 focus:ring-black outline-none min-h-[100px] resize-y bg-[#F9F9F9] focus:bg-white transition-all" required />
                 </div>
                 <div className="flex justify-end pt-2">
-                  <Button type="submit" className="py-2.5 px-6">Post to Ledger</Button>
+                  <Button type="submit" className="py-2.5 px-6">Post Update to Ledger</Button>
                 </div>
               </form>
             </Card>
@@ -786,7 +805,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                       </div>
                       <p className="text-sm text-gray-600 mb-5 whitespace-pre-wrap leading-relaxed">{u.text}</p>
                       <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shadow-sm ${ROLE_CONFIG[author?.role]?.bg || 'bg-gray-200'} ${ROLE_CONFIG[author?.role]?.text || 'text-black'}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] shadow-sm ${ROLE_CONFIG[author?.role]?.bg || 'bg-gray-200'} ${ROLE_CONFIG[author?.role]?.text || 'text-gray-700'}`}>
                           {author?.name ? author.name.charAt(0) : '?'}
                         </div>
                         <span className="text-xs font-bold text-[#111111]">{author?.name || 'Unknown User'}</span>
@@ -934,8 +953,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 </div>
               </div>
             </div>
-          </div>
-        );
+          );
       
       case 'ledger':
         let sortedFilteredCases = myOfficeCases.filter(c => {
@@ -1165,6 +1183,14 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
         for (let i = 0; i < firstDayOfMonth; i++) calendarGrid.push(null);
         for (let i = 1; i <= daysInMonth; i++) calendarGrid.push(new Date(curYear, curMonth, i));
 
+        const selectedDayCases = selectedCalDateStr ? myOfficeCases.filter(c => {
+          if (!c.nextHearing) return false;
+          const hStr = c.nextHearing.includes('T') ? c.nextHearing.split('T')[0] : c.nextHearing;
+          return hStr === selectedCalDateStr;
+        }) : [];
+
+        const selectedOfficeEvt = selectedCalDateStr ? dbData.calendarEvents?.find(e => e.id === `${currentUser.officeId}_${selectedCalDateStr}`) : null;
+
         return (
           <div className="p-6 md:p-10 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
              <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 shrink-0">
@@ -1187,7 +1213,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                </div>
                <div className="grid grid-cols-7 gap-px bg-[#E5E5E5]">
                  {calendarGrid.map((dayDate, idx) => {
-                   if (!dayDate) return <div key={idx} className="bg-gray-50 min-h-[120px]"></div>;
+                   if (!dayDate) return <div key={idx} className="bg-gray-50 min-h-[80px] lg:min-h-[100px]"></div>;
                    const dayStr = getLocalDateStr(dayDate);
                    
                    // Cases scheduled for this day
@@ -1207,31 +1233,30 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                      <div 
                        key={idx} 
                        onClick={() => {
-                         if (!isSeniorOrManager) return;
                          setSelectedCalDateStr(dayStr);
                          setCalEventType(officeEvt ? officeEvt.type : 'WORKING');
                          setCalEventTime(officeEvt ? officeEvt.timeBox : '');
                          setCalEventNote(officeEvt ? officeEvt.notes : '');
                          setIsCalendarModalOpen(true);
                        }}
-                       className={`bg-white min-h-[120px] p-2 flex flex-col group relative transition-colors ${isSeniorOrManager ? 'cursor-pointer hover:bg-gray-50' : ''} ${officeEvt?.type === 'HOLIDAY' ? 'bg-red-50/30' : ''}`}
+                       className={`bg-white h-24 lg:h-32 p-1.5 flex flex-col group relative transition-colors overflow-hidden cursor-pointer hover:bg-gray-50 ${officeEvt?.type === 'HOLIDAY' ? 'bg-red-50/30' : ''}`}
                      >
-                       <div className="flex justify-between items-start mb-2">
-                         <span className={`text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-[#111111] text-white shadow-md' : 'text-gray-600 group-hover:text-black'}`}>{dayDate.getDate()}</span>
+                       <div className="flex justify-between items-start mb-1.5">
+                         <span className={`text-[11px] font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-[#111111] text-white shadow-md' : 'text-gray-600 group-hover:text-black'}`}>{dayDate.getDate()}</span>
                          {officeEvt && (
-                            <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm ${officeEvt.type === 'HOLIDAY' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>
+                            <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-sm truncate max-w-[60px] ${officeEvt.type === 'HOLIDAY' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>
                               {officeEvt.type === 'HOLIDAY' ? 'Holiday' : 'Work'}
                             </span>
                          )}
                        </div>
                        
                        {officeEvt?.timeBox && officeEvt.type !== 'HOLIDAY' && (
-                         <div className="text-[10px] text-gray-500 font-mono mb-2 px-1 truncate">{officeEvt.timeBox}</div>
+                         <div className="text-[9px] text-gray-500 font-mono mb-1.5 px-1 truncate">{officeEvt.timeBox}</div>
                        )}
 
-                       <div className="flex-1 space-y-1.5 overflow-y-auto scrollbar-hide pb-1">
+                       <div className="flex-1 space-y-1 overflow-y-auto scrollbar-hide pb-1">
                           {dayCases.map(c => (
-                            <div key={c.id} className="text-[10px] font-bold text-white bg-[#4F46E5] truncate px-1.5 py-1 rounded shadow-sm leading-tight border border-indigo-700">
+                            <div key={c.id} className="text-[9px] font-bold text-white bg-[#4F46E5] truncate px-1.5 py-0.5 rounded shadow-sm leading-tight border border-indigo-700">
                               {c.title}
                             </div>
                           ))}
@@ -1242,37 +1267,113 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                </div>
              </Card>
 
-             <Modal title="Office Calendar Settings" isOpen={isCalendarModalOpen} onClose={() => setIsCalendarModalOpen(false)}>
-               <form onSubmit={handleSaveCalendarEvent} className="space-y-6">
-                 <div className="text-center font-bold text-lg bg-gray-50 py-3 rounded-lg border border-gray-200">
-                   {selectedCalDateStr ? new Date(selectedCalDateStr).toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'}) : ''}
-                 </div>
-                 
-                 <div>
-                   <label htmlFor="cal-type-select" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Day Classification</label>
-                   <select id="cal-type-select" value={calEventType} onChange={e=>setCalEventType(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm font-bold shadow-sm cursor-pointer transition-all">
-                     <option value="WORKING">Working / Court Day</option>
-                     <option value="HOLIDAY">Office Holiday / Closed</option>
-                   </select>
-                 </div>
-
-                 {calEventType !== 'HOLIDAY' && (
-                   <div className="animate-in fade-in slide-in-from-top-2">
-                     <label htmlFor="cal-time-input" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Office / Court Timing</label>
-                     <input id="cal-time-input" type="text" value={calEventTime} onChange={e=>setCalEventTime(e.target.value)} placeholder="e.g. 10:00 AM - 5:00 PM" className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm shadow-sm transition-all" />
+             <Modal title="Calendar Day Details" isOpen={isCalendarModalOpen} onClose={() => setIsCalendarModalOpen(false)}>
+               <div className="space-y-6">
+                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                   <div>
+                     <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Selected Date</div>
+                     <div className="text-base font-bold text-[#111111]">
+                       {selectedCalDateStr ? new Date(selectedCalDateStr + "T00:00:00").toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'}) : ''}
+                     </div>
                    </div>
-                 )}
+                   {selectedOfficeEvt && (
+                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full w-fit ${selectedOfficeEvt.type === 'HOLIDAY' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>
+                       {selectedOfficeEvt.type === 'HOLIDAY' ? 'Office Holiday' : 'Working Day'}
+                     </span>
+                   )}
+                 </div>
 
                  <div>
-                   <label htmlFor="cal-notes-textarea" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Internal Notes (Optional)</label>
-                   <textarea id="cal-notes-textarea" value={calEventNote} onChange={e=>setCalEventNote(e.target.value)} placeholder="e.g. High Court closing early today..." className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm min-h-[80px] resize-y shadow-inner transition-all" />
+                   <div className="flex items-center justify-between mb-3">
+                     <h4 className="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center">
+                       <Briefcase className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
+                       Hearings Listed Today ({selectedDayCases.length})
+                     </h4>
+                   </div>
+
+                   {selectedDayCases.length === 0 ? (
+                     <div className="p-6 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                       <Scale className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                       <p className="text-sm font-medium text-gray-500">No hearings or matters scheduled on this date.</p>
+                     </div>
+                   ) : (
+                     <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                       {selectedDayCases.map(c => (
+                         <div key={c.id} className="p-4 bg-white border border-[#E5E5E5] rounded-xl hover:border-black transition-all shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                           <div className="flex-1 min-w-0">
+                             <div className="flex items-center space-x-2 mb-1">
+                               <span className="font-bold text-sm text-[#111111] truncate">{c.title}</span>
+                               <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded ${c.status === 'Active' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-gray-100 text-gray-600'}`}>{c.status}</span>
+                             </div>
+                             <div className="flex flex-wrap items-center text-xs text-gray-500 gap-x-2 gap-y-1 font-mono">
+                               <span><strong className="font-sans text-[10px] uppercase text-gray-400">No:</strong> {c.caseNumber || 'N/A'}</span>
+                               <span>•</span>
+                               <span><strong className="font-sans text-[10px] uppercase text-gray-400">CNR:</strong> {c.cnr || 'N/A'}</span>
+                               <span>•</span>
+                               <span className="font-sans text-gray-600">{c.court || 'Court Pending'}</span>
+                             </div>
+                           </div>
+                           <Button
+                             variant="primary"
+                             className="text-xs py-2 px-3 shrink-0 shadow-sm font-bold flex items-center"
+                             onClick={() => {
+                               setIsCalendarModalOpen(false);
+                               setActiveTab('ledger');
+                               setActiveCaseId(c.id);
+                             }}
+                           >
+                             <Briefcase className="w-3.5 h-3.5 mr-1.5" />
+                             Access Ledger &rarr;
+                           </Button>
+                         </div>
+                       ))}
+                     </div>
+                   )}
                  </div>
 
-                 <div className="flex space-x-4 mt-8">
-                   <Button variant="secondary" type="button" className="flex-1 py-3" onClick={() => setIsCalendarModalOpen(false)}>Cancel</Button>
-                   <Button variant="primary" type="submit" className="flex-1 py-3">Save Day Settings</Button>
-                 </div>
-               </form>
+                 {isSeniorOrManager ? (
+                   <form onSubmit={handleSaveCalendarEvent} className="border-t border-[#E5E5E5] pt-5 space-y-4">
+                     <div className="text-xs font-bold uppercase tracking-wider text-gray-700">Office & Court Schedule Settings</div>
+                     
+                     <div>
+                       <label htmlFor="cal-type-select" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Day Classification</label>
+                       <select id="cal-type-select" value={calEventType} onChange={e=>setCalEventType(e.target.value)} className="w-full px-4 py-2.5 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm font-bold shadow-sm cursor-pointer transition-all">
+                         <option value="WORKING">Working / Court Day</option>
+                         <option value="HOLIDAY">Office Holiday / Closed</option>
+                       </select>
+                     </div>
+
+                     {calEventType !== 'HOLIDAY' && (
+                       <div className="animate-in fade-in slide-in-from-top-2">
+                         <label htmlFor="cal-time-input" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Office / Court Timing</label>
+                         <input id="cal-time-input" type="text" value={calEventTime} onChange={e=>setCalEventTime(e.target.value)} placeholder="e.g. 10:00 AM - 5:00 PM" className="w-full px-4 py-2.5 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm shadow-sm transition-all" />
+                       </div>
+                     )}
+
+                     <div>
+                       <label htmlFor="cal-notes-textarea" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Internal Schedule Notes (Optional)</label>
+                       <textarea id="cal-notes-textarea" value={calEventNote} onChange={e=>setCalEventNote(e.target.value)} placeholder="e.g. High Court closing early today..." className="w-full px-4 py-2.5 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm min-h-[60px] resize-y shadow-inner transition-all" />
+                     </div>
+
+                     <div className="flex space-x-3 pt-2">
+                       <Button variant="secondary" type="button" className="flex-1 py-2.5" onClick={() => setIsCalendarModalOpen(false)}>Close</Button>
+                       <Button variant="primary" type="submit" className="flex-1 py-2.5">Save Schedule</Button>
+                     </div>
+                   </form>
+                 ) : (
+                   selectedOfficeEvt && (
+                     <div className="border-t border-[#E5E5E5] pt-4 space-y-2">
+                       <div className="text-xs font-bold uppercase tracking-wider text-gray-400">Office Timings & Notes</div>
+                       {selectedOfficeEvt.timeBox && (
+                         <div className="text-sm font-mono text-gray-800"><strong>Hours:</strong> {selectedOfficeEvt.timeBox}</div>
+                       )}
+                       {selectedOfficeEvt.notes && (
+                         <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200">{selectedOfficeEvt.notes}</div>
+                       )}
+                     </div>
+                   )
+                 )}
+               </div>
              </Modal>
           </div>
         );
@@ -1280,7 +1381,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
       case 'team':
         if (!isSeniorOrManager) return null;
         
-        // Task 1: Sorting Users by Role Authority
         const sortedTeam = dbData.users
           .filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT')
           .sort((a, b) => (ROLE_HIERARCHY[b.role] ?? -1) - (ROLE_HIERARCHY[a.role] ?? -1));
@@ -1425,6 +1525,159 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           {renderContent()}
         </div>
       </main>
+      
+      {/* Global Modals that exist outside activeTab flow */}
+      <Modal title="Open New Matter" isOpen={isNewMatterOpen} onClose={() => setIsNewMatterOpen(false)}>
+        <form onSubmit={handleCreateMatter} className="space-y-6">
+          <div className="space-y-5 pb-5 border-b border-gray-100">
+            <div>
+              <label htmlFor="new-matter-title" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Matter Title *</label>
+              <input id="new-matter-title" name="matterTitle" required type="text" value={newTitle} onChange={e=>setNewTitle(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. Smith v. State" />
+            </div>
+            <div className="grid grid-cols-2 gap-5">
+              <div>
+                <label htmlFor="new-matter-caseno" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Case Number</label>
+                <input id="new-matter-caseno" name="caseNumber" type="text" value={newCaseNumber} onChange={e=>setNewCaseNumber(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all font-mono shadow-sm" placeholder="e.g. CS/1042/2026" />
+              </div>
+              <div>
+                <label htmlFor="new-matter-cnr" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">CNR Number</label>
+                <input id="new-matter-cnr" name="cnrNumber" type="text" value={newCnr} onChange={e=>setNewCnr(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all font-mono shadow-sm" placeholder="e.g. HC0982-2026" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-5">
+              <div>
+                <label htmlFor="new-matter-tracking" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Client Tracking ID</label>
+                <input id="new-matter-tracking" name="trackingNumber" type="text" value={newTrackingNumber} onChange={e=>setNewTrackingNumber(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-indigo-300 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none text-sm transition-all font-mono uppercase shadow-sm" placeholder="e.g. TRK-ABC123" />
+                <p className="text-[10px] text-gray-500 mt-1.5 leading-snug">Clients use this exact code to view their dashboard. Paste an existing code to group matters.</p>
+              </div>
+              <div>
+                <label htmlFor="new-matter-court" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Court / Authority</label>
+                <input id="new-matter-court" name="courtName" type="text" value={newCourt} onChange={e=>setNewCourt(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. District Court" />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <div className="text-xs font-bold tracking-widest text-gray-400 uppercase border-b border-gray-100 pb-2">Parties Involved (Optional)</div>
+            
+           <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-inner">
+             <div className="text-xs font-bold mb-4 flex justify-between items-center text-[#111111] uppercase tracking-wider">
+               <span>Plaintiff / Petitioner</span>
+               <button type="button" onClick={() => setNewPartyOne([...newPartyOne, {name:'', mobile:''}])} className="text-white bg-[#111111] hover:bg-black px-2.5 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors shadow-sm active:scale-95">+ Add</button>
+             </div>
+             {newPartyOne.map((p, i) => (
+               <div key={i} className="flex space-x-3 mb-3 items-start animate-in fade-in slide-in-from-top-2">
+                 <div className="flex-1">
+                   <input aria-label={`New Plaintiff Name ${i + 1}`} name={`newPartyOneName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...newPartyOne]; newP[i].name = e.target.value; setNewPartyOne(newP); }} className="w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-lg focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all shadow-sm" />
+                 </div>
+                 <div className="flex-1">
+                   <input aria-label={`New Plaintiff Mobile ${i + 1}`} name={`newPartyOneMobile_${i}`} type="text" placeholder="+91 Mobile" value={p.mobile} onChange={e => { const newP = [...newPartyOne]; newP[i].mobile = e.target.value; setNewPartyOne(newP); }} className="w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-lg focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all font-mono shadow-sm" />
+                 </div>
+                 {newPartyOne.length > 1 && (
+                   <button type="button" onClick={() => { const newP = [...newPartyOne]; newP.splice(i, 1); setNewPartyOne(newP); }} className="p-2 text-gray-400 hover:text-white hover:bg-red-500 rounded-lg transition-colors mt-0.5"><X className="w-4 h-4"/></button>
+                 )}
+               </div>
+             ))}
+           </div>
+
+           <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-inner">
+             <div className="text-xs font-bold mb-4 flex justify-between items-center text-[#111111] uppercase tracking-wider">
+               <span>Defendant / Respondent</span>
+               <button type="button" onClick={() => setNewPartyTwo([...newPartyTwo, {name:'', mobile:''}])} className="text-white bg-[#111111] hover:bg-black px-2.5 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors shadow-sm active:scale-95">+ Add</button>
+             </div>
+             {newPartyTwo.map((p, i) => (
+               <div key={i} className="flex space-x-3 mb-3 items-start animate-in fade-in slide-in-from-top-2">
+                 <div className="flex-1">
+                   <input aria-label={`New Defendant Name ${i + 1}`} name={`newPartyTwoName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...newPartyTwo]; newP[i].name = e.target.value; setNewPartyTwo(newP); }} className="w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-lg focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all shadow-sm" />
+                 </div>
+                 <div className="flex-1">
+                   <input aria-label={`New Defendant Mobile ${i + 1}`} name={`newPartyTwoMobile_${i}`} type="text" placeholder="+91 Mobile" value={p.mobile} onChange={e => { const newP = [...newPartyTwo]; newP[i].mobile = e.target.value; setNewPartyTwo(newP); }} className="w-full px-3 py-2.5 bg-white border border-[#E5E5E5] rounded-lg focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all font-mono shadow-sm" />
+                 </div>
+                 {newPartyTwo.length > 1 && (
+                   <button type="button" onClick={() => { const newP = [...newPartyTwo]; newP.splice(i, 1); setNewPartyTwo(newP); }} className="p-2 text-gray-400 hover:text-white hover:bg-red-500 rounded-lg transition-colors mt-0.5"><X className="w-4 h-4"/></button>
+                 )}
+               </div>
+             ))}
+           </div>
+          </div>
+          
+          <Button type="submit" className="w-full py-4 mt-8 rounded-xl text-base shadow-lg">Create Matter File</Button>
+        </form>
+      </Modal>
+
+      <Modal title={editingTaskId ? "Edit Task" : "Create New Task"} isOpen={isNewTaskModalOpen} onClose={() => { setIsNewTaskModalOpen(false); setEditingTaskId(null); setNewTaskAssigneeIds([]); }}>
+        <form onSubmit={handleCreateTask} className="space-y-5">
+          <div>
+            <label htmlFor="task-title-input" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Task Title *</label>
+            <input id="task-title-input" name="taskTitle" required type="text" value={newTaskTitle} onChange={e=>setNewTaskTitle(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all shadow-sm" placeholder="e.g. Draft rejoinder for arbitration" />
+          </div>
+
+          <div>
+            <label htmlFor="task-matter-select" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Linked Matter *</label>
+            <select id="task-matter-select" name="linkedMatterId" required value={newTaskCaseId} onChange={e=>setNewTaskCaseId(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all cursor-pointer shadow-sm">
+              <option value="" disabled>Select a matter...</option>
+              {myOfficeCases.map(c => (
+                <option key={c.id} value={c.id}>{c.title}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <span className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Assign To (Multiple allowed)</span>
+            <div className="max-h-48 overflow-y-auto border border-[#E5E5E5] rounded-xl bg-gray-50 p-2 space-y-1 shadow-inner">
+              {dbData.users.filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT' && u.role !== 'PENDING').map(u => (
+                <label key={u.id} className="flex items-center space-x-3 p-3 hover:bg-white rounded-lg cursor-pointer transition-all border border-transparent hover:border-gray-200 hover:shadow-sm">
+                  <input 
+                    name={`assignee_${u.id}`}
+                    type="checkbox" 
+                    checked={newTaskAssigneeIds.includes(u.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) setNewTaskAssigneeIds([...newTaskAssigneeIds, u.id]);
+                      else setNewTaskAssigneeIds(newTaskAssigneeIds.filter(id => id !== u.id));
+                    }}
+                    className="w-4 h-4 rounded border-gray-300 text-[#111111] focus:ring-black cursor-pointer transition-colors"
+                  />
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-[10px] shadow-sm shrink-0 ${ROLE_CONFIG[u.role]?.bg} ${ROLE_CONFIG[u.role]?.text}`}>
+                     {u.name.charAt(0)}
+                  </div>
+                  <span className="text-sm font-bold text-[#111111]">{u.name} <span className="text-gray-400 text-xs ml-1 font-normal tracking-wide">({ROLE_CONFIG[u.role]?.label})</span></span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label htmlFor="task-due-date" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Due Date</label>
+            <input id="task-due-date" name="dueDate" type="date" value={newTaskDueDate} onChange={e=>setNewTaskDueDate(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none text-sm transition-all shadow-sm" />
+          </div>
+          <Button type="submit" className="w-full py-4 mt-8 rounded-xl text-base shadow-lg">{editingTaskId ? 'Save Task Changes' : 'Create Task'}</Button>
+        </form>
+      </Modal>
+
+      <Modal title="Terminate Employee" isOpen={isFireModalOpen} onClose={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>
+        <form onSubmit={handleFireUser} className="space-y-4">
+          <div className="bg-red-50 text-red-800 p-5 rounded-xl text-sm border border-red-200 mb-4 shadow-sm leading-relaxed">
+            You are about to terminate <strong>{userToFire?.name}</strong>. Their access to the workspace will be immediately revoked.
+          </div>
+          <div>
+            <label htmlFor="fire-reason-textarea" className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">Reason for Termination (Mandatory)</label>
+            <textarea id="fire-reason-textarea" name="terminationReason" required value={fireReason} onChange={e=>setFireReason(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-xl focus:bg-white focus:border-red-600 focus:ring-1 focus:ring-red-600 outline-none text-sm transition-all min-h-[120px] resize-y shadow-inner" placeholder="Detail the reason for immediate termination. This will be visible to the employee." />
+          </div>
+          <div className="flex space-x-4 mt-8">
+            <Button variant="secondary" className="flex-1 py-3" onClick={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>Cancel</Button>
+            <Button variant="danger" type="submit" className="flex-1 py-3">Confirm Termination</Button>
+          </div>
+        </form>
+      </Modal>
+      
+      <Modal title="Sign Out" isOpen={isLogoutModalOpen} onClose={() => setIsLogoutModalOpen(false)}>
+        <div className="bg-gray-50 text-gray-800 p-5 rounded-xl text-sm border border-gray-200 mb-8 shadow-inner leading-relaxed">
+          Are you sure you want to sign out of your workspace? You will need your credentials to access it again.
+        </div>
+        <div className="flex space-x-4">
+          <Button variant="secondary" className="flex-1 py-3" onClick={() => setIsLogoutModalOpen(false)}>Cancel</Button>
+          <Button variant="primary" type="button" onClick={onLogout} className="flex-1 py-3 bg-[#111111] hover:bg-black">Yes, Sign Out</Button>
+        </div>
+      </Modal>
+
     </div>
   );
 };
@@ -1454,7 +1707,7 @@ export default function App() {
       setAuthUser(user);
       if (!user) {
         setAppUser(null);
-        setIsInitializing(false); 
+        setIsInitializing(false); // Done initializing if nobody is logged in
       }
     });
     return () => unsubscribe();
@@ -1490,6 +1743,7 @@ export default function App() {
       if (userProfile && JSON.stringify(appUser) !== JSON.stringify(userProfile)) {
         setAppUser(userProfile);
         setCurrentView('dashboard');
+        // Smooth transition out of splash screen
         setTimeout(() => setIsInitializing(false), 400);
       }
     } else if (authUser?.isAnonymous) {
@@ -1524,9 +1778,11 @@ export default function App() {
   };
 
   const handleJoinOffice = async (name, email, password, code) => {
+    // 1. Create the Auth account first so the user is authenticated for Firestore rules
     const userCred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCred.user.uid;
 
+    // 2. Query the office using the invite code now that the user is authenticated
     const officesRef = collection(db, 'artifacts', appId, 'public', 'data', 'offices');
     const q = query(officesRef, where('inviteCode', '==', code.toUpperCase().trim()));
     const querySnapshot = await getDocs(q);
@@ -1538,6 +1794,7 @@ export default function App() {
     const foundOfficeDoc = querySnapshot.docs[0];
     const foundOffice = { id: foundOfficeDoc.id, ...foundOfficeDoc.data() };
     
+    // 3. Save the pending user profile
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', uid), {
       id: uid, officeId: foundOffice.id, name, email, role: 'PENDING'
     });
@@ -1558,6 +1815,7 @@ export default function App() {
     setCurrentView('landing');
   };
 
+  // If the app is booting up or resolving auth, block all rendering with the SplashLoader
   if (isInitializing) {
     return <SplashLoader />;
   }
@@ -1627,5 +1885,6 @@ export default function App() {
     return <DashboardView currentUser={appUser} dbData={dbData} onLogout={handleLogout}/>;
   }
 
+  // Fallback safety (should never reach here due to splash screen)
   return <SplashLoader />;
 }
