@@ -342,7 +342,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9F9F9] text-[#111111] font-sans flex flex-col">
+    <div className="h-screen overflow-hidden bg-[#F9F9F9] text-[#111111] font-sans flex flex-col">
       <header className="h-16 bg-white border-b border-[#E5E5E5] flex justify-between items-center px-6 md:px-8 shrink-0">
         <div className="flex items-center space-x-2">
           <Scale className="w-5 h-5 text-black"/>
@@ -350,69 +350,71 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
         </div>
         <Button variant="secondary" onClick={() => setIsExitModalOpen(true)} className="py-1.5 px-3 text-xs">Exit Portal</Button>
       </header>
-      <main className="flex-1 max-w-5xl w-full mx-auto p-6 md:p-8 overflow-y-auto">
-        <div className="mb-6">
-          <div className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1 flex items-center">
-             Tracking Code: <span className="text-[#111111] ml-2 font-mono bg-gray-200 px-2 py-0.5 rounded">{trackingCode}</span>
+      <main className="flex-1 overflow-y-auto w-full">
+        <div className="max-w-5xl mx-auto p-6 md:p-8">
+          <div className="mb-6">
+            <div className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1 flex items-center">
+               Tracking Code: <span className="text-[#111111] ml-2 font-mono bg-gray-200 px-2 py-0.5 rounded">{trackingCode}</span>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Case Status Dashboard</h1>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Case Status Dashboard</h1>
-        </div>
 
-        {clientCases.length > 1 && (
-          <div className="mb-8 flex items-center space-x-2 overflow-x-auto pb-2">
-            <Layers className="w-4 h-4 text-gray-400 mr-1 shrink-0"/>
-            <span className="text-xs font-bold text-gray-500 uppercase shrink-0 mr-2">Your Matters:</span>
-            {clientCases.map(c => (
-              <button 
-                key={c.id} 
-                onClick={() => setSelectedCaseId(c.id)}
-                className={`px-4 py-2 text-xs font-bold rounded-lg border transition-all shrink-0 ${activeCase?.id === c.id ? 'bg-[#111111] text-white border-[#111111] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-black hover:bg-gray-50'}`}
-              >
-                {c.title}
-              </button>
-            ))}
-          </div>
-        )}
+          {clientCases.length > 1 && (
+            <div className="mb-8 flex items-center space-x-2 overflow-x-auto pb-2">
+              <Layers className="w-4 h-4 text-gray-400 mr-1 shrink-0"/>
+              <span className="text-xs font-bold text-gray-500 uppercase shrink-0 mr-2">Your Matters:</span>
+              {clientCases.map(c => (
+                <button 
+                  key={c.id} 
+                  onClick={() => setSelectedCaseId(c.id)}
+                  className={`px-4 py-2 text-xs font-bold rounded-lg border transition-all shrink-0 ${activeCase?.id === c.id ? 'bg-[#111111] text-white border-[#111111] shadow-sm' : 'bg-white text-gray-700 border-gray-200 hover:border-black hover:bg-gray-50'}`}
+                >
+                  {c.title}
+                </button>
+              ))}
+            </div>
+          )}
 
-        {activeCase && (
-          <div className="space-y-8 animate-in fade-in duration-300">
-            <Card className="p-6">
-              <div className="flex flex-col md:flex-row justify-between items-start mb-4 gap-4">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">{activeCase.title}</h2>
-                  <div className="text-sm text-gray-500 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono">
-                    <span className="bg-gray-100 px-2 py-1 rounded border border-gray-200 text-[#111111] font-semibold">Case No: {activeCase.caseNumber || 'N/A'}</span>
-                    <span className="bg-gray-100 px-2 py-1 rounded border border-gray-200 text-[#111111] font-semibold">CNR: {activeCase.cnr || 'N/A'}</span>
-                    <span>Court: {activeCase.court || 'Pending'}</span>
-                  </div>
-                </div>
-                <span className={`border px-3 py-1 rounded-full text-xs font-bold shrink-0 ${activeCase.status === 'Active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                   {activeCase.status}
-                </span>
-              </div>
-              <div className="border-t border-gray-100 pt-4 mt-4 flex justify-between items-center text-sm">
-                <span className="text-gray-500">Next Hearing Date:</span>
-                <span className="font-bold text-[#D97706]">{activeCase.nextHearing ? new Date(activeCase.nextHearing).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}) : 'TBD'}</span>
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <h3 className="font-bold text-lg mb-4 flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-400"/> Recent Updates</h3>
-              <div className="space-y-4">
-                {updates.length === 0 && <p className="text-sm text-gray-500 italic">No updates posted yet.</p>}
-                {updates.map(u => (
-                  <div key={u.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
-                    <div className="flex justify-between text-xs text-gray-400 mb-1 font-mono">
-                      <span>{new Date(u.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</span>
+          {activeCase && (
+            <div className="space-y-8 animate-in fade-in duration-300">
+              <Card className="p-6">
+                <div className="flex flex-col md:flex-row justify-between items-start mb-4 gap-4">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2">{activeCase.title}</h2>
+                    <div className="text-sm text-gray-500 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono">
+                      <span className="bg-gray-100 px-2 py-1 rounded border border-gray-200 text-[#111111] font-semibold">Case No: {activeCase.caseNumber || 'N/A'}</span>
+                      <span className="bg-gray-100 px-2 py-1 rounded border border-gray-200 text-[#111111] font-semibold">CNR: {activeCase.cnr || 'N/A'}</span>
+                      <span>Court: {activeCase.court || 'Pending'}</span>
                     </div>
-                    <h4 className="font-bold text-sm mb-1 text-[#111111]">{u.title}</h4>
-                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{u.text}</p>
                   </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-        )}
+                  <span className={`border px-3 py-1 rounded-full text-xs font-bold shrink-0 ${activeCase.status === 'Active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                     {activeCase.status}
+                  </span>
+                </div>
+                <div className="border-t border-gray-100 pt-4 mt-4 flex justify-between items-center text-sm">
+                  <span className="text-gray-500">Next Hearing Date:</span>
+                  <span className="font-bold text-[#D97706]">{activeCase.nextHearing ? new Date(activeCase.nextHearing).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}) : 'TBD'}</span>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <h3 className="font-bold text-lg mb-4 flex items-center"><Clock className="w-4 h-4 mr-2 text-gray-400"/> Recent Updates</h3>
+                <div className="space-y-4">
+                  {updates.length === 0 && <p className="text-sm text-gray-500 italic">No updates posted yet.</p>}
+                  {updates.map(u => (
+                    <div key={u.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                      <div className="flex justify-between text-xs text-gray-400 mb-1 font-mono">
+                        <span>{new Date(u.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}</span>
+                      </div>
+                      <h4 className="font-bold text-sm mb-1 text-[#111111]">{u.title}</h4>
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{u.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          )}
+        </div>
       </main>
 
       <Modal title="Exit Portal" isOpen={isExitModalOpen} onClose={() => setIsExitModalOpen(false)}>
@@ -514,297 +516,299 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
   if (!activeCase) return null;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto animate-in slide-in-from-right-4 duration-300 w-full">
-      <button onClick={goBack} className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-black transition-colors">
-        <ChevronRight className="w-4 h-4 mr-1 rotate-180"/> Back to Ledger
-      </button>
-      
-      <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
-        <div>
-          <div className="flex items-center space-x-3 mb-2">
-            <h2 className="text-3xl font-bold tracking-tight">{activeCase.title}</h2>
-            <button onClick={openEditModal} className="p-1.5 text-gray-400 hover:text-[#111111] hover:bg-gray-100 rounded-md transition-colors" title="Edit Case Details">
-              <Edit3 className="w-4 h-4"/>
-            </button>
-          </div>
-          <div className="flex flex-wrap items-center text-sm text-gray-600 gap-x-3 gap-y-2 mb-3">
-            <span className="font-mono bg-white border border-[#E5E5E5] shadow-sm px-2 py-0.5 rounded text-black text-xs font-semibold">Case No: {activeCase.caseNumber || 'N/A'}</span>
-            <span className="font-mono bg-gray-100 border border-[#E5E5E5] px-2 py-0.5 rounded text-gray-800 text-xs font-medium">CNR: {activeCase.cnr || 'N/A'}</span>
-            <span>{activeCase.court || 'Pending Court Assignment'}</span>
-            <span>•</span>
-            <span className="text-[#D97706] font-medium">Next Hearing: {activeCase.nextHearing ? new Date(activeCase.nextHearing).toLocaleDateString('en-US') : 'TBD'}</span>
-          </div>
-          
-          {activeCase.previousHearings && activeCase.previousHearings.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 mb-3 text-xs">
-               <span className="font-bold text-gray-400 uppercase tracking-widest text-[10px]">Previous Dates:</span>
-               {activeCase.previousHearings.map((hd, i) => (
-                  <span key={i} className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">{new Date(hd).toLocaleDateString('en-US')}</span>
-               ))}
-            </div>
-          )}
-
-          <div className="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 text-blue-800 px-2.5 py-1 rounded-md text-xs">
-             <span className="font-semibold uppercase tracking-wider">Client Tracking ID (Group):</span>
-             <span className="font-mono font-bold tracking-widest text-sm">{activeCase.trackingNumber}</span>
-          </div>
-        </div>
-        <div className="flex flex-col space-y-2 shrink-0">
-          <Button variant="secondary" onClick={() => setShowBriefModal(true)} className="flex items-center shadow-sm w-full">
-            <FileCheck className="w-4 h-4 mr-2"/> Export Case Brief
-          </Button>
-          <Button variant="secondary" onClick={toggleDisposedStatus} className={`flex items-center shadow-sm w-full transition-colors ${activeCase.status === 'Disposed' ? 'bg-amber-100 hover:bg-amber-200 text-amber-800' : ''}`}>
-             {activeCase.status === 'Active' ? 'Mark Disposed' : 'Reopen Case'}
-          </Button>
-        </div>
-      </div>
-
-      {( (activeCase.partyOne && activeCase.partyOne.length > 0) || (activeCase.partyTwo && activeCase.partyTwo.length > 0) ) && (
-        <Card className="mb-8 p-5 bg-[#F9F9F9] border-dashed border-2 text-sm flex flex-col sm:flex-row sm:divide-x divide-[#E5E5E5]">
-           <div className="flex-1 pr-6 pb-4 sm:pb-0">
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Plaintiff / Petitioner / Applicant</div>
-              <div className="space-y-3">
-                {(!activeCase.partyOne || activeCase.partyOne.length === 0) && <div className="text-gray-500 italic">Not specified</div>}
-                {activeCase.partyOne?.map((p, i) => (
-                  <div key={i}>
-                    <div className="font-semibold text-gray-800">{p.name || 'Unknown'}</div>
-                    {p.mobile && <div className="text-gray-500 font-mono mt-0.5 text-xs">Ph: {p.mobile}</div>}
-                  </div>
-                ))}
-              </div>
-           </div>
-           <div className="flex-1 sm:pl-6 pt-4 sm:pt-0 border-t sm:border-t-0 border-[#E5E5E5]">
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Defendant / Respondent / Non-Applicant</div>
-              <div className="space-y-3">
-                {(!activeCase.partyTwo || activeCase.partyTwo.length === 0) && <div className="text-gray-500 italic">Not specified</div>}
-                {activeCase.partyTwo?.map((p, i) => (
-                  <div key={i}>
-                    <div className="font-semibold text-gray-800">{p.name || 'Unknown'}</div>
-                    {p.mobile && <div className="text-gray-500 font-mono mt-0.5 text-xs">Ph: {p.mobile}</div>}
-                  </div>
-                ))}
-              </div>
-           </div>
-        </Card>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="p-4 bg-white border border-[#E5E5E5] shadow-sm">
-            <form onSubmit={handlePostUpdate} className="space-y-3">
-              <div>
-                <label htmlFor="update-title-input" className="block text-xs font-bold text-gray-700 mb-1">Update Title</label>
-                <input id="update-title-input" name="updateTitle" type="text" placeholder="Update Title (e.g. Affidavit Filed)" value={updateTitle} onChange={e=>setUpdateTitle(e.target.value)} className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none bg-[#F9F9F9]" required />
-              </div>
-              <div>
-                <label htmlFor="update-text-input" className="block text-xs font-bold text-gray-700 mb-1">Detailed Notes</label>
-                <textarea id="update-text-input" name="updateText" placeholder="Detailed notes for the team and client timeline..." value={updateText} onChange={e=>setUpdateText(e.target.value)} className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none min-h-[80px] resize-y bg-[#F9F9F9]" required />
-              </div>
-              <div className="flex flex-col sm:flex-row justify-between sm:items-end mt-3 gap-3 border-t border-gray-100 pt-3">
-                 <div>
-                    <label htmlFor="update-next-date" className="block text-xs font-bold text-gray-700 mb-1">Add Next Hearing Date (Optional)</label>
-                    <input id="update-next-date" name="updateNextDate" type="date" value={newNextHearing} onChange={e=>setNewNextHearing(e.target.value)} className="w-full sm:w-auto px-3 py-1.5 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none bg-white shadow-sm" />
-                 </div>
-                 <Button type="submit" className="py-1.5 text-xs shrink-0">Post to Ledger</Button>
-              </div>
-            </form>
-          </Card>
-
-          <div className="space-y-6 border-l-2 ml-4 border-[#E5E5E5] pl-6 relative py-4">
-            {caseUpdates.map((u) => {
-              const author = dbData.users.find(user=>user.id === u.authorId);
-              return (
-                <div key={u.id} className="relative group">
-                  <div className="absolute -left-[31px] top-1.5 w-3 h-3 bg-white border-2 border-[#111111] rounded-full group-hover:scale-125 transition-transform"></div>
-                  <Card className="p-5 hover:border-black transition-colors">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-bold">{u.title}</h4>
-                      <span className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-0.5 rounded border border-gray-100">{new Date(u.timestamp).toLocaleDateString('en-US')}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4 whitespace-pre-wrap">{u.text}</p>
-                    <div className="flex items-center space-x-2 pt-3 border-t border-gray-100">
-                      <span className="text-xs font-semibold text-[#111111]">{author?.name || 'Unknown'}</span>
-                      <RoleBadge role={author?.role || 'PENDING'}/>
-                    </div>
-                  </Card>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <Card className="p-5">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold flex items-center"><CheckCircle2 className="w-4 h-4 mr-2 text-gray-400"/> Active Tasks</h3>
-              <button onClick={onOpenNewTask} className="text-[10px] uppercase tracking-wider font-bold bg-[#111111] text-white px-2.5 py-1.5 rounded flex items-center hover:bg-black transition-colors shadow-sm">
-                <Plus className="w-3 h-3 mr-1"/> Add Task
+    <div className="flex-1 overflow-y-auto w-full animate-in slide-in-from-right-4 duration-300 bg-[#F9F9F9]">
+      <div className="max-w-6xl mx-auto p-6 md:p-8">
+        <button onClick={goBack} className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-black transition-colors">
+          <ChevronRight className="w-4 h-4 mr-1 rotate-180"/> Back to Ledger
+        </button>
+        
+        <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
+          <div>
+            <div className="flex items-center space-x-3 mb-2">
+              <h2 className="text-3xl font-bold tracking-tight">{activeCase.title}</h2>
+              <button onClick={openEditModal} className="p-1.5 text-gray-400 hover:text-[#111111] hover:bg-gray-100 rounded-md transition-colors" title="Edit Case Details">
+                <Edit3 className="w-4 h-4"/>
               </button>
             </div>
-            <div className="space-y-3">
-              {caseTasks.length === 0 ? <div className="text-sm text-gray-500 italic p-4 text-center bg-gray-50 rounded border border-dashed border-gray-200">No active tasks.</div> : caseTasks.map(t => {
-                const assignees = (t.assigneeIds || []).map(id => dbData.users.find(u=>u.id===id)).filter(Boolean);
-                const canModify = canUserModifyTask(t);
-                return (
-                  <div key={t.id} className="flex justify-between items-start text-sm border-b border-gray-100 pb-3 last:border-0 last:pb-0 group">
-                    <div className="flex-1 pr-3">
-                      <div className={`font-medium mb-1 ${t.status === 'COMPLETED' ? 'line-through text-gray-400' : 'text-[#111111]'}`}>{t.title}</div>
-                      <div className="text-[10px] text-gray-500 mt-1 flex flex-wrap items-center gap-2 font-mono">
-                        <span className="bg-gray-50 border border-gray-200 px-1 py-0.5 rounded">Due: {t.dueDate}</span>
-                        <div className="flex -space-x-1 overflow-hidden ml-1">
-                           {assignees.map((user) => {
-                             const userCfg = ROLE_CONFIG[user.role] || { bg: 'bg-[#111111]', text: 'text-white', label: user.role };
-                             return (
-                               <div key={user.id} className={`inline-block h-5 w-5 rounded-full ring-2 ring-white ${userCfg.bg} ${userCfg.text} text-center text-[8px] font-bold leading-5 shadow-sm`} title={`${user.name} (${userCfg.label})`}>
-                                 {user.name.charAt(0)}
-                               </div>
-                             );
-                           })}
-                        </div>
-                      </div>
+            <div className="flex flex-wrap items-center text-sm text-gray-600 gap-x-3 gap-y-2 mb-3">
+              <span className="font-mono bg-white border border-[#E5E5E5] shadow-sm px-2 py-0.5 rounded text-black text-xs font-semibold">Case No: {activeCase.caseNumber || 'N/A'}</span>
+              <span className="font-mono bg-gray-100 border border-[#E5E5E5] px-2 py-0.5 rounded text-gray-800 text-xs font-medium">CNR: {activeCase.cnr || 'N/A'}</span>
+              <span>{activeCase.court || 'Pending Court Assignment'}</span>
+              <span>•</span>
+              <span className="text-[#D97706] font-medium">Next Hearing: {activeCase.nextHearing ? new Date(activeCase.nextHearing).toLocaleDateString('en-US') : 'TBD'}</span>
+            </div>
+            
+            {activeCase.previousHearings && activeCase.previousHearings.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-3 text-xs">
+                 <span className="font-bold text-gray-400 uppercase tracking-widest text-[10px]">Previous Dates:</span>
+                 {activeCase.previousHearings.map((hd, i) => (
+                    <span key={i} className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">{new Date(hd).toLocaleDateString('en-US')}</span>
+                 ))}
+              </div>
+            )}
+
+            <div className="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 text-blue-800 px-2.5 py-1 rounded-md text-xs">
+               <span className="font-semibold uppercase tracking-wider">Client Tracking ID (Group):</span>
+               <span className="font-mono font-bold tracking-widest text-sm">{activeCase.trackingNumber}</span>
+            </div>
+          </div>
+          <div className="flex flex-col space-y-2 shrink-0">
+            <Button variant="secondary" onClick={() => setShowBriefModal(true)} className="flex items-center shadow-sm w-full">
+              <FileCheck className="w-4 h-4 mr-2"/> Export Case Brief
+            </Button>
+            <Button variant="secondary" onClick={toggleDisposedStatus} className={`flex items-center shadow-sm w-full transition-colors ${activeCase.status === 'Disposed' ? 'bg-amber-100 hover:bg-amber-200 text-amber-800' : ''}`}>
+               {activeCase.status === 'Active' ? 'Mark Disposed' : 'Reopen Case'}
+            </Button>
+          </div>
+        </div>
+
+        {( (activeCase.partyOne && activeCase.partyOne.length > 0) || (activeCase.partyTwo && activeCase.partyTwo.length > 0) ) && (
+          <Card className="mb-8 p-5 bg-[#F9F9F9] border-dashed border-2 text-sm flex flex-col sm:flex-row sm:divide-x divide-[#E5E5E5]">
+             <div className="flex-1 pr-6 pb-4 sm:pb-0">
+                <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Plaintiff / Petitioner / Applicant</div>
+                <div className="space-y-3">
+                  {(!activeCase.partyOne || activeCase.partyOne.length === 0) && <div className="text-gray-500 italic">Not specified</div>}
+                  {activeCase.partyOne?.map((p, i) => (
+                    <div key={i}>
+                      <div className="font-semibold text-gray-800">{p.name || 'Unknown'}</div>
+                      {p.mobile && <div className="text-gray-500 font-mono mt-0.5 text-xs">Ph: {p.mobile}</div>}
                     </div>
-                    <input 
-                      id={`task-check-${t.id}`}
-                      name={`taskCheck_${t.id}`}
-                      aria-label={`Toggle task ${t.title}`}
-                      type="checkbox" 
-                      checked={t.status === 'COMPLETED'} 
-                      disabled={!canModify}
-                      onChange={async () => {
-                        if (!canModify) return;
-                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), {
-                           status: t.status === 'COMPLETED' ? 'TODO' : 'COMPLETED'
-                        });
-                      }} 
-                      className={`mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black ${canModify ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'}`} 
-                      title={canModify ? "Toggle Status" : "Insufficient permissions to edit this task."}
-                    />
+                  ))}
+                </div>
+             </div>
+             <div className="flex-1 sm:pl-6 pt-4 sm:pt-0 border-t sm:border-t-0 border-[#E5E5E5]">
+                <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Defendant / Respondent / Non-Applicant</div>
+                <div className="space-y-3">
+                  {(!activeCase.partyTwo || activeCase.partyTwo.length === 0) && <div className="text-gray-500 italic">Not specified</div>}
+                  {activeCase.partyTwo?.map((p, i) => (
+                    <div key={i}>
+                      <div className="font-semibold text-gray-800">{p.name || 'Unknown'}</div>
+                      {p.mobile && <div className="text-gray-500 font-mono mt-0.5 text-xs">Ph: {p.mobile}</div>}
+                    </div>
+                  ))}
+                </div>
+             </div>
+          </Card>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="p-4 bg-white border border-[#E5E5E5] shadow-sm">
+              <form onSubmit={handlePostUpdate} className="space-y-3">
+                <div>
+                  <label htmlFor="update-title-input" className="block text-xs font-bold text-gray-700 mb-1">Update Title</label>
+                  <input id="update-title-input" name="updateTitle" type="text" placeholder="Update Title (e.g. Affidavit Filed)" value={updateTitle} onChange={e=>setUpdateTitle(e.target.value)} className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none bg-[#F9F9F9]" required />
+                </div>
+                <div>
+                  <label htmlFor="update-text-input" className="block text-xs font-bold text-gray-700 mb-1">Detailed Notes</label>
+                  <textarea id="update-text-input" name="updateText" placeholder="Detailed notes for the team and client timeline..." value={updateText} onChange={e=>setUpdateText(e.target.value)} className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none min-h-[80px] resize-y bg-[#F9F9F9]" required />
+                </div>
+                <div className="flex flex-col sm:flex-row justify-between sm:items-end mt-3 gap-3 border-t border-gray-100 pt-3">
+                   <div>
+                      <label htmlFor="update-next-date" className="block text-xs font-bold text-gray-700 mb-1">Add Next Hearing Date (Optional)</label>
+                      <input id="update-next-date" name="updateNextDate" type="date" value={newNextHearing} onChange={e=>setNewNextHearing(e.target.value)} className="w-full sm:w-auto px-3 py-1.5 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none bg-white shadow-sm" />
+                   </div>
+                   <Button type="submit" className="py-1.5 text-xs shrink-0">Post to Ledger</Button>
+                </div>
+              </form>
+            </Card>
+
+            <div className="space-y-6 border-l-2 ml-4 border-[#E5E5E5] pl-6 relative py-4">
+              {caseUpdates.map((u) => {
+                const author = dbData.users.find(user=>user.id === u.authorId);
+                return (
+                  <div key={u.id} className="relative group">
+                    <div className="absolute -left-[31px] top-1.5 w-3 h-3 bg-white border-2 border-[#111111] rounded-full group-hover:scale-125 transition-transform"></div>
+                    <Card className="p-5 hover:border-black transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-bold">{u.title}</h4>
+                        <span className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-0.5 rounded border border-gray-100">{new Date(u.timestamp).toLocaleDateString('en-US')}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4 whitespace-pre-wrap">{u.text}</p>
+                      <div className="flex items-center space-x-2 pt-3 border-t border-gray-100">
+                        <span className="text-xs font-semibold text-[#111111]">{author?.name || 'Unknown'}</span>
+                        <RoleBadge role={author?.role || 'PENDING'}/>
+                      </div>
+                    </Card>
                   </div>
                 );
               })}
             </div>
-          </Card>
+          </div>
+
+          <div className="space-y-6">
+            <Card className="p-5">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold flex items-center"><CheckCircle2 className="w-4 h-4 mr-2 text-gray-400"/> Active Tasks</h3>
+                <button onClick={onOpenNewTask} className="text-[10px] uppercase tracking-wider font-bold bg-[#111111] text-white px-2.5 py-1.5 rounded flex items-center hover:bg-black transition-colors shadow-sm">
+                  <Plus className="w-3 h-3 mr-1"/> Add Task
+                </button>
+              </div>
+              <div className="space-y-3">
+                {caseTasks.length === 0 ? <div className="text-sm text-gray-500 italic p-4 text-center bg-gray-50 rounded border border-dashed border-gray-200">No active tasks.</div> : caseTasks.map(t => {
+                  const assignees = (t.assigneeIds || []).map(id => dbData.users.find(u=>u.id===id)).filter(Boolean);
+                  const canModify = canUserModifyTask(t);
+                  return (
+                    <div key={t.id} className="flex justify-between items-start text-sm border-b border-gray-100 pb-3 last:border-0 last:pb-0 group">
+                      <div className="flex-1 pr-3">
+                        <div className={`font-medium mb-1 ${t.status === 'COMPLETED' ? 'line-through text-gray-400' : 'text-[#111111]'}`}>{t.title}</div>
+                        <div className="text-[10px] text-gray-500 mt-1 flex flex-wrap items-center gap-2 font-mono">
+                          <span className="bg-gray-50 border border-gray-200 px-1 py-0.5 rounded">Due: {t.dueDate}</span>
+                          <div className="flex -space-x-1 overflow-hidden ml-1">
+                             {assignees.map((user) => {
+                               const userCfg = ROLE_CONFIG[user.role] || { bg: 'bg-[#111111]', text: 'text-white', label: user.role };
+                               return (
+                                 <div key={user.id} className={`inline-block h-5 w-5 rounded-full ring-2 ring-white ${userCfg.bg} ${userCfg.text} text-center text-[8px] font-bold leading-5 shadow-sm`} title={`${user.name} (${userCfg.label})`}>
+                                   {user.name.charAt(0)}
+                                 </div>
+                               );
+                             })}
+                          </div>
+                        </div>
+                      </div>
+                      <input 
+                        id={`task-check-${t.id}`}
+                        name={`taskCheck_${t.id}`}
+                        aria-label={`Toggle task ${t.title}`}
+                        type="checkbox" 
+                        checked={t.status === 'COMPLETED'} 
+                        disabled={!canModify}
+                        onChange={async () => {
+                          if (!canModify) return;
+                          await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), {
+                             status: t.status === 'COMPLETED' ? 'TODO' : 'COMPLETED'
+                          });
+                        }} 
+                        className={`mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black ${canModify ? 'cursor-pointer' : 'opacity-40 cursor-not-allowed'}`} 
+                        title={canModify ? "Toggle Status" : "Insufficient permissions to edit this task."}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          </div>
         </div>
-      </div>
 
-      <Modal title="Edit Case Details" isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
-         <form onSubmit={handleSaveEdits} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4">
-               <div className="col-span-2">
-                 <label htmlFor="edit-case-title" className="block text-xs font-bold text-gray-700 mb-1">Matter Title *</label>
-                 <input id="edit-case-title" name="caseTitle" required type="text" value={editCaseData.title || ''} onChange={e=>setEditCaseData({...editCaseData, title: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
-               </div>
-               <div>
-                 <label htmlFor="edit-case-number" className="block text-xs font-bold text-gray-700 mb-1">Case Number</label>
-                 <input id="edit-case-number" name="caseNumber" type="text" value={editCaseData.caseNumber || ''} onChange={e=>setEditCaseData({...editCaseData, caseNumber: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm font-mono transition-all" placeholder="e.g. CS/1042/2026" />
-               </div>
-               <div>
-                 <label htmlFor="edit-case-cnr" className="block text-xs font-bold text-gray-700 mb-1">CNR Number</label>
-                 <input id="edit-case-cnr" name="cnrNumber" type="text" value={editCaseData.cnr || ''} onChange={e=>setEditCaseData({...editCaseData, cnr: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm font-mono transition-all" />
-               </div>
-               <div className="col-span-2">
-                 <label htmlFor="edit-case-tracking" className="block text-xs font-bold text-gray-700 mb-1">Client Tracking ID (Group multiple cases for one client)</label>
-                 <input id="edit-case-tracking" name="trackingNumber" type="text" value={editCaseData.trackingNumber || ''} onChange={e=>setEditCaseData({...editCaseData, trackingNumber: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-black rounded-md focus:ring-1 focus:ring-black outline-none text-sm font-mono uppercase transition-all shadow-sm" placeholder="e.g. TRK-ABC123" />
-                 <p className="text-[10px] text-gray-500 mt-1">Clients use this exact code to view their dashboard. Paste an existing code to group matters.</p>
-               </div>
-               <div>
-                 <label htmlFor="edit-case-hearing" className="block text-xs font-bold text-gray-700 mb-1">Next Hearing Date</label>
-                 <input id="edit-case-hearing" name="nextHearing" type="date" value={editCaseData.nextHearing || ''} onChange={e=>setEditCaseData({...editCaseData, nextHearing: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
-               </div>
-               <div>
-                 <label htmlFor="edit-case-court" className="block text-xs font-bold text-gray-700 mb-1">Court Name / Authority</label>
-                 <input id="edit-case-court" name="courtName" type="text" value={editCaseData.court || ''} onChange={e=>setEditCaseData({...editCaseData, court: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
-               </div>
+        <Modal title="Edit Case Details" isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+           <form onSubmit={handleSaveEdits} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4">
+                 <div className="col-span-2">
+                   <label htmlFor="edit-case-title" className="block text-xs font-bold text-gray-700 mb-1">Matter Title *</label>
+                   <input id="edit-case-title" name="caseTitle" required type="text" value={editCaseData.title || ''} onChange={e=>setEditCaseData({...editCaseData, title: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
+                 </div>
+                 <div>
+                   <label htmlFor="edit-case-number" className="block text-xs font-bold text-gray-700 mb-1">Case Number</label>
+                   <input id="edit-case-number" name="caseNumber" type="text" value={editCaseData.caseNumber || ''} onChange={e=>setEditCaseData({...editCaseData, caseNumber: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm font-mono transition-all" placeholder="e.g. CS/1042/2026" />
+                 </div>
+                 <div>
+                   <label htmlFor="edit-case-cnr" className="block text-xs font-bold text-gray-700 mb-1">CNR Number</label>
+                   <input id="edit-case-cnr" name="cnrNumber" type="text" value={editCaseData.cnr || ''} onChange={e=>setEditCaseData({...editCaseData, cnr: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm font-mono transition-all" />
+                 </div>
+                 <div className="col-span-2">
+                   <label htmlFor="edit-case-tracking" className="block text-xs font-bold text-gray-700 mb-1">Client Tracking ID (Group multiple cases for one client)</label>
+                   <input id="edit-case-tracking" name="trackingNumber" type="text" value={editCaseData.trackingNumber || ''} onChange={e=>setEditCaseData({...editCaseData, trackingNumber: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-black rounded-md focus:ring-1 focus:ring-black outline-none text-sm font-mono uppercase transition-all shadow-sm" placeholder="e.g. TRK-ABC123" />
+                   <p className="text-[10px] text-gray-500 mt-1">Clients use this exact code to view their dashboard. Paste an existing code to group matters.</p>
+                 </div>
+                 <div>
+                   <label htmlFor="edit-case-hearing" className="block text-xs font-bold text-gray-700 mb-1">Next Hearing Date</label>
+                   <input id="edit-case-hearing" name="nextHearing" type="date" value={editCaseData.nextHearing || ''} onChange={e=>setEditCaseData({...editCaseData, nextHearing: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
+                 </div>
+                 <div>
+                   <label htmlFor="edit-case-court" className="block text-xs font-bold text-gray-700 mb-1">Court Name / Authority</label>
+                   <input id="edit-case-court" name="courtName" type="text" value={editCaseData.court || ''} onChange={e=>setEditCaseData({...editCaseData, court: e.target.value})} className="w-full px-3 py-2 bg-[#F9F9F9] border border-[#E5E5E5] rounded-md focus:border-black outline-none text-sm transition-all" />
+                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-x-4 gap-y-4 pt-2">
+                 <div className="text-xs font-bold tracking-widest text-gray-400 uppercase">Parties Involved</div>
+                 
+                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                   <div className="text-xs font-bold mb-3 flex justify-between items-center text-[#111111]">
+                     <span>Plaintiff / Petitioner / Applicant</span>
+                     <button type="button" onClick={() => setEditCaseData({...editCaseData, partyOne: [...(editCaseData.partyOne||[]), {name:'', mobile:''}]})} className="text-white bg-[#111111] hover:bg-black px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors">+ Add</button>
+                   </div>
+                   {(editCaseData.partyOne || []).map((p, i) => (
+                     <div key={i} className="flex space-x-2 mb-2 items-start animate-in fade-in slide-in-from-top-2">
+                       <div className="flex-1">
+                         <input aria-label={`Plaintiff Name ${i + 1}`} name={`partyOneName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...editCaseData.partyOne]; newP[i].name = e.target.value; setEditCaseData({...editCaseData, partyOne: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
+                       </div>
+                       <div className="flex-1">
+                         <input aria-label={`Plaintiff Mobile ${i + 1}`} name={`partyOneMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyOne]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyOne: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
+                       </div>
+                       <button type="button" onClick={() => { const newP = [...editCaseData.partyOne]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyOne: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
+                     </div>
+                   ))}
+                   {(!editCaseData.partyOne || editCaseData.partyOne.length === 0) && <div className="text-xs text-gray-400 italic">No parties added.</div>}
+                 </div>
+
+                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                   <div className="text-xs font-bold mb-3 flex justify-between items-center text-[#111111]">
+                     <span>Defendant / Respondent / Non-Applicant</span>
+                     <button type="button" onClick={() => setEditCaseData({...editCaseData, partyTwo: [...(editCaseData.partyTwo||[]), {name:'', mobile:''}]})} className="text-white bg-[#111111] hover:bg-black px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors">+ Add</button>
+                   </div>
+                   {(editCaseData.partyTwo || []).map((p, i) => (
+                     <div key={i} className="flex space-x-2 mb-2 items-start animate-in fade-in slide-in-from-top-2">
+                       <div className="flex-1">
+                         <input aria-label={`Defendant Name ${i + 1}`} name={`partyTwoName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...editCaseData.partyTwo]; newP[i].name = e.target.value; setEditCaseData({...editCaseData, partyTwo: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
+                       </div>
+                       <div className="flex-1">
+                         <input aria-label={`Defendant Mobile ${i + 1}`} name={`partyTwoMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyTwo]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyTwo: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
+                       </div>
+                       <button type="button" onClick={() => { const newP = [...editCaseData.partyTwo]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyTwo: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
+                     </div>
+                   ))}
+                   {(!editCaseData.partyTwo || editCaseData.partyTwo.length === 0) && <div className="text-xs text-gray-400 italic">No parties added.</div>}
+                 </div>
+              </div>
+              
+              <Button type="submit" className="w-full py-3.5 mt-4">Save Changes</Button>
+           </form>
+        </Modal>
+
+        <Modal title="Generate Case Brief" isOpen={showBriefModal} onClose={() => setShowBriefModal(false)}>
+          <div className="bg-gray-50 p-6 rounded-md border border-gray-200 font-serif text-sm h-64 overflow-y-auto mb-4">
+            <div className="text-center mb-6 border-b pb-4">
+              <h1 className="font-bold text-lg uppercase tracking-widest">{dbData.offices.find(o=>o.id === activeCase.officeId)?.name || 'Chambers'}</h1>
+              <div className="text-gray-500 text-xs mt-1 font-sans">CONFIDENTIAL CASE BRIEF</div>
             </div>
-
-            <div className="grid grid-cols-1 gap-x-4 gap-y-4 pt-2">
-               <div className="text-xs font-bold tracking-widest text-gray-400 uppercase">Parties Involved</div>
-               
-               <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                 <div className="text-xs font-bold mb-3 flex justify-between items-center text-[#111111]">
-                   <span>Plaintiff / Petitioner / Applicant</span>
-                   <button type="button" onClick={() => setEditCaseData({...editCaseData, partyOne: [...(editCaseData.partyOne||[]), {name:'', mobile:''}]})} className="text-white bg-[#111111] hover:bg-black px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors">+ Add</button>
-                 </div>
-                 {(editCaseData.partyOne || []).map((p, i) => (
-                   <div key={i} className="flex space-x-2 mb-2 items-start animate-in fade-in slide-in-from-top-2">
-                     <div className="flex-1">
-                       <input aria-label={`Plaintiff Name ${i + 1}`} name={`partyOneName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...editCaseData.partyOne]; newP[i].name = e.target.value; setEditCaseData({...editCaseData, partyOne: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
-                     </div>
-                     <div className="flex-1">
-                       <input aria-label={`Plaintiff Mobile ${i + 1}`} name={`partyOneMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyOne]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyOne: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
-                     </div>
-                     <button type="button" onClick={() => { const newP = [...editCaseData.partyOne]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyOne: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
-                   </div>
-                 ))}
-                 {(!editCaseData.partyOne || editCaseData.partyOne.length === 0) && <div className="text-xs text-gray-400 italic">No parties added.</div>}
-               </div>
-
-               <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                 <div className="text-xs font-bold mb-3 flex justify-between items-center text-[#111111]">
-                   <span>Defendant / Respondent / Non-Applicant</span>
-                   <button type="button" onClick={() => setEditCaseData({...editCaseData, partyTwo: [...(editCaseData.partyTwo||[]), {name:'', mobile:''}]})} className="text-white bg-[#111111] hover:bg-black px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition-colors">+ Add</button>
-                 </div>
-                 {(editCaseData.partyTwo || []).map((p, i) => (
-                   <div key={i} className="flex space-x-2 mb-2 items-start animate-in fade-in slide-in-from-top-2">
-                     <div className="flex-1">
-                       <input aria-label={`Defendant Name ${i + 1}`} name={`partyTwoName_${i}`} type="text" placeholder="Full Name" value={p.name} onChange={e => { const newP = [...editCaseData.partyTwo]; newP[i].name = e.target.value; setEditCaseData({...editCaseData, partyTwo: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm transition-all shadow-sm" />
-                     </div>
-                     <div className="flex-1">
-                       <input aria-label={`Defendant Mobile ${i + 1}`} name={`partyTwoMobile_${i}`} type="text" placeholder="+91..." value={p.mobile} onChange={e => { const newP = [...editCaseData.partyTwo]; newP[i].mobile = e.target.value; setEditCaseData({...editCaseData, partyTwo: newP}); }} className="w-full px-2 py-1.5 bg-white border border-[#E5E5E5] rounded focus:border-black outline-none text-sm font-mono transition-all shadow-sm" />
-                     </div>
-                     <button type="button" onClick={() => { const newP = [...editCaseData.partyTwo]; newP.splice(i, 1); setEditCaseData({...editCaseData, partyTwo: newP}); }} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><X className="w-4 h-4"/></button>
-                   </div>
-                 ))}
-                 {(!editCaseData.partyTwo || editCaseData.partyTwo.length === 0) && <div className="text-xs text-gray-400 italic">No parties added.</div>}
-               </div>
+            <h2 className="font-bold text-lg mb-1">{activeCase.title}</h2>
+            <div className="mb-4 text-xs font-sans text-gray-600 font-mono bg-white inline-block px-2 py-1 border border-gray-200 rounded">
+              Case No: {activeCase.caseNumber || 'N/A'} | CNR: {activeCase.cnr || 'N/A'} | Court: {activeCase.court || 'Pending'}
             </div>
             
-            <Button type="submit" className="w-full py-3.5 mt-4">Save Changes</Button>
-         </form>
-      </Modal>
-
-      <Modal title="Generate Case Brief" isOpen={showBriefModal} onClose={() => setShowBriefModal(false)}>
-        <div className="bg-gray-50 p-6 rounded-md border border-gray-200 font-serif text-sm h-64 overflow-y-auto mb-4">
-          <div className="text-center mb-6 border-b pb-4">
-            <h1 className="font-bold text-lg uppercase tracking-widest">{dbData.offices.find(o=>o.id === activeCase.officeId)?.name || 'Chambers'}</h1>
-            <div className="text-gray-500 text-xs mt-1 font-sans">CONFIDENTIAL CASE BRIEF</div>
-          </div>
-          <h2 className="font-bold text-lg mb-1">{activeCase.title}</h2>
-          <div className="mb-4 text-xs font-sans text-gray-600 font-mono bg-white inline-block px-2 py-1 border border-gray-200 rounded">
-            Case No: {activeCase.caseNumber || 'N/A'} | CNR: {activeCase.cnr || 'N/A'} | Court: {activeCase.court || 'Pending'}
-          </div>
-          
-          {( (activeCase.partyOne && activeCase.partyOne.length > 0) || (activeCase.partyTwo && activeCase.partyTwo.length > 0) ) && (
-            <div className="mb-6 pb-4 border-b border-gray-200 text-xs font-sans flex justify-between">
-              <div className="flex-1 pr-4">
-                <strong className="block text-[10px] uppercase text-gray-500 mb-1">Plaintiff / Petitioner</strong>
-                {(!activeCase.partyOne || activeCase.partyOne.length === 0) && 'N/A'}
-                {activeCase.partyOne?.map((p,i) => (
-                   <div key={i}>{p.name} {p.mobile && `(${p.mobile})`}</div>
-                ))}
+            {( (activeCase.partyOne && activeCase.partyOne.length > 0) || (activeCase.partyTwo && activeCase.partyTwo.length > 0) ) && (
+              <div className="mb-6 pb-4 border-b border-gray-200 text-xs font-sans flex justify-between">
+                <div className="flex-1 pr-4">
+                  <strong className="block text-[10px] uppercase text-gray-500 mb-1">Plaintiff / Petitioner</strong>
+                  {(!activeCase.partyOne || activeCase.partyOne.length === 0) && 'N/A'}
+                  {activeCase.partyOne?.map((p,i) => (
+                     <div key={i}>{p.name} {p.mobile && `(${p.mobile})`}</div>
+                  ))}
+                </div>
+                <div className="flex-1 text-right pl-4">
+                  <strong className="block text-[10px] uppercase text-gray-500 mb-1">Defendant / Respondent</strong>
+                  {(!activeCase.partyTwo || activeCase.partyTwo.length === 0) && 'N/A'}
+                  {activeCase.partyTwo?.map((p,i) => (
+                     <div key={i}>{p.name} {p.mobile && `(${p.mobile})`}</div>
+                  ))}
+                </div>
               </div>
-              <div className="flex-1 text-right pl-4">
-                <strong className="block text-[10px] uppercase text-gray-500 mb-1">Defendant / Respondent</strong>
-                {(!activeCase.partyTwo || activeCase.partyTwo.length === 0) && 'N/A'}
-                {activeCase.partyTwo?.map((p,i) => (
-                   <div key={i}>{p.name} {p.mobile && `(${p.mobile})`}</div>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
 
-          <h3 className="font-bold underline mb-2 tracking-wider text-xs uppercase font-sans">Procedural History</h3>
-          {caseUpdates.map(u => (
-            <div key={u.id} className="mb-3 pl-4 border-l-2 border-black font-sans text-xs">
-              <strong className="block mb-0.5">{new Date(u.timestamp).toLocaleDateString('en-US')} - {u.title}</strong> 
-              <span className="text-gray-700">{u.text}</span>
-            </div>
-          ))}
-        </div>
-        <Button className="w-full" onClick={() => setShowBriefModal(false)}>
-          <Download className="w-4 h-4 mr-2"/> Download Print-Ready PDF
-        </Button>
-      </Modal>
+            <h3 className="font-bold underline mb-2 tracking-wider text-xs uppercase font-sans">Procedural History</h3>
+            {caseUpdates.map(u => (
+              <div key={u.id} className="mb-3 pl-4 border-l-2 border-black font-sans text-xs">
+                <strong className="block mb-0.5">{new Date(u.timestamp).toLocaleDateString('en-US')} - {u.title}</strong> 
+                <span className="text-gray-700">{u.text}</span>
+              </div>
+            ))}
+          </div>
+          <Button className="w-full" onClick={() => setShowBriefModal(false)}>
+            <Download className="w-4 h-4 mr-2"/> Download Print-Ready PDF
+          </Button>
+        </Modal>
+      </div>
     </div>
   );
 };
@@ -1090,7 +1094,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
       <aside className="w-64 bg-white border-r border-[#E5E5E5] flex flex-col flex-shrink-0 z-20 shadow-[2px_0_12px_rgba(0,0,0,0.02)] hidden md:flex">
         <button 
           onClick={() => handleTabChange('overview')} 
-          className="h-16 flex items-center px-6 border-b border-[#E5E5E5] hover:bg-gray-50 transition-colors group text-left w-full focus:outline-none"
+          className="h-16 flex items-center px-6 border-b border-[#E5E5E5] hover:bg-gray-50 transition-colors group text-left w-full focus:outline-none shrink-0"
         >
           <Scale className="w-5 h-5 mr-2 text-black group-hover:scale-110 transition-transform"/>
           <h1 className="font-bold tracking-tight text-lg">Chambers</h1>
@@ -1140,217 +1144,222 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
            </div>
         </header>
 
-        <div className="flex-1 overflow-auto bg-[#F9F9F9]">
+        {/* Global Wrapper that absolutely locks the screen height and isolates scrolling strictly to active tabs */}
+        <div className="flex-1 overflow-hidden bg-[#F9F9F9] flex flex-col relative">
           
-          {}
+          {/* Overview Tab */}
           {activeTab === 'overview' && !activeCaseId && (
-            <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
-              <header className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
-                <div>
-                  <div className="text-xs font-bold tracking-[0.2em] text-gray-400 mb-2 uppercase">{new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
-                  <h2 className="text-4xl font-bold tracking-tight">
-                    {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'}, {currentUser.name.split(' ')[0]}.
-                  </h2>
-                  <p className="text-gray-500 mt-2 text-lg">Here's the shape of <strong className="text-gray-800 font-semibold">{officeName}</strong> today.</p>
-                </div>
-                {isSeniorOrManager && (
-                  <Button onClick={() => setIsNewMatterOpen(true)} className="py-3 px-5 shadow-sm shrink-0">
-                    <Plus className="w-4 h-4 mr-2"/> New matter
-                  </Button>
-                )}
-              </header>
+            <div className="flex-1 overflow-y-auto w-full animate-in fade-in duration-300">
+              <div className="max-w-5xl mx-auto p-6 md:p-10">
+                <header className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+                  <div>
+                    <div className="text-xs font-bold tracking-[0.2em] text-gray-400 mb-2 uppercase">{new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                    <h2 className="text-4xl font-bold tracking-tight">
+                      {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'}, {currentUser.name.split(' ')[0]}.
+                    </h2>
+                    <p className="text-gray-500 mt-2 text-lg">Here's the shape of <strong className="text-gray-800 font-semibold">{officeName}</strong> today.</p>
+                  </div>
+                  {isSeniorOrManager && (
+                    <Button onClick={() => setIsNewMatterOpen(true)} className="py-3 px-5 shadow-sm shrink-0">
+                      <Plus className="w-4 h-4 mr-2"/> New matter
+                    </Button>
+                  )}
+                </header>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <Card className="p-6 border-l-4 border-l-[#111111] hover:shadow-md transition-shadow">
-                  <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><Briefcase className="w-4 h-4 mr-2"/> Active matters</div>
-                  <div className="text-5xl font-bold text-[#111111]">{activeCasesCount.toString().padStart(2, '0')}</div>
-                  <div className="text-xs text-gray-500 font-medium bg-gray-50 px-2 py-1 rounded w-fit mt-3 border border-gray-200">Currently open</div>
-                </Card>
-                <Card className="p-6 border-l-4 border-l-[#111111] hover:shadow-md transition-shadow">
-                  <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><CheckCircle2 className="w-4 h-4 mr-2"/> My assigned tasks</div>
-                  <div className="text-5xl font-bold text-[#111111]">
-                    {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length.toString().padStart(2, '0')}
-                  </div>
-                  <div className="text-xs text-amber-700 font-medium bg-amber-50 px-2 py-1 rounded w-fit mt-3 border border-amber-200">Requires attention</div>
-                </Card>
-                <Card className="p-6 border-l-4 border-l-[#111111] hover:shadow-md transition-shadow">
-                  <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><Calendar className="w-4 h-4 mr-2"/> Upcoming hearings</div>
-                  <div className="text-5xl font-bold text-[#111111]">{futureHearings.length.toString().padStart(2, '0')}</div>
-                  <div className="text-xs text-blue-700 font-medium bg-blue-50 px-2 py-1 rounded w-fit mt-3 border border-blue-200">
-                     {daysUntilNearest !== null ? (daysUntilNearest === 0 ? 'Hearing Today' : `Next in ${daysUntilNearest} day${daysUntilNearest > 1 ? 's' : ''}`) : 'No upcoming hearings'}
-                  </div>
-                </Card>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-xl tracking-tight">Recent matter activity</h3>
-                    <button onClick={()=>setActiveTab('ledger')} className="text-sm font-medium text-gray-500 hover:text-black transition-colors">View all</button>
-                  </div>
-                  <div className="space-y-4">
-                    {dbData.updates.sort((a,b)=>new Date(b.timestamp).getTime()-new Date(a.timestamp).getTime()).slice(0,4).map(up => {
-                      const c = dbData.cases.find(c=>c.id === up.caseId);
-                      const u = dbData.users.find(u=>u.id === up.authorId);
-                      if(!c || c.officeId !== currentUser.officeId) return null;
-                      return (
-                        <Card key={up.id} onClick={() => {setActiveTab('ledger'); setActiveCaseId(c.id);}} className="p-5 hover:border-black transition-all cursor-pointer group">
-                          <div className="flex justify-between items-start mb-2 gap-2">
-                            <span className="font-bold text-[15px] group-hover:text-[#4F46E5] transition-colors">{c.title}</span>
-                            <span className="text-[10px] text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100 shrink-0">{new Date(up.timestamp).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</span>
-                          </div>
-                          <div className="text-sm text-gray-600 line-clamp-1">{up.text}</div>
-                          <div className="mt-3 flex items-center space-x-2 text-xs border-t border-gray-50 pt-3">
-                            <span className="font-semibold text-[#111111]">{u?.name || 'Unknown'}</span>
-                            <RoleBadge role={u?.role || 'PENDING'}/>
-                          </div>
-                        </Card>
-                      );
-                    })}
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                  <Card className="p-6 border-l-4 border-l-[#111111] hover:shadow-md transition-shadow">
+                    <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><Briefcase className="w-4 h-4 mr-2"/> Active matters</div>
+                    <div className="text-5xl font-bold text-[#111111]">{activeCasesCount.toString().padStart(2, '0')}</div>
+                    <div className="text-xs text-gray-500 font-medium bg-gray-50 px-2 py-1 rounded w-fit mt-3 border border-gray-200">Currently open</div>
+                  </Card>
+                  <Card className="p-6 border-l-4 border-l-[#111111] hover:shadow-md transition-shadow">
+                    <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><CheckCircle2 className="w-4 h-4 mr-2"/> My assigned tasks</div>
+                    <div className="text-5xl font-bold text-[#111111]">
+                      {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length.toString().padStart(2, '0')}
+                    </div>
+                    <div className="text-xs text-amber-700 font-medium bg-amber-50 px-2 py-1 rounded w-fit mt-3 border border-amber-200">Requires attention</div>
+                  </Card>
+                  <Card className="p-6 border-l-4 border-l-[#111111] hover:shadow-md transition-shadow">
+                    <div className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center"><Calendar className="w-4 h-4 mr-2"/> Upcoming hearings</div>
+                    <div className="text-5xl font-bold text-[#111111]">{futureHearings.length.toString().padStart(2, '0')}</div>
+                    <div className="text-xs text-blue-700 font-medium bg-blue-50 px-2 py-1 rounded w-fit mt-3 border border-blue-200">
+                       {daysUntilNearest !== null ? (daysUntilNearest === 0 ? 'Hearing Today' : `Next in ${daysUntilNearest} day${daysUntilNearest > 1 ? 's' : ''}`) : 'No upcoming hearings'}
+                    </div>
+                  </Card>
                 </div>
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-xl tracking-tight">Assigned tasks (by due date)</h3>
-                    <span className="bg-[#111111] text-white text-[10px] font-bold px-2 py-1 rounded-full shrink-0">
-                      {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length} left
-                    </span>
-                  </div>
-                  <div className="space-y-4">
-                    {myOfficeTasks
-                      .filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED')
-                      .sort((a, b) => {
-                        if (!a.dueDate) return 1;
-                        if (!b.dueDate) return -1;
-                        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-                      })
-                      .slice(0, 4)
-                      .map(t => {
-                        const c = dbData.cases.find(c=>c.id === t.caseId);
-                        const canModify = canUserModifyTask(t);
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-xl tracking-tight">Recent matter activity</h3>
+                      <button onClick={()=>setActiveTab('ledger')} className="text-sm font-medium text-gray-500 hover:text-black transition-colors">View all</button>
+                    </div>
+                    <div className="space-y-4">
+                      {dbData.updates.sort((a,b)=>new Date(b.timestamp).getTime()-new Date(a.timestamp).getTime()).slice(0,4).map(up => {
+                        const c = dbData.cases.find(c=>c.id === up.caseId);
+                        const u = dbData.users.find(u=>u.id === up.authorId);
+                        if(!c || c.officeId !== currentUser.officeId) return null;
                         return (
-                          <Card key={t.id} className="p-5 flex items-center hover:border-black transition-colors group">
-                            <div className="flex flex-col flex-1 pr-4">
-                              <span className="font-bold text-[15px] text-[#111111] mb-1 group-hover:text-[#4F46E5] transition-colors">{t.title}</span>
-                              <div className="flex items-center text-xs text-gray-500 space-x-2">
-                                <span className="font-medium text-gray-800">{c?.title || 'Unknown Case'}</span>
-                                <span>•</span>
-                                <span className="font-mono text-[10px] uppercase bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200">Due: {t.dueDate}</span>
-                              </div>
+                          <Card key={up.id} onClick={() => {setActiveTab('ledger'); setActiveCaseId(c.id);}} className="p-5 hover:border-black transition-all cursor-pointer group">
+                            <div className="flex justify-between items-start mb-2 gap-2">
+                              <span className="font-bold text-[15px] group-hover:text-[#4F46E5] transition-colors">{c.title}</span>
+                              <span className="text-[10px] text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100 shrink-0">{new Date(up.timestamp).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</span>
                             </div>
-                            <input 
-                              id={`overview-task-check-${t.id}`}
-                              name={`overviewTaskCheck_${t.id}`}
-                              aria-label={`Mark task ${t.title} as completed`}
-                              type="checkbox" 
-                              disabled={!canModify}
-                              className={`w-5 h-5 rounded border-gray-300 text-black focus:ring-black ${canModify ? 'cursor-pointer hover:scale-110 transition-transform' : 'opacity-40 cursor-not-allowed'}`} 
-                              onChange={async () => {
-                                if (!canModify) return;
-                                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), { status: 'COMPLETED' });
-                              }} 
-                              title={canModify ? "Mark as Completed" : "Insufficient permissions"} 
-                            />
+                            <div className="text-sm text-gray-600 line-clamp-1">{up.text}</div>
+                            <div className="mt-3 flex items-center space-x-2 text-xs border-t border-gray-50 pt-3">
+                              <span className="font-semibold text-[#111111]">{u?.name || 'Unknown'}</span>
+                              <RoleBadge role={u?.role || 'PENDING'}/>
+                            </div>
                           </Card>
                         );
                       })}
-                    {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length === 0 && (
-                      <Card className="p-8 text-center text-gray-500 text-sm border-dashed border-2">
-                        You have no pending tasks assigned to you. All caught up! 🎉
-                      </Card>
-                    )}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-xl tracking-tight">Assigned tasks (by due date)</h3>
+                      <span className="bg-[#111111] text-white text-[10px] font-bold px-2 py-1 rounded-full shrink-0">
+                        {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length} left
+                      </span>
+                    </div>
+                    <div className="space-y-4">
+                      {myOfficeTasks
+                        .filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED')
+                        .sort((a, b) => {
+                          if (!a.dueDate) return 1;
+                          if (!b.dueDate) return -1;
+                          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+                        })
+                        .slice(0, 4)
+                        .map(t => {
+                          const c = dbData.cases.find(c=>c.id === t.caseId);
+                          const canModify = canUserModifyTask(t);
+                          return (
+                            <Card key={t.id} className="p-5 flex items-center hover:border-black transition-colors group">
+                              <div className="flex flex-col flex-1 pr-4">
+                                <span className="font-bold text-[15px] text-[#111111] mb-1 group-hover:text-[#4F46E5] transition-colors">{t.title}</span>
+                                <div className="flex items-center text-xs text-gray-500 space-x-2">
+                                  <span className="font-medium text-gray-800">{c?.title || 'Unknown Case'}</span>
+                                  <span>•</span>
+                                  <span className="font-mono text-[10px] uppercase bg-gray-50 px-1.5 py-0.5 rounded border border-gray-200">Due: {t.dueDate}</span>
+                                </div>
+                              </div>
+                              <input 
+                                id={`overview-task-check-${t.id}`}
+                                name={`overviewTaskCheck_${t.id}`}
+                                aria-label={`Mark task ${t.title} as completed`}
+                                type="checkbox" 
+                                disabled={!canModify}
+                                className={`w-5 h-5 rounded border-gray-300 text-black focus:ring-black ${canModify ? 'cursor-pointer hover:scale-110 transition-transform' : 'opacity-40 cursor-not-allowed'}`} 
+                                onChange={async () => {
+                                  if (!canModify) return;
+                                  await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), { status: 'COMPLETED' });
+                                }} 
+                                title={canModify ? "Mark as Completed" : "Insufficient permissions"} 
+                              />
+                            </Card>
+                          );
+                        })}
+                      {myOfficeTasks.filter(t => (t.assigneeIds || []).includes(currentUser.id) && t.status !== 'COMPLETED').length === 0 && (
+                        <Card className="p-8 text-center text-gray-500 text-sm border-dashed border-2">
+                          You have no pending tasks assigned to you. All caught up! 🎉
+                        </Card>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {}
+          {/* Master Ledger Tab */}
           {activeTab === 'ledger' && !activeCaseId && (
-            <div className="p-6 md:p-10 max-w-6xl mx-auto h-full flex flex-col animate-in fade-in duration-300">
-              <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
-                <div>
-                  <h2 className="text-3xl font-bold tracking-tight">Master Ledger</h2>
-                  <p className="text-sm text-gray-500 mt-1">Directory of all active and inactive matters in your chambers.</p>
-                </div>
-                {isSeniorOrManager && (
-                  <Button onClick={() => setIsNewMatterOpen(true)} className="shrink-0"><Plus className="w-4 h-4 mr-2"/> New Matter</Button>
-                )}
-              </header>
-              <Card className="flex-1 overflow-hidden flex flex-col min-h-[400px]">
-                <div className="flex flex-col md:flex-row gap-3 p-4 md:p-5 border-b border-[#E5E5E5] bg-gray-50 shrink-0">
-                  <div className="flex-1 relative">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input type="text" placeholder="Search Case Number, CNR, Client, or Matter..." className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-black transition-colors" value={ledgerSearch} onChange={e=>setLedgerSearch(e.target.value)} />
+            <div className="flex-1 flex flex-col p-6 md:p-10 w-full animate-in fade-in duration-300 overflow-hidden">
+              <div className="max-w-6xl mx-auto w-full h-full flex flex-col min-h-0">
+                <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
+                  <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Master Ledger</h2>
+                    <p className="text-sm text-gray-500 mt-1">Directory of all active and inactive matters in your chambers.</p>
                   </div>
-                  <div className="flex gap-2">
-                     <select aria-label="Filter Cases by Status" value={ledgerFilter} onChange={e=>setLedgerFilter(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-black cursor-pointer bg-white shadow-sm font-medium">
-                        <option value="All">All Statuses</option>
-                        <option value="Active">Active Only</option>
-                        <option value="Disposed">Disposed Only</option>
-                     </select>
-                     <select aria-label="Sort Cases" value={ledgerSort} onChange={e=>setLedgerSort(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-black cursor-pointer bg-white shadow-sm font-medium">
-                        <option value="hearingAsc">Next Hearing (Soonest)</option>
-                        <option value="titleAsc">Title (A-Z)</option>
-                     </select>
-                  </div>
-                </div>
-                <div className="overflow-y-auto overflow-x-auto flex-1 p-2">
-                  <div className="min-w-[800px]">
-                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-[#E5E5E5] text-[10px] font-bold text-gray-400 uppercase tracking-wider mx-2">
-                      <div className="col-span-3">Matter Details</div>
-                      <div className="col-span-2">Case Number</div>
-                      <div className="col-span-2">CNR Code</div>
-                      <div className="col-span-3">Recent Activity</div>
-                      <div className="col-span-2 text-right">Next Hearing</div>
+                  {isSeniorOrManager && (
+                    <Button onClick={() => setIsNewMatterOpen(true)} className="shrink-0"><Plus className="w-4 h-4 mr-2"/> New Matter</Button>
+                  )}
+                </header>
+                <Card className="flex-1 overflow-hidden flex flex-col min-h-0">
+                  <div className="flex flex-col md:flex-row gap-3 p-4 md:p-5 border-b border-[#E5E5E5] bg-gray-50 shrink-0">
+                    <div className="flex-1 relative">
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input type="text" placeholder="Search Case Number, CNR, Client, or Matter..." className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-black transition-colors" value={ledgerSearch} onChange={e=>setLedgerSearch(e.target.value)} />
                     </div>
-                    {displayCases.length === 0 && (
-                      <div className="flex flex-col items-center justify-center p-12 text-center animate-in fade-in">
-                        <Briefcase className="w-12 h-12 text-gray-300 mb-4"/>
-                        <h3 className="text-lg font-bold text-[#111111] mb-2">No Cases Found</h3>
-                        <p className="text-gray-500 text-sm max-w-sm mb-6">Try adjusting your search query or filters.</p>
+                    <div className="flex gap-2">
+                       <select aria-label="Filter Cases by Status" value={ledgerFilter} onChange={e=>setLedgerFilter(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-black cursor-pointer bg-white shadow-sm font-medium">
+                          <option value="All">All Statuses</option>
+                          <option value="Active">Active Only</option>
+                          <option value="Disposed">Disposed Only</option>
+                       </select>
+                       <select aria-label="Sort Cases" value={ledgerSort} onChange={e=>setLedgerSort(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-black cursor-pointer bg-white shadow-sm font-medium">
+                          <option value="hearingAsc">Next Hearing (Soonest)</option>
+                          <option value="titleAsc">Title (A-Z)</option>
+                       </select>
+                    </div>
+                  </div>
+                  <div className="overflow-y-auto overflow-x-auto flex-1 p-2 min-h-0">
+                    <div className="min-w-[800px]">
+                      <div className="grid grid-cols-12 gap-4 p-4 border-b border-[#E5E5E5] text-[10px] font-bold text-gray-400 uppercase tracking-wider mx-2">
+                        <div className="col-span-3">Matter Details</div>
+                        <div className="col-span-2">Case Number</div>
+                        <div className="col-span-2">CNR Code</div>
+                        <div className="col-span-3">Recent Activity</div>
+                        <div className="col-span-2 text-right">Next Hearing</div>
                       </div>
-                    )}
-                    {displayCases.map((c, idx) => {
-                      const latestUpdate = dbData.updates.filter(u=>u.caseId === c.id).sort((a,b)=>new Date(b.timestamp).getTime()-new Date(a.timestamp).getTime())[0];
-                      return (
-                        <div key={c.id} onClick={() => setActiveCaseId(c.id)} className={`p-4 mx-2 flex items-center hover:bg-[#F9F9F9] rounded-lg transition-colors cursor-pointer group ${idx !== 0 ? 'border-t border-[#E5E5E5]' : ''}`}>
-                          <div className="grid grid-cols-12 gap-4 w-full items-center">
-                            <div className="col-span-3 space-y-1">
-                              <div className="flex items-center space-x-3">
-                                <span className={`font-bold text-[15px] group-hover:text-black transition-colors ${c.status === 'Disposed' ? 'line-through text-gray-400 group-hover:text-gray-600' : ''}`}>{c.title}</span>
-                                {c.status === 'Disposed' && <span className="text-[9px] uppercase tracking-wider bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded font-bold">Disposed</span>}
+                      {displayCases.length === 0 && (
+                        <div className="flex flex-col items-center justify-center p-12 text-center animate-in fade-in">
+                          <Briefcase className="w-12 h-12 text-gray-300 mb-4"/>
+                          <h3 className="text-lg font-bold text-[#111111] mb-2">No Cases Found</h3>
+                          <p className="text-gray-500 text-sm max-w-sm mb-6">Try adjusting your search query or filters.</p>
+                        </div>
+                      )}
+                      {displayCases.map((c, idx) => {
+                        const latestUpdate = dbData.updates.filter(u=>u.caseId === c.id).sort((a,b)=>new Date(b.timestamp).getTime()-new Date(a.timestamp).getTime())[0];
+                        return (
+                          <div key={c.id} onClick={() => setActiveCaseId(c.id)} className={`p-4 mx-2 flex items-center hover:bg-[#F9F9F9] rounded-lg transition-colors cursor-pointer group ${idx !== 0 ? 'border-t border-[#E5E5E5]' : ''}`}>
+                            <div className="grid grid-cols-12 gap-4 w-full items-center">
+                              <div className="col-span-3 space-y-1">
+                                <div className="flex items-center space-x-3">
+                                  <span className={`font-bold text-[15px] group-hover:text-black transition-colors ${c.status === 'Disposed' ? 'line-through text-gray-400 group-hover:text-gray-600' : ''}`}>{c.title}</span>
+                                  {c.status === 'Disposed' && <span className="text-[9px] uppercase tracking-wider bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded font-bold">Disposed</span>}
+                                </div>
+                                <div className="text-xs text-gray-500 font-medium">{c.court || 'Pending Court'}</div>
                               </div>
-                              <div className="text-xs text-gray-500 font-medium">{c.court || 'Pending Court'}</div>
-                            </div>
-                            <div className="col-span-2">
-                              <span className="font-mono bg-white border border-[#E5E5E5] px-2 py-1 rounded text-[#111111] text-[11px] font-semibold shadow-sm">{c.caseNumber || 'N/A'}</span>
-                            </div>
-                            <div className="col-span-2">
-                              <span className="font-mono bg-gray-50 border border-[#E5E5E5] px-2 py-1 rounded text-gray-600 text-[11px]">{c.cnr || 'N/A'}</span>
-                            </div>
-                            <div className="col-span-3 pr-4">
-                               {latestUpdate ? (
-                                 <div className="text-[13px] text-gray-600 line-clamp-1 italic font-serif">"{latestUpdate.title}"</div>
-                               ) : (
-                                 <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider bg-gray-50 w-fit px-2 py-0.5 rounded border border-gray-200">No updates</div>
-                               )}
-                            </div>
-                            <div className="col-span-2 flex items-center justify-end space-x-4">
-                              <div className="text-right">
-                                <div className="text-sm font-bold text-[#111111]">{c.nextHearing ? new Date(c.nextHearing).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}) : 'TBD'}</div>
+                              <div className="col-span-2">
+                                <span className="font-mono bg-white border border-[#E5E5E5] px-2 py-1 rounded text-[#111111] text-[11px] font-semibold shadow-sm">{c.caseNumber || 'N/A'}</span>
                               </div>
-                              <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-white border border-transparent group-hover:border-gray-200 transition-all shrink-0">
-                                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-black"/>
+                              <div className="col-span-2">
+                                <span className="font-mono bg-gray-50 border border-[#E5E5E5] px-2 py-1 rounded text-gray-600 text-[11px]">{c.cnr || 'N/A'}</span>
+                              </div>
+                              <div className="col-span-3 pr-4">
+                                 {latestUpdate ? (
+                                   <div className="text-[13px] text-gray-600 line-clamp-1 italic font-serif">"{latestUpdate.title}"</div>
+                                 ) : (
+                                   <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider bg-gray-50 w-fit px-2 py-0.5 rounded border border-gray-200">No updates</div>
+                                 )}
+                              </div>
+                              <div className="col-span-2 flex items-center justify-end space-x-4">
+                                <div className="text-right">
+                                  <div className="text-sm font-bold text-[#111111]">{c.nextHearing ? new Date(c.nextHearing).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}) : 'TBD'}</div>
+                                </div>
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center group-hover:bg-white border border-transparent group-hover:border-gray-200 transition-all shrink-0">
+                                  <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-black"/>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              </div>
             </div>
           )}
 
@@ -1371,226 +1380,232 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             />
           )}
           
-          {}
+          {/* Office Calendar Tab */}
           {activeTab === 'calendar' && !activeCaseId && (
-            <div className="p-6 md:p-10 max-w-6xl mx-auto h-full flex flex-col animate-in fade-in duration-300">
-               <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
-                 <div>
-                   <h2 className="text-3xl font-bold tracking-tight">Office Calendar</h2>
-                   <p className="text-sm text-gray-500 mt-1">Manage schedules, holidays, and view listed cases by date.</p>
+            <div className="flex-1 flex flex-col p-6 md:p-10 w-full animate-in fade-in duration-300 overflow-hidden">
+               <div className="max-w-6xl mx-auto w-full h-full flex flex-col min-h-0">
+                 <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
+                   <div>
+                     <h2 className="text-3xl font-bold tracking-tight">Office Calendar</h2>
+                     <p className="text-sm text-gray-500 mt-1">Manage schedules, holidays, and view listed cases by date.</p>
+                   </div>
+                   <div className="flex items-center space-x-2 bg-white border border-[#E5E5E5] rounded-lg shadow-sm p-1">
+                      <button onClick={() => setCurrentCalendarMonth(new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() - 1, 1))} className="p-2 hover:bg-gray-100 rounded-md transition-colors"><ChevronRight className="w-4 h-4 rotate-180"/></button>
+                      <span className="px-4 font-bold text-sm min-w-[140px] text-center">
+                         {currentCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </span>
+                      <button onClick={() => setCurrentCalendarMonth(new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() + 1, 1))} className="p-2 hover:bg-gray-100 rounded-md transition-colors"><ChevronRight className="w-4 h-4"/></button>
+                   </div>
+                 </header>
+                 <div className="flex-1 bg-white border border-[#E5E5E5] rounded-xl shadow-sm p-6 overflow-y-auto min-h-0">
+                    <div className="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden">
+                       {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                          <div key={day} className="bg-gray-50 text-center py-3 text-xs font-bold text-gray-500 uppercase tracking-widest">{day}</div>
+                       ))}
+                       {Array.from({length: startDay}).map((_, i) => <div key={`empty-${i}`} className="bg-gray-50 min-h-[120px] opacity-40"></div>)}
+                       {Array.from({length: daysInMonth}).map((_, i) => {
+                           const dayNum = i + 1;
+                           const dateStr = `${currentCalendarMonth.getFullYear()}-${String(currentCalendarMonth.getMonth()+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+                           const dayInfo = (dbData.calendar || []).find(c => c.date === dateStr && c.officeId === currentUser.officeId);
+                           const dayCases = myOfficeCases.filter(c => c.nextHearing && c.nextHearing.startsWith(dateStr));
+                           const isToday = dateStr === todayStr;
+                           
+                           return (
+                               <div key={dayNum} onClick={() => {
+                                   setSelectedCalendarDateStr(dateStr);
+                                   setCalDayType(dayInfo ? dayInfo.dayType : 'Working Day');
+                                   setCalOfficeTime(dayInfo ? dayInfo.officeTime : '');
+                                   setCalCourtTime(dayInfo ? dayInfo.courtTime : '');
+                               }} className={`bg-white min-h-[120px] p-2.5 cursor-pointer hover:bg-gray-50 transition-colors border-t border-gray-100 relative group ${dayInfo?.dayType === 'Holiday' ? 'bg-red-50/20' : ''}`}>
+                                   <div className="flex justify-between items-start">
+                                       <span className={`text-sm font-bold flex items-center justify-center w-7 h-7 rounded-full ${isToday ? 'bg-[#111111] text-white shadow-md' : 'text-gray-700 group-hover:bg-gray-200'}`}>{dayNum}</span>
+                                       {dayInfo?.dayType === 'Holiday' && <span className="text-[9px] uppercase tracking-wider text-red-600 font-bold bg-red-100 px-1.5 py-0.5 rounded">Holiday</span>}
+                                   </div>
+                                   <div className="mt-3 space-y-1.5">
+                                       {dayCases.length > 0 && <div className="text-[10px] bg-indigo-50 border border-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold shadow-sm">{dayCases.length} Case{dayCases.length > 1?'s':''} Listed</div>}
+                                       {dayInfo?.officeTime && <div className="text-[9px] text-gray-500 font-medium truncate flex items-center"><Clock className="w-2.5 h-2.5 mr-1 shrink-0"/> {dayInfo.officeTime}</div>}
+                                   </div>
+                               </div>
+                           )
+                       })}
+                    </div>
                  </div>
-                 <div className="flex items-center space-x-2 bg-white border border-[#E5E5E5] rounded-lg shadow-sm p-1">
-                    <button onClick={() => setCurrentCalendarMonth(new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() - 1, 1))} className="p-2 hover:bg-gray-100 rounded-md transition-colors"><ChevronRight className="w-4 h-4 rotate-180"/></button>
-                    <span className="px-4 font-bold text-sm min-w-[140px] text-center">
-                       {currentCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                    </span>
-                    <button onClick={() => setCurrentCalendarMonth(new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() + 1, 1))} className="p-2 hover:bg-gray-100 rounded-md transition-colors"><ChevronRight className="w-4 h-4"/></button>
-                 </div>
-               </header>
-               <div className="flex-1 bg-white border border-[#E5E5E5] rounded-xl shadow-sm p-6 overflow-y-auto">
-                  <div className="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden">
-                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} className="bg-gray-50 text-center py-3 text-xs font-bold text-gray-500 uppercase tracking-widest">{day}</div>
-                     ))}
-                     {Array.from({length: startDay}).map((_, i) => <div key={`empty-${i}`} className="bg-gray-50 min-h-[120px] opacity-40"></div>)}
-                     {Array.from({length: daysInMonth}).map((_, i) => {
-                         const dayNum = i + 1;
-                         const dateStr = `${currentCalendarMonth.getFullYear()}-${String(currentCalendarMonth.getMonth()+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
-                         const dayInfo = (dbData.calendar || []).find(c => c.date === dateStr && c.officeId === currentUser.officeId);
-                         const dayCases = myOfficeCases.filter(c => c.nextHearing && c.nextHearing.startsWith(dateStr));
-                         const isToday = dateStr === todayStr;
-                         
-                         return (
-                             <div key={dayNum} onClick={() => {
-                                 setSelectedCalendarDateStr(dateStr);
-                                 setCalDayType(dayInfo ? dayInfo.dayType : 'Working Day');
-                                 setCalOfficeTime(dayInfo ? dayInfo.officeTime : '');
-                                 setCalCourtTime(dayInfo ? dayInfo.courtTime : '');
-                             }} className={`bg-white min-h-[120px] p-2.5 cursor-pointer hover:bg-gray-50 transition-colors border-t border-gray-100 relative group ${dayInfo?.dayType === 'Holiday' ? 'bg-red-50/20' : ''}`}>
-                                 <div className="flex justify-between items-start">
-                                     <span className={`text-sm font-bold flex items-center justify-center w-7 h-7 rounded-full ${isToday ? 'bg-[#111111] text-white shadow-md' : 'text-gray-700 group-hover:bg-gray-200'}`}>{dayNum}</span>
-                                     {dayInfo?.dayType === 'Holiday' && <span className="text-[9px] uppercase tracking-wider text-red-600 font-bold bg-red-100 px-1.5 py-0.5 rounded">Holiday</span>}
-                                 </div>
-                                 <div className="mt-3 space-y-1.5">
-                                     {dayCases.length > 0 && <div className="text-[10px] bg-indigo-50 border border-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold shadow-sm">{dayCases.length} Case{dayCases.length > 1?'s':''} Listed</div>}
-                                     {dayInfo?.officeTime && <div className="text-[9px] text-gray-500 font-medium truncate flex items-center"><Clock className="w-2.5 h-2.5 mr-1 shrink-0"/> {dayInfo.officeTime}</div>}
-                                 </div>
-                             </div>
-                         )
-                     })}
-                  </div>
                </div>
             </div>
           )}
 
-          {}
+          {/* Task Pipeline Tab */}
           {activeTab === 'tasks' && !activeCaseId && (
-            <div className="p-6 md:p-10 h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in duration-300">
-              <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
-                <div>
-                  <h2 className="text-3xl font-bold tracking-tight">Task Pipeline</h2>
-                  <p className="text-sm text-gray-500 mt-1">Drag and drop tasks across stages to update their progress.</p>
-                </div>
-                <Button onClick={() => {
-                  setEditingTaskId(null);
-                  setNewTaskTitle("");
-                  setNewTaskDueDate("");
-                  setNewTaskAssigneeIds([]);
-                  setNewTaskCaseId(myOfficeCases[0]?.id || '');
-                  setIsNewTaskModalOpen(true);
-                }} className="shrink-0"><Plus className="w-4 h-4 mr-2"/> Add Task</Button>
-              </header>
-              <div className="flex-1 flex gap-6 overflow-x-auto pb-4">
-                {['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'].map(status => {
-                  const colTasks = myOfficeTasks.filter(t => t.status === status);
-                  const isDraggingOver = draggingColumn === status;
-                  return (
-                    <div 
-                      key={status} 
-                      onDragOver={(e) => handleDragOver(e, status)}
-                      onDrop={(e) => handleDrop(e, status)}
-                      onDragLeave={() => setDraggingColumn(null)}
-                      className={`w-80 flex-shrink-0 flex flex-col rounded-2xl border-2 transition-all duration-200 ${isDraggingOver ? 'bg-gray-100 border-[#111111] border-dashed shadow-inner' : 'bg-gray-50 border-[#E5E5E5] border-solid'} max-h-full`}
-                    >
-                      <div className="p-4 border-b border-[#E5E5E5] flex justify-between items-center bg-white rounded-t-xl pointer-events-none shrink-0">
-                        <h3 className="text-xs font-bold tracking-wider text-gray-500 uppercase">{status.replace('_', ' ')}</h3>
-                        <span className="text-xs bg-gray-100 border border-gray-200 text-[#111111] px-2 py-0.5 rounded-full font-bold">{colTasks.length}</span>
-                      </div>
-                      <div className="flex-1 p-3 overflow-y-auto space-y-3 min-h-[150px]">
-                        {colTasks.map(t => {
-                           const c = dbData.cases.find(c=>c.id===t.caseId);
-                           const assignees = (t.assigneeIds || []).map(id => dbData.users.find(u=>u.id===id)).filter(Boolean);
-                           const canModify = canUserModifyTask(t);
-                           return (
-                            <Card 
-                              key={t.id} 
-                              draggable={canModify}
-                              onDragStart={(e) => handleDragStart(e, t.id)}
-                              onDragEnd={handleDragEnd}
-                              className={`p-4 shadow-sm hover:shadow-md transition-all group bg-white relative border border-[#E5E5E5] ${canModify ? 'cursor-grab active:cursor-grabbing hover:border-black' : 'opacity-90'}`}
-                            >
-                              <div className="flex justify-between items-start mb-2">
-                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate pointer-events-none">{c?.title || 'Unknown'}</div>
-                                <button onClick={() => openEditTaskModal(t)} className="text-[10px] font-bold underline text-gray-400 hover:text-[#111111] bg-gray-50 px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                  Edit
-                                </button>
-                              </div>
-                              <h4 className="font-bold text-sm mb-2 leading-snug pointer-events-none text-[#111111]">{t.title}</h4>
-                              <div className="text-[10px] text-gray-400 mb-3 font-mono bg-gray-50 p-1 rounded inline-block w-full">Created: {t.createdAt || 'N/A'} | Due: {t.dueDate}</div>
-                              <div className="flex justify-between items-center border-t border-gray-100 pt-3">
-                                <div className="flex -space-x-1.5 overflow-hidden pointer-events-none">
-                                  {assignees.length === 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest border border-dashed px-1 py-0.5 rounded">Unassigned</span>}
-                                  {assignees.map((user, i) => {
-                                     const userCfg = ROLE_CONFIG[user.role] || { bg: 'bg-[#111111]', text: 'text-white', label: user.role };
-                                     return (
-                                       <div key={user.id} style={{zIndex: 10-i}} className={`inline-block h-6 w-6 rounded-full ring-2 ring-white ${userCfg.bg} ${userCfg.text} text-center text-[10px] font-bold leading-6 shadow-sm`} title={`${user.name} (${userCfg.label})`}>
-                                         {user.name.charAt(0)}
-                                       </div>
-                                     );
-                                  })}
+            <div className="flex-1 flex flex-col p-6 md:p-10 w-full animate-in fade-in duration-300 overflow-hidden">
+              <div className="max-w-[1400px] mx-auto w-full h-full flex flex-col min-h-0">
+                <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
+                  <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Task Pipeline</h2>
+                    <p className="text-sm text-gray-500 mt-1">Drag and drop tasks across stages to update their progress.</p>
+                  </div>
+                  <Button onClick={() => {
+                    setEditingTaskId(null);
+                    setNewTaskTitle("");
+                    setNewTaskDueDate("");
+                    setNewTaskAssigneeIds([]);
+                    setNewTaskCaseId(myOfficeCases[0]?.id || '');
+                    setIsNewTaskModalOpen(true);
+                  }} className="shrink-0"><Plus className="w-4 h-4 mr-2"/> Add Task</Button>
+                </header>
+                <div className="flex-1 flex gap-6 overflow-x-auto pb-4 min-h-0">
+                  {['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'].map(status => {
+                    const colTasks = myOfficeTasks.filter(t => t.status === status);
+                    const isDraggingOver = draggingColumn === status;
+                    return (
+                      <div 
+                        key={status} 
+                        onDragOver={(e) => handleDragOver(e, status)}
+                        onDrop={(e) => handleDrop(e, status)}
+                        onDragLeave={() => setDraggingColumn(null)}
+                        className={`w-80 flex-shrink-0 flex flex-col rounded-2xl border-2 transition-all duration-200 ${isDraggingOver ? 'bg-gray-100 border-[#111111] border-dashed shadow-inner' : 'bg-gray-50 border-[#E5E5E5] border-solid'} h-full max-h-full`}
+                      >
+                        <div className="p-4 border-b border-[#E5E5E5] flex justify-between items-center bg-white rounded-t-xl pointer-events-none shrink-0">
+                          <h3 className="text-xs font-bold tracking-wider text-gray-500 uppercase">{status.replace('_', ' ')}</h3>
+                          <span className="text-xs bg-gray-100 border border-gray-200 text-[#111111] px-2 py-0.5 rounded-full font-bold">{colTasks.length}</span>
+                        </div>
+                        <div className="flex-1 p-3 overflow-y-auto space-y-3 min-h-0">
+                          {colTasks.map(t => {
+                             const c = dbData.cases.find(c=>c.id===t.caseId);
+                             const assignees = (t.assigneeIds || []).map(id => dbData.users.find(u=>u.id===id)).filter(Boolean);
+                             const canModify = canUserModifyTask(t);
+                             return (
+                              <Card 
+                                key={t.id} 
+                                draggable={canModify}
+                                onDragStart={(e) => handleDragStart(e, t.id)}
+                                onDragEnd={handleDragEnd}
+                                className={`p-4 shadow-sm hover:shadow-md transition-all group bg-white relative border border-[#E5E5E5] ${canModify ? 'cursor-grab active:cursor-grabbing hover:border-black' : 'opacity-90'}`}
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate pointer-events-none">{c?.title || 'Unknown'}</div>
+                                  <button onClick={() => openEditTaskModal(t)} className="text-[10px] font-bold underline text-gray-400 hover:text-[#111111] bg-gray-50 px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Edit
+                                  </button>
                                 </div>
-                                <label htmlFor={`task-status-select-${t.id}`} className="sr-only">Task Status</label>
-                                <select 
-                                  id={`task-status-select-${t.id}`}
-                                  name={`taskStatus_${t.id}`}
-                                  className={`text-[10px] font-bold bg-white outline-none border border-gray-200 rounded px-1.5 py-1 uppercase tracking-wider shadow-sm ${canModify ? 'cursor-pointer hover:bg-gray-50 hover:border-black' : 'opacity-50 cursor-not-allowed'}`}
-                                  value={t.status}
-                                  disabled={!canModify}
-                                  onChange={async (e) => {
-                                    if (!canModify) return;
-                                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), { status: e.target.value });
-                                  }}
-                                >
-                                  <option value="TODO">Todo</option>
-                                  <option value="IN_PROGRESS">Doing</option>
-                                  <option value="REVIEW">Review</option>
-                                  <option value="COMPLETED">Done</option>
-                                </select>
-                              </div>
-                            </Card>
-                          );
-                        })}
+                                <h4 className="font-bold text-sm mb-2 leading-snug pointer-events-none text-[#111111]">{t.title}</h4>
+                                <div className="text-[10px] text-gray-400 mb-3 font-mono bg-gray-50 p-1 rounded inline-block w-full">Created: {t.createdAt || 'N/A'} | Due: {t.dueDate}</div>
+                                <div className="flex justify-between items-center border-t border-gray-100 pt-3">
+                                  <div className="flex -space-x-1.5 overflow-hidden pointer-events-none">
+                                    {assignees.length === 0 && <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest border border-dashed px-1 py-0.5 rounded">Unassigned</span>}
+                                    {assignees.map((user, i) => {
+                                       const userCfg = ROLE_CONFIG[user.role] || { bg: 'bg-[#111111]', text: 'text-white', label: user.role };
+                                       return (
+                                         <div key={user.id} style={{zIndex: 10-i}} className={`inline-block h-6 w-6 rounded-full ring-2 ring-white ${userCfg.bg} ${userCfg.text} text-center text-[10px] font-bold leading-6 shadow-sm`} title={`${user.name} (${userCfg.label})`}>
+                                           {user.name.charAt(0)}
+                                         </div>
+                                       );
+                                    })}
+                                  </div>
+                                  <label htmlFor={`task-status-select-${t.id}`} className="sr-only">Task Status</label>
+                                  <select 
+                                    id={`task-status-select-${t.id}`}
+                                    name={`taskStatus_${t.id}`}
+                                    className={`text-[10px] font-bold bg-white outline-none border border-gray-200 rounded px-1.5 py-1 uppercase tracking-wider shadow-sm ${canModify ? 'cursor-pointer hover:bg-gray-50 hover:border-black' : 'opacity-50 cursor-not-allowed'}`}
+                                    value={t.status}
+                                    disabled={!canModify}
+                                    onChange={async (e) => {
+                                      if (!canModify) return;
+                                      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', t.id), { status: e.target.value });
+                                    }}
+                                  >
+                                    <option value="TODO">Todo</option>
+                                    <option value="IN_PROGRESS">Doing</option>
+                                    <option value="REVIEW">Review</option>
+                                    <option value="COMPLETED">Done</option>
+                                  </select>
+                                </div>
+                              </Card>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
 
-          {}
+          {/* Team Access Tab */}
           {activeTab === 'team' && isSeniorOrManager && (
-             <div className="p-6 md:p-10 max-w-4xl mx-auto animate-in fade-in duration-300">
-               <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
-                 <div>
-                   <h2 className="text-3xl font-bold tracking-tight">Team Access</h2>
-                   <p className="text-sm text-gray-500 mt-1">Manage office members and set role-based permissions.</p>
-                 </div>
-                 <div className="bg-white border border-[#E5E5E5] text-[#111111] px-4 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm shrink-0">
-                   Invite Code: <span className="ml-3 font-mono font-bold tracking-widest text-[#4F46E5] bg-indigo-50 px-2 py-0.5 rounded">{dbData.offices.find(o=>o.id === currentUser.officeId)?.inviteCode}</span>
-                 </div>
-               </header>
-               <Card className="overflow-hidden">
-                 <div className="p-4 bg-gray-50 border-b border-[#E5E5E5] text-xs font-bold text-gray-500 uppercase tracking-wider pl-6">
-                   Workspace Members
-                 </div>
-                 <div className="divide-y divide-[#E5E5E5]">
-                   {dbData.users
-                     .filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT')
-                     .sort((a, b) => (ROLE_HIERARCHY[b.role] || 0) - (ROLE_HIERARCHY[a.role] || 0))
-                     .map(user => (
-                     <div key={user.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition-colors pl-6 gap-4">
-                       <div className="flex items-center space-x-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-inner shrink-0 ${ROLE_CONFIG[user.role]?.bg} ${ROLE_CONFIG[user.role]?.text}`}>
-                            {user.name.split(' ').map(n=>n[0]).join('').substring(0,2)}
-                          </div>
-                          <div>
-                            <div className="font-bold text-[#111111]">{user.name}</div>
-                            <div className="text-sm text-gray-500 font-medium">{user.email}</div>
-                          </div>
-                       </div>
-                       <div className="flex items-center space-x-4">
-                         <RoleBadge role={user.role}/>
-                         {currentUser.id !== user.id && (
-                           <div className="flex items-center space-x-2">
-                             <label htmlFor={`user-role-select-${user.id}`} className="sr-only">User Role</label>
-                             <select 
-                               id={`user-role-select-${user.id}`}
-                               name={`userRole_${user.id}`}
-                               className="text-xs font-bold uppercase tracking-wider border border-[#E5E5E5] rounded p-2 outline-none focus:border-black cursor-pointer bg-white shadow-sm hover:bg-gray-50 transition-colors"
-                               value={user.role}
-                               onChange={async (e) => {
-                                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user.id), { role: e.target.value });
-                               }}
-                             >
-                               <option value="PENDING">Pending</option>
-                               <option value="INTERN">Intern</option>
-                               <option value="EMPLOYEE">Associate</option>
-                               <option value="MANAGER">Manager</option>
-                               <option value="SENIOR_ADVOCATE">Senior Advocate</option>
-                               {user.role === 'FIRED' && <option value="FIRED">Terminated</option>}
-                             </select>
-                             {user.role !== 'FIRED' && (
-                               <button 
-                                 onClick={() => { setUserToFire(user); setIsFireModalOpen(true); }}
-                                 className="p-2 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-md border border-transparent hover:border-red-200 transition-colors shrink-0"
-                                 title="Terminate Employee"
-                                 aria-label={`Terminate ${user.name}`}
+             <div className="flex-1 overflow-y-auto p-6 md:p-10 w-full animate-in fade-in duration-300">
+               <div className="max-w-4xl mx-auto">
+                 <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
+                   <div>
+                     <h2 className="text-3xl font-bold tracking-tight">Team Access</h2>
+                     <p className="text-sm text-gray-500 mt-1">Manage office members and set role-based permissions.</p>
+                   </div>
+                   <div className="bg-white border border-[#E5E5E5] text-[#111111] px-4 py-2.5 rounded-lg text-sm font-medium flex items-center shadow-sm shrink-0">
+                     Invite Code: <span className="ml-3 font-mono font-bold tracking-widest text-[#4F46E5] bg-indigo-50 px-2 py-0.5 rounded">{dbData.offices.find(o=>o.id === currentUser.officeId)?.inviteCode}</span>
+                   </div>
+                 </header>
+                 <Card className="overflow-hidden">
+                   <div className="p-4 bg-gray-50 border-b border-[#E5E5E5] text-xs font-bold text-gray-500 uppercase tracking-wider pl-6">
+                     Workspace Members
+                   </div>
+                   <div className="divide-y divide-[#E5E5E5]">
+                     {dbData.users
+                       .filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT')
+                       .sort((a, b) => (ROLE_HIERARCHY[b.role] || 0) - (ROLE_HIERARCHY[a.role] || 0))
+                       .map(user => (
+                       <div key={user.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition-colors pl-6 gap-4">
+                         <div className="flex items-center space-x-4">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-inner shrink-0 ${ROLE_CONFIG[user.role]?.bg} ${ROLE_CONFIG[user.role]?.text}`}>
+                              {user.name.split(' ').map(n=>n[0]).join('').substring(0,2)}
+                            </div>
+                            <div>
+                              <div className="font-bold text-[#111111]">{user.name}</div>
+                              <div className="text-sm text-gray-500 font-medium">{user.email}</div>
+                            </div>
+                         </div>
+                         <div className="flex items-center space-x-4">
+                           <RoleBadge role={user.role}/>
+                           {currentUser.id !== user.id && (
+                             <div className="flex items-center space-x-2">
+                               <label htmlFor={`user-role-select-${user.id}`} className="sr-only">User Role</label>
+                               <select 
+                                 id={`user-role-select-${user.id}`}
+                                 name={`userRole_${user.id}`}
+                                 className="text-xs font-bold uppercase tracking-wider border border-[#E5E5E5] rounded p-2 outline-none focus:border-black cursor-pointer bg-white shadow-sm hover:bg-gray-50 transition-colors"
+                                 value={user.role}
+                                 onChange={async (e) => {
+                                   await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', user.id), { role: e.target.value });
+                                 }}
                                >
-                                 <X className="w-4 h-4"/>
-                               </button>
-                             )}
-                           </div>
-                         )}
+                                 <option value="PENDING">Pending</option>
+                                 <option value="INTERN">Intern</option>
+                                 <option value="EMPLOYEE">Associate</option>
+                                 <option value="MANAGER">Manager</option>
+                                 <option value="SENIOR_ADVOCATE">Senior Advocate</option>
+                                 {user.role === 'FIRED' && <option value="FIRED">Terminated</option>}
+                               </select>
+                               {user.role !== 'FIRED' && (
+                                 <button 
+                                   onClick={() => { setUserToFire(user); setIsFireModalOpen(true); }}
+                                   className="p-2 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-md border border-transparent hover:border-red-200 transition-colors shrink-0"
+                                   title="Terminate Employee"
+                                   aria-label={`Terminate ${user.name}`}
+                                 >
+                                   <X className="w-4 h-4"/>
+                                 </button>
+                               )}
+                             </div>
+                           )}
+                         </div>
                        </div>
-                     </div>
-                   ))}
-                 </div>
-               </Card>
+                     ))}
+                   </div>
+                 </Card>
+               </div>
              </div>
           )}
 
-          {}
+          {/* New Matter Modal */}
           <Modal title="Open New Matter" isOpen={isNewMatterOpen} onClose={() => setIsNewMatterOpen(false)}>
             <form onSubmit={handleCreateMatter} className="space-y-5">
               <div className="space-y-4 pb-4 border-b border-gray-100">
@@ -1668,6 +1683,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </form>
           </Modal>
 
+          {/* New Task Modal */}
           <Modal title={editingTaskId ? "Edit Task" : "Create New Task"} isOpen={isNewTaskModalOpen} onClose={() => { setIsNewTaskModalOpen(false); setEditingTaskId(null); setNewTaskAssigneeIds([]); }}>
             <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
@@ -1714,64 +1730,21 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </form>
           </Modal>
 
-          <Modal title={selectedCalendarDateStr ? `Day Info: ${new Date(selectedCalendarDateStr).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}` : ''} isOpen={!!selectedCalendarDateStr} onClose={() => setSelectedCalendarDateStr(null)}>
-             <div className="space-y-6">
-                 {calendarCasesForSelectedDay.length > 0 && (
-                     <div>
-                         <h4 className="font-bold text-sm mb-3">Cases Listed</h4>
-                         <div className="space-y-2">
-                             {calendarCasesForSelectedDay.map(c => (
-                                 <button key={c.id} onClick={() => { setSelectedCalendarDateStr(null); setActiveTab('ledger'); setActiveCaseId(c.id); }} className="w-full text-left p-3 border border-gray-200 rounded-lg hover:border-black transition-colors group">
-                                     <div className="font-bold text-[#111111] group-hover:text-[#4F46E5] text-sm">{c.title}</div>
-                                     <div className="text-xs text-gray-500 flex gap-3 mt-1 font-mono"><span>No: {c.caseNumber || 'N/A'}</span><span>Court: {c.court}</span></div>
-                                 </button>
-                             ))}
-                         </div>
-                     </div>
-                 )}
-                 {calendarCasesForSelectedDay.length === 0 && (
-                     <div className="text-sm text-gray-500 italic p-4 bg-gray-50 rounded-lg border border-dashed text-center">No hearings listed for this date.</div>
-                 )}
-                 
-                 {isSeniorOrManager && (
-                     <form onSubmit={handleSaveDayInfo} className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 space-y-4">
-                         <h4 className="font-bold text-xs tracking-wider uppercase text-gray-500 mb-2">Configure Office Schedule</h4>
-                         <div>
-                             <label htmlFor="cal-day-type" className="block text-xs font-bold text-gray-700 mb-1">Day Status</label>
-                             <select id="cal-day-type" value={calDayType} onChange={e=>setCalDayType(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-black outline-none text-sm shadow-sm bg-white cursor-pointer">
-                                 <option value="Working Day">Working Day</option>
-                                 <option value="Holiday">Office Holiday</option>
-                             </select>
-                         </div>
-                         {calDayType !== 'Holiday' && (
-                             <div className="grid grid-cols-2 gap-3">
-                                 <div>
-                                     <label htmlFor="cal-office-time" className="block text-xs font-bold text-gray-700 mb-1">Office Timings</label>
-                                     <input id="cal-office-time" type="text" value={calOfficeTime} onChange={e=>setCalOfficeTime(e.target.value)} placeholder="e.g. 10 AM - 7 PM" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-black outline-none text-sm shadow-sm bg-white" />
-                                 </div>
-                                 <div>
-                                     <label htmlFor="cal-court-time" className="block text-xs font-bold text-gray-700 mb-1">Court Timings</label>
-                                     <input id="cal-court-time" type="text" value={calCourtTime} onChange={e=>setCalCourtTime(e.target.value)} placeholder="e.g. 10:30 AM - 4 PM" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-black outline-none text-sm shadow-sm bg-white" />
-                                 </div>
-                             </div>
-                         )}
-                         <Button type="submit" className="w-full py-2">Update Schedule</Button>
-                     </form>
-                 )}
-                 
-                 {!isSeniorOrManager && selectedDayInfo && (
-                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                         <h4 className="font-bold text-xs tracking-wider uppercase text-blue-800 mb-2">Office Schedule</h4>
-                         <div className="text-sm font-semibold text-blue-900 mb-2">{selectedDayInfo.dayType}</div>
-                         {selectedDayInfo.dayType !== 'Holiday' && (
-                             <div className="space-y-1 text-xs text-blue-800 font-medium">
-                                 {selectedDayInfo.officeTime && <div>Office: {selectedDayInfo.officeTime}</div>}
-                                 {selectedDayInfo.courtTime && <div>Court: {selectedDayInfo.courtTime}</div>}
-                             </div>
-                         )}
-                     </div>
-                 )}
-             </div>
+          {/* Terminate Modal */}
+          <Modal title="Terminate Employee" isOpen={isFireModalOpen} onClose={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>
+            <form onSubmit={handleFireUser} className="space-y-4">
+              <div className="bg-red-50 text-red-800 p-4 rounded-lg text-sm border border-red-200 mb-4 shadow-sm">
+                You are about to terminate <strong>{userToFire?.name}</strong>. Their access to the workspace will be immediately revoked.
+              </div>
+              <div>
+                <label htmlFor="fire-reason-textarea" className="block text-xs font-bold text-gray-700 mb-1">Reason for Termination (Mandatory)</label>
+                <textarea id="fire-reason-textarea" name="terminationReason" required value={fireReason} onChange={e=>setFireReason(e.target.value)} className="w-full px-4 py-3 bg-[#F9F9F9] border border-[#E5E5E5] rounded-lg focus:border-red-500 outline-none text-sm transition-all min-h-[100px] resize-y shadow-inner" placeholder="Detail the reason for immediate termination. This will be visible to the employee." />
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <Button variant="secondary" className="flex-1" onClick={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>Cancel</Button>
+                <button type="submit" className="flex-1 bg-red-600 text-white py-2 px-4 text-sm font-medium rounded-md hover:bg-red-700 transition-colors shadow-sm active:scale-95">Confirm Termination</button>
+              </div>
+            </form>
           </Modal>
           
           {/* Logout Modal */}
