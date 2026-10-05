@@ -3,7 +3,7 @@ import {
   Scale, Briefcase, Calendar, CheckCircle2, Search, 
   Users, Plus, Clock, LogOut, ChevronRight, Download, 
   FileCheck, Edit3, X, AlertCircle, ArrowRight, Layers,
-  Mail, Lock, User, Loader2
+  Mail, Lock, User, Square, Mic, CalendarDays, Filter
 } from 'lucide-react';
 
 import { initializeApp } from 'firebase/app';
@@ -54,7 +54,9 @@ const ROLE_HIERARCHY = {
   'MANAGER': 3,
   'EMPLOYEE': 2,
   'INTERN': 1,
-  'CLIENT': 0
+  'CLIENT': 0,
+  'PENDING': -1,
+  'FIRED': -2
 };
 
 const ROLE_CONFIG = {
@@ -249,8 +251,9 @@ const AuthView = ({ mode, setMode, onLogin, onCreateOffice, onJoinOffice, onTrac
 
                   {mode === 'login' && (
                     <div className="flex items-center justify-between mt-3">
-                      <label className="flex items-center text-xs font-medium text-gray-700 cursor-pointer group select-none">
+                      <label htmlFor="remember-me-checkbox" className="flex items-center text-xs font-medium text-gray-700 cursor-pointer group select-none">
                         <input 
+                          id="remember-me-checkbox"
                           type="checkbox" 
                           checked={rememberMe} 
                           onChange={(e) => setRememberMe(e.target.checked)} 
@@ -321,7 +324,7 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
 
   const activeCase = clientCases.find(c => c.id === selectedCaseId) || clientCases[0];
   
-  const updates = dbData.updates.filter(u => u.caseId === activeCase?.id).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const updates = dbData.updates.filter(u => u.caseId === activeCase?.id).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   if (clientCases.length === 0) {
     return (
@@ -379,7 +382,9 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
                     <span>Court: {activeCase.court || 'Pending'}</span>
                   </div>
                 </div>
-                <span className="bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-full text-xs font-bold shrink-0">{activeCase.status}</span>
+                <span className={`border px-3 py-1 rounded-full text-xs font-bold shrink-0 ${activeCase.status === 'Active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                   {activeCase.status}
+                </span>
               </div>
               <div className="border-t border-gray-100 pt-4 mt-4 flex justify-between items-center text-sm">
                 <span className="text-gray-500">Next Hearing Date:</span>
@@ -422,13 +427,14 @@ const ClientPortalView = ({ trackingCode, dbData, onExit }) => {
 const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTask }) => {
   const [updateTitle, setUpdateTitle] = useState("");
   const [updateText, setUpdateText] = useState("");
+  const [newNextHearing, setNewNextHearing] = useState("");
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editCaseData, setEditCaseData] = useState({});
   const [showBriefModal, setShowBriefModal] = useState(false);
 
   const activeCase = dbData.cases.find(c => c.id === activeCaseId);
-  const caseUpdates = dbData.updates.filter(u => u.caseId === activeCaseId).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const caseUpdates = dbData.updates.filter(u => u.caseId === activeCaseId).sort((a,b)=>new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   const caseTasks = dbData.tasks.filter(t => t.caseId === activeCaseId);
 
   const handlePostUpdate = async (e) => {
@@ -444,10 +450,20 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
       text: updateText,
       timestamp: new Date().toISOString()
     };
-    
     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'updates', updateId), newUpdate);
+    
+    // Process new hearing date logic tracking historical dates natively
+    if (newNextHearing) {
+      const updatesToCase = { nextHearing: newNextHearing };
+      if (activeCase.nextHearing && activeCase.nextHearing !== newNextHearing) {
+         updatesToCase.previousHearings = [...(activeCase.previousHearings || []), activeCase.nextHearing];
+      }
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', activeCaseId), updatesToCase);
+    }
+    
     setUpdateTitle("");
     setUpdateText("");
+    setNewNextHearing("");
   };
 
   const openEditModal = () => {
@@ -457,7 +473,7 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
       cnr: activeCase.cnr || '',
       court: activeCase.court || '',
       trackingNumber: activeCase.trackingNumber || '',
-      nextHearing: activeCase.nextHearing ? activeCase.nextHearing.split('T')[0] : '',
+      nextHearing: activeCase.nextHearing || '',
       partyOne: activeCase.partyOne ? [...activeCase.partyOne] : [],
       partyTwo: activeCase.partyTwo ? [...activeCase.partyTwo] : []
     });
@@ -468,10 +484,14 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
     e.preventDefault();
     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', activeCaseId), {
       ...editCaseData,
-      trackingNumber: editCaseData.trackingNumber ? editCaseData.trackingNumber.toUpperCase().trim() : activeCase.trackingNumber,
-      nextHearing: editCaseData.nextHearing ? new Date(editCaseData.nextHearing).toISOString() : null
+      trackingNumber: editCaseData.trackingNumber ? editCaseData.trackingNumber.toUpperCase().trim() : activeCase.trackingNumber
     });
     setIsEditModalOpen(false);
+  };
+  
+  const toggleDisposedStatus = async () => {
+      const newStatus = activeCase.status === 'Active' ? 'Disposed' : 'Active';
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'cases', activeCaseId), { status: newStatus });
   };
 
   const canUserModifyTask = (task) => {
@@ -510,14 +530,29 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
             <span>•</span>
             <span className="text-[#D97706] font-medium">Next Hearing: {activeCase.nextHearing ? new Date(activeCase.nextHearing).toLocaleDateString('en-US') : 'TBD'}</span>
           </div>
+          
+          {activeCase.previousHearings && activeCase.previousHearings.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 mb-3 text-xs">
+               <span className="font-bold text-gray-400 uppercase tracking-widest text-[10px]">Previous Dates:</span>
+               {activeCase.previousHearings.map((hd, i) => (
+                  <span key={i} className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">{new Date(hd).toLocaleDateString('en-US')}</span>
+               ))}
+            </div>
+          )}
+
           <div className="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 text-blue-800 px-2.5 py-1 rounded-md text-xs">
              <span className="font-semibold uppercase tracking-wider">Client Tracking ID (Group):</span>
              <span className="font-mono font-bold tracking-widest text-sm">{activeCase.trackingNumber}</span>
           </div>
         </div>
-        <Button variant="secondary" onClick={() => setShowBriefModal(true)} className="flex items-center shadow-sm shrink-0">
-          <FileCheck className="w-4 h-4 mr-2"/> Export Case Brief
-        </Button>
+        <div className="flex flex-col space-y-2 shrink-0">
+          <Button variant="secondary" onClick={() => setShowBriefModal(true)} className="flex items-center shadow-sm w-full">
+            <FileCheck className="w-4 h-4 mr-2"/> Export Case Brief
+          </Button>
+          <Button variant="secondary" onClick={toggleDisposedStatus} className={`flex items-center shadow-sm w-full transition-colors ${activeCase.status === 'Disposed' ? 'bg-amber-100 hover:bg-amber-200 text-amber-800' : ''}`}>
+             {activeCase.status === 'Active' ? 'Mark Disposed' : 'Reopen Case'}
+          </Button>
+        </div>
       </div>
 
       {( (activeCase.partyOne && activeCase.partyOne.length > 0) || (activeCase.partyTwo && activeCase.partyTwo.length > 0) ) && (
@@ -561,8 +596,12 @@ const CaseDetailView = ({ activeCaseId, goBack, dbData, currentUser, onOpenNewTa
                 <label htmlFor="update-text-input" className="block text-xs font-bold text-gray-700 mb-1">Detailed Notes</label>
                 <textarea id="update-text-input" name="updateText" placeholder="Detailed notes for the team and client timeline..." value={updateText} onChange={e=>setUpdateText(e.target.value)} className="w-full px-3 py-2 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none min-h-[80px] resize-y bg-[#F9F9F9]" required />
               </div>
-              <div className="flex justify-end items-center mt-3">
-                <Button type="submit" className="py-1.5 text-xs shrink-0">Post to Ledger</Button>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-end mt-3 gap-3 border-t border-gray-100 pt-3">
+                 <div>
+                    <label htmlFor="update-next-date" className="block text-xs font-bold text-gray-700 mb-1">Add Next Hearing Date (Optional)</label>
+                    <input id="update-next-date" name="updateNextDate" type="date" value={newNextHearing} onChange={e=>setNewNextHearing(e.target.value)} className="w-full sm:w-auto px-3 py-1.5 text-sm border border-[#E5E5E5] rounded-md focus:border-black outline-none bg-white shadow-sm" />
+                 </div>
+                 <Button type="submit" className="py-1.5 text-xs shrink-0">Post to Ledger</Button>
               </div>
             </form>
           </Card>
@@ -792,6 +831,19 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
   const [fireReason, setFireReason] = useState("");
 
   const [draggingColumn, setDraggingColumn] = useState(null);
+  
+  const [ledgerSearch, setLedgerSearch] = useState('');
+  const [ledgerFilter, setLedgerFilter] = useState('All');
+  const [ledgerSort, setLedgerSort] = useState('hearingAsc');
+  
+  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(() => {
+     const d = new Date();
+     return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
+  const [selectedCalendarDateStr, setSelectedCalendarDateStr] = useState(null);
+  const [calOfficeTime, setCalOfficeTime] = useState('');
+  const [calCourtTime, setCalCourtTime] = useState('');
+  const [calDayType, setCalDayType] = useState('Working Day');
 
   const myOfficeCases = dbData.cases.filter(c => c.officeId === currentUser.officeId);
   const activeCasesCount = myOfficeCases.filter(c => c.status === 'Active').length;
@@ -801,7 +853,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
   const isSeniorOrManager = currentUser.role === 'SENIOR_ADVOCATE' || currentUser.role === 'MANAGER';
 
-  // Reliable Date calculation for Overview
+  // Strict local date parsing for accuracy
   const getLocalDateStr = (d) => {
     const tzOffset = d.getTimezoneOffset() * 60000;
     return new Date(d.getTime() - tzOffset).toISOString().split('T')[0];
@@ -884,7 +936,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
     const finalAssigneeIds = newTaskAssigneeIds.length > 0 ? newTaskAssigneeIds : [currentUser.id];
     const dueDateStr = newTaskDueDate || 'No date';
-    const todayStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const todayFormattedStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
     if (editingTaskId) {
       await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', editingTaskId), {
@@ -899,7 +951,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
         assigneeIds: finalAssigneeIds,
         status: 'TODO',
         dueDate: dueDateStr,
-        createdAt: todayStr
+        createdAt: todayFormattedStr
       };
       await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId), newTask);
     }
@@ -951,11 +1003,52 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
     setUserToFire(null);
     setFireReason("");
   };
+  
+  const handleSaveDayInfo = async (e) => {
+      e.preventDefault();
+      if (!selectedCalendarDateStr) return;
+      const id = `cal_${currentUser.officeId}_${selectedCalendarDateStr}`;
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'calendar', id), {
+          id,
+          officeId: currentUser.officeId,
+          date: selectedCalendarDateStr,
+          dayType: calDayType,
+          officeTime: calOfficeTime,
+          courtTime: calCourtTime
+      });
+      setSelectedCalendarDateStr(null);
+  };
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
     setActiveCaseId(null);
   };
+  
+  // Ledger Filtering Logic
+  let displayCases = myOfficeCases.filter(c => {
+     const matchesSearch = c.title.toLowerCase().includes(ledgerSearch.toLowerCase()) || 
+                           (c.caseNumber || '').toLowerCase().includes(ledgerSearch.toLowerCase()) || 
+                           (c.cnr || '').toLowerCase().includes(ledgerSearch.toLowerCase());
+     const matchesStatus = ledgerFilter === 'All' || c.status === ledgerFilter;
+     return matchesSearch && matchesStatus;
+  });
+
+  displayCases.sort((a, b) => {
+     if (ledgerSort === 'hearingAsc') {
+         if (!a.nextHearing) return 1;
+         if (!b.nextHearing) return -1;
+         return a.nextHearing.localeCompare(b.nextHearing);
+     } else if (ledgerSort === 'titleAsc') {
+         return a.title.localeCompare(b.title);
+     }
+     return 0;
+  });
+
+  // Calendar Math
+  const daysInMonth = new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() + 1, 0).getDate();
+  const startDay = new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth(), 1).getDay();
+  const calendarCasesForSelectedDay = selectedCalendarDateStr ? myOfficeCases.filter(c => c.nextHearing && c.nextHearing.startsWith(selectedCalendarDateStr)) : [];
+  const selectedDayInfo = selectedCalendarDateStr ? (dbData.calendar || []).find(c => c.date === selectedCalendarDateStr && c.officeId === currentUser.officeId) : null;
 
   if (currentUser.role === 'PENDING') {
     return (
@@ -1006,6 +1099,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
           <SidebarItem id="overview" name="Overview" icon={Clock} activeTab={activeTab} onClick={handleTabChange}/>
           <SidebarItem id="ledger" name="Master Ledger" icon={Briefcase} activeTab={activeTab} onClick={handleTabChange}/>
           <SidebarItem id="tasks" name="Task Pipeline" icon={CheckCircle2} activeTab={activeTab} onClick={handleTabChange}/>
+          <SidebarItem id="calendar" name="Office Calendar" icon={CalendarDays} activeTab={activeTab} onClick={handleTabChange}/>
           {isSeniorOrManager && (
             <SidebarItem id="team" name="Team & Access" icon={Users} activeTab={activeTab} onClick={handleTabChange}/>
           )}
@@ -1025,14 +1119,15 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden relative z-10">
-        <header className="md:hidden h-14 bg-white border-b border-[#E5E5E5] flex justify-between items-center px-4 shrink-0">
-           <button onClick={() => handleTabChange('overview')} className="flex items-center space-x-2 font-bold focus:outline-none">
+        <header className="md:hidden h-14 bg-white border-b border-[#E5E5E5] flex justify-between items-center px-4 shrink-0 overflow-x-auto hide-scrollbar">
+           <button onClick={() => handleTabChange('overview')} className="flex items-center space-x-2 font-bold focus:outline-none shrink-0">
               <Scale className="w-5 h-5 text-black"/>
               <span>Chambers</span>
            </button>
-           <div className="flex space-x-1">
+           <div className="flex space-x-1 ml-4 shrink-0">
              <button onClick={() => handleTabChange('ledger')} className={`p-2 ${activeTab==='ledger'?'text-black':'text-gray-500 hover:text-black'}`} aria-label="Master Ledger"><Briefcase className="w-5 h-5"/></button>
              <button onClick={() => handleTabChange('tasks')} className={`p-2 ${activeTab==='tasks'?'text-black':'text-gray-500 hover:text-black'}`} aria-label="Task Pipeline"><CheckCircle2 className="w-5 h-5"/></button>
+             <button onClick={() => handleTabChange('calendar')} className={`p-2 ${activeTab==='calendar'?'text-black':'text-gray-500 hover:text-black'}`} aria-label="Office Calendar"><CalendarDays className="w-5 h-5"/></button>
              {isSeniorOrManager && (
                 <button onClick={() => handleTabChange('team')} className={`p-2 ${activeTab==='team'?'text-black':'text-gray-500 hover:text-black'}`} aria-label="Team Access"><Users className="w-5 h-5" /></button>
              )}
@@ -1042,7 +1137,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
         <div className="flex-1 overflow-auto bg-[#F9F9F9]">
           
-          {/* Overview Tab */}
+          {}
           {activeTab === 'overview' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-5xl mx-auto animate-in fade-in duration-300">
               <header className="mb-10 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
@@ -1089,7 +1184,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                     <button onClick={()=>setActiveTab('ledger')} className="text-sm font-medium text-gray-500 hover:text-black transition-colors">View all</button>
                   </div>
                   <div className="space-y-4">
-                    {dbData.updates.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,4).map(up => {
+                    {dbData.updates.sort((a,b)=>new Date(b.timestamp).getTime()-new Date(a.timestamp).getTime()).slice(0,4).map(up => {
                       const c = dbData.cases.find(c=>c.id === up.caseId);
                       const u = dbData.users.find(u=>u.id === up.authorId);
                       if(!c || c.officeId !== currentUser.officeId) return null;
@@ -1122,7 +1217,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                       .sort((a, b) => {
                         if (!a.dueDate) return 1;
                         if (!b.dueDate) return -1;
-                        return new Date(a.dueDate) - new Date(b.dueDate);
+                        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
                       })
                       .slice(0, 4)
                       .map(t => {
@@ -1165,7 +1260,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
-          {/* Master Ledger Tab */}
+          {}
           {activeTab === 'ledger' && !activeCaseId && (
             <div className="p-6 md:p-10 max-w-6xl mx-auto h-full flex flex-col animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1178,10 +1273,22 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 )}
               </header>
               <Card className="flex-1 overflow-hidden flex flex-col min-h-[400px]">
-                <div className="p-4 md:p-5 border-b border-[#E5E5E5] flex items-center bg-gray-50 shrink-0">
-                  <Search className="w-5 h-5 text-gray-400 mr-3 shrink-0"/>
-                  <label htmlFor="ledger-search-input" className="sr-only">Search Case Number, CNR, Client, or Matter</label>
-                  <input id="ledger-search-input" name="ledgerSearch" type="text" placeholder="Search Case Number, CNR, Client, or Matter..." className="bg-transparent border-none outline-none text-sm w-full focus:ring-0 font-medium" />
+                <div className="flex flex-col md:flex-row gap-3 p-4 md:p-5 border-b border-[#E5E5E5] bg-gray-50 shrink-0">
+                  <div className="flex-1 relative">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input type="text" placeholder="Search Case Number, CNR, Client, or Matter..." className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-black transition-colors" value={ledgerSearch} onChange={e=>setLedgerSearch(e.target.value)} />
+                  </div>
+                  <div className="flex gap-2">
+                     <select aria-label="Filter Cases by Status" value={ledgerFilter} onChange={e=>setLedgerFilter(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-black cursor-pointer bg-white shadow-sm font-medium">
+                        <option value="All">All Statuses</option>
+                        <option value="Active">Active Only</option>
+                        <option value="Disposed">Disposed Only</option>
+                     </select>
+                     <select aria-label="Sort Cases" value={ledgerSort} onChange={e=>setLedgerSort(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-black cursor-pointer bg-white shadow-sm font-medium">
+                        <option value="hearingAsc">Next Hearing (Soonest)</option>
+                        <option value="titleAsc">Title (A-Z)</option>
+                     </select>
+                  </div>
                 </div>
                 <div className="overflow-y-auto overflow-x-auto flex-1 p-2">
                   <div className="min-w-[800px]">
@@ -1192,24 +1299,22 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                       <div className="col-span-3">Recent Activity</div>
                       <div className="col-span-2 text-right">Next Hearing</div>
                     </div>
-                    {myOfficeCases.length === 0 && (
+                    {displayCases.length === 0 && (
                       <div className="flex flex-col items-center justify-center p-12 text-center animate-in fade-in">
                         <Briefcase className="w-12 h-12 text-gray-300 mb-4"/>
-                        <h3 className="text-lg font-bold text-[#111111] mb-2">No Active Matters</h3>
-                        <p className="text-gray-500 text-sm max-w-sm mb-6">Your workspace is completely empty.</p>
-                        {isSeniorOrManager && (
-                          <Button onClick={() => setIsNewMatterOpen(true)}><Plus className="w-4 h-4 mr-2"/>Create First Matter</Button>
-                        )}
+                        <h3 className="text-lg font-bold text-[#111111] mb-2">No Cases Found</h3>
+                        <p className="text-gray-500 text-sm max-w-sm mb-6">Try adjusting your search query or filters.</p>
                       </div>
                     )}
-                    {myOfficeCases.map((c, idx) => {
-                      const latestUpdate = dbData.updates.filter(u=>u.caseId === c.id).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];
+                    {displayCases.map((c, idx) => {
+                      const latestUpdate = dbData.updates.filter(u=>u.caseId === c.id).sort((a,b)=>new Date(b.timestamp).getTime()-new Date(a.timestamp).getTime())[0];
                       return (
                         <div key={c.id} onClick={() => setActiveCaseId(c.id)} className={`p-4 mx-2 flex items-center hover:bg-[#F9F9F9] rounded-lg transition-colors cursor-pointer group ${idx !== 0 ? 'border-t border-[#E5E5E5]' : ''}`}>
                           <div className="grid grid-cols-12 gap-4 w-full items-center">
                             <div className="col-span-3 space-y-1">
                               <div className="flex items-center space-x-3">
-                                <span className="font-bold text-[15px] group-hover:text-black transition-colors">{c.title}</span>
+                                <span className={`font-bold text-[15px] group-hover:text-black transition-colors ${c.status === 'Disposed' ? 'line-through text-gray-400 group-hover:text-gray-600' : ''}`}>{c.title}</span>
+                                {c.status === 'Disposed' && <span className="text-[9px] uppercase tracking-wider bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded font-bold">Disposed</span>}
                               </div>
                               <div className="text-xs text-gray-500 font-medium">{c.court || 'Pending Court'}</div>
                             </div>
@@ -1260,8 +1365,60 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
               }}
             />
           )}
+          
+          {}
+          {activeTab === 'calendar' && !activeCaseId && (
+            <div className="p-6 md:p-10 max-w-6xl mx-auto h-full flex flex-col animate-in fade-in duration-300">
+               <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
+                 <div>
+                   <h2 className="text-3xl font-bold tracking-tight">Office Calendar</h2>
+                   <p className="text-sm text-gray-500 mt-1">Manage schedules, holidays, and view listed cases by date.</p>
+                 </div>
+                 <div className="flex items-center space-x-2 bg-white border border-[#E5E5E5] rounded-lg shadow-sm p-1">
+                    <button onClick={() => setCurrentCalendarMonth(new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() - 1, 1))} className="p-2 hover:bg-gray-100 rounded-md transition-colors"><ChevronRight className="w-4 h-4 rotate-180"/></button>
+                    <span className="px-4 font-bold text-sm min-w-[140px] text-center">
+                       {currentCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </span>
+                    <button onClick={() => setCurrentCalendarMonth(new Date(currentCalendarMonth.getFullYear(), currentCalendarMonth.getMonth() + 1, 1))} className="p-2 hover:bg-gray-100 rounded-md transition-colors"><ChevronRight className="w-4 h-4"/></button>
+                 </div>
+               </header>
+               <div className="flex-1 bg-white border border-[#E5E5E5] rounded-xl shadow-sm p-6 overflow-y-auto">
+                  <div className="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden">
+                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                        <div key={day} className="bg-gray-50 text-center py-3 text-xs font-bold text-gray-500 uppercase tracking-widest">{day}</div>
+                     ))}
+                     {Array.from({length: startDay}).map((_, i) => <div key={`empty-${i}`} className="bg-gray-50 min-h-[120px] opacity-40"></div>)}
+                     {Array.from({length: daysInMonth}).map((_, i) => {
+                         const dayNum = i + 1;
+                         const dateStr = `${currentCalendarMonth.getFullYear()}-${String(currentCalendarMonth.getMonth()+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+                         const dayInfo = (dbData.calendar || []).find(c => c.date === dateStr && c.officeId === currentUser.officeId);
+                         const dayCases = myOfficeCases.filter(c => c.nextHearing && c.nextHearing.startsWith(dateStr));
+                         const isToday = dateStr === todayStr;
+                         
+                         return (
+                             <div key={dayNum} onClick={() => {
+                                 setSelectedCalendarDateStr(dateStr);
+                                 setCalDayType(dayInfo ? dayInfo.dayType : 'Working Day');
+                                 setCalOfficeTime(dayInfo ? dayInfo.officeTime : '');
+                                 setCalCourtTime(dayInfo ? dayInfo.courtTime : '');
+                             }} className={`bg-white min-h-[120px] p-2.5 cursor-pointer hover:bg-gray-50 transition-colors border-t border-gray-100 relative group ${dayInfo?.dayType === 'Holiday' ? 'bg-red-50/20' : ''}`}>
+                                 <div className="flex justify-between items-start">
+                                     <span className={`text-sm font-bold flex items-center justify-center w-7 h-7 rounded-full ${isToday ? 'bg-[#111111] text-white shadow-md' : 'text-gray-700 group-hover:bg-gray-200'}`}>{dayNum}</span>
+                                     {dayInfo?.dayType === 'Holiday' && <span className="text-[9px] uppercase tracking-wider text-red-600 font-bold bg-red-100 px-1.5 py-0.5 rounded">Holiday</span>}
+                                 </div>
+                                 <div className="mt-3 space-y-1.5">
+                                     {dayCases.length > 0 && <div className="text-[10px] bg-indigo-50 border border-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold shadow-sm">{dayCases.length} Case{dayCases.length > 1?'s':''} Listed</div>}
+                                     {dayInfo?.officeTime && <div className="text-[9px] text-gray-500 font-medium truncate flex items-center"><Clock className="w-2.5 h-2.5 mr-1 shrink-0"/> {dayInfo.officeTime}</div>}
+                                 </div>
+                             </div>
+                         )
+                     })}
+                  </div>
+               </div>
+            </div>
+          )}
 
-          {/* Task Pipeline Tab */}
+          {}
           {activeTab === 'tasks' && !activeCaseId && (
             <div className="p-6 md:p-10 h-full flex flex-col max-w-[1400px] mx-auto animate-in fade-in duration-300">
               <header className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4 shrink-0">
@@ -1356,7 +1513,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </div>
           )}
 
-          {/* Team Access Tab */}
+          {}
           {activeTab === 'team' && isSeniorOrManager && (
              <div className="p-6 md:p-10 max-w-4xl mx-auto animate-in fade-in duration-300">
                <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 shrink-0">
@@ -1373,7 +1530,10 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                    Workspace Members
                  </div>
                  <div className="divide-y divide-[#E5E5E5]">
-                   {dbData.users.filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT').map(user => (
+                   {dbData.users
+                     .filter(u => u.officeId === currentUser.officeId && u.role !== 'CLIENT')
+                     .sort((a, b) => (ROLE_HIERARCHY[b.role] || 0) - (ROLE_HIERARCHY[a.role] || 0))
+                     .map(user => (
                      <div key={user.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition-colors pl-6 gap-4">
                        <div className="flex items-center space-x-4">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow-inner shrink-0 ${ROLE_CONFIG[user.role]?.bg} ${ROLE_CONFIG[user.role]?.text}`}>
@@ -1425,7 +1585,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
              </div>
           )}
 
-          {/* New Matter Modal */}
+          {}
           <Modal title="Open New Matter" isOpen={isNewMatterOpen} onClose={() => setIsNewMatterOpen(false)}>
             <form onSubmit={handleCreateMatter} className="space-y-5">
               <div className="space-y-4 pb-4 border-b border-gray-100">
@@ -1503,7 +1663,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </form>
           </Modal>
 
-          {/* New Task Modal */}
           <Modal title={editingTaskId ? "Edit Task" : "Create New Task"} isOpen={isNewTaskModalOpen} onClose={() => { setIsNewTaskModalOpen(false); setEditingTaskId(null); setNewTaskAssigneeIds([]); }}>
             <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
@@ -1550,7 +1709,6 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
             </form>
           </Modal>
 
-          {/* Terminate Modal */}
           <Modal title="Terminate Employee" isOpen={isFireModalOpen} onClose={() => { setIsFireModalOpen(false); setUserToFire(null); setFireReason(""); }}>
             <form onSubmit={handleFireUser} className="space-y-4">
               <div className="bg-red-50 text-red-800 p-4 rounded-lg text-sm border border-red-200 mb-4 shadow-sm">
@@ -1565,6 +1723,66 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
                 <button type="submit" className="flex-1 bg-red-600 text-white py-2 px-4 text-sm font-medium rounded-md hover:bg-red-700 transition-colors shadow-sm active:scale-95">Confirm Termination</button>
               </div>
             </form>
+          </Modal>
+
+          <Modal title={selectedCalendarDateStr ? `Day Info: ${new Date(selectedCalendarDateStr).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}` : ''} isOpen={!!selectedCalendarDateStr} onClose={() => setSelectedCalendarDateStr(null)}>
+             <div className="space-y-6">
+                 {calendarCasesForSelectedDay.length > 0 && (
+                     <div>
+                         <h4 className="font-bold text-sm mb-3">Cases Listed</h4>
+                         <div className="space-y-2">
+                             {calendarCasesForSelectedDay.map(c => (
+                                 <button key={c.id} onClick={() => { setSelectedCalendarDateStr(null); setActiveTab('ledger'); setActiveCaseId(c.id); }} className="w-full text-left p-3 border border-gray-200 rounded-lg hover:border-black transition-colors group">
+                                     <div className="font-bold text-[#111111] group-hover:text-[#4F46E5] text-sm">{c.title}</div>
+                                     <div className="text-xs text-gray-500 flex gap-3 mt-1 font-mono"><span>No: {c.caseNumber || 'N/A'}</span><span>Court: {c.court}</span></div>
+                                 </button>
+                             ))}
+                         </div>
+                     </div>
+                 )}
+                 {calendarCasesForSelectedDay.length === 0 && (
+                     <div className="text-sm text-gray-500 italic p-4 bg-gray-50 rounded-lg border border-dashed text-center">No hearings listed for this date.</div>
+                 )}
+                 
+                 {isSeniorOrManager && (
+                     <form onSubmit={handleSaveDayInfo} className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4 space-y-4">
+                         <h4 className="font-bold text-xs tracking-wider uppercase text-gray-500 mb-2">Configure Office Schedule</h4>
+                         <div>
+                             <label htmlFor="cal-day-type" className="block text-xs font-bold text-gray-700 mb-1">Day Status</label>
+                             <select id="cal-day-type" value={calDayType} onChange={e=>setCalDayType(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded focus:border-black outline-none text-sm shadow-sm bg-white cursor-pointer">
+                                 <option value="Working Day">Working Day</option>
+                                 <option value="Holiday">Office Holiday</option>
+                             </select>
+                         </div>
+                         {calDayType !== 'Holiday' && (
+                             <div className="grid grid-cols-2 gap-3">
+                                 <div>
+                                     <label htmlFor="cal-office-time" className="block text-xs font-bold text-gray-700 mb-1">Office Timings</label>
+                                     <input id="cal-office-time" type="text" value={calOfficeTime} onChange={e=>setCalOfficeTime(e.target.value)} placeholder="e.g. 10 AM - 7 PM" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-black outline-none text-sm shadow-sm bg-white" />
+                                 </div>
+                                 <div>
+                                     <label htmlFor="cal-court-time" className="block text-xs font-bold text-gray-700 mb-1">Court Timings</label>
+                                     <input id="cal-court-time" type="text" value={calCourtTime} onChange={e=>setCalCourtTime(e.target.value)} placeholder="e.g. 10:30 AM - 4 PM" className="w-full px-3 py-2 border border-gray-300 rounded focus:border-black outline-none text-sm shadow-sm bg-white" />
+                                 </div>
+                             </div>
+                         )}
+                         <Button type="submit" className="w-full py-2">Update Schedule</Button>
+                     </form>
+                 )}
+                 
+                 {!isSeniorOrManager && selectedDayInfo && (
+                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                         <h4 className="font-bold text-xs tracking-wider uppercase text-blue-800 mb-2">Office Schedule</h4>
+                         <div className="text-sm font-semibold text-blue-900 mb-2">{selectedDayInfo.dayType}</div>
+                         {selectedDayInfo.dayType !== 'Holiday' && (
+                             <div className="space-y-1 text-xs text-blue-800 font-medium">
+                                 {selectedDayInfo.officeTime && <div>Office: {selectedDayInfo.officeTime}</div>}
+                                 {selectedDayInfo.courtTime && <div>Court: {selectedDayInfo.courtTime}</div>}
+                             </div>
+                         )}
+                     </div>
+                 )}
+             </div>
           </Modal>
           
           {/* Logout Modal */}
@@ -1586,7 +1804,7 @@ const DashboardView = ({ currentUser, dbData, onLogout }) => {
 
 export default function App() {
   const [dbData, setDbData] = useState({
-    offices: [], users: [], cases: [], updates: [], tasks: []
+    offices: [], users: [], cases: [], updates: [], tasks: [], calendar: []
   });
   
   const [authUser, setAuthUser] = useState(null);
@@ -1619,11 +1837,11 @@ export default function App() {
   useEffect(() => {
     if (!authUser?.uid) {
        setAppUser(null);
-       setDbData({ offices: [], users: [], cases: [], updates: [], tasks: [] });
+       setDbData({ offices: [], users: [], cases: [], updates: [], tasks: [], calendar: [] });
        return;
     }
 
-    const cols = ['offices', 'users', 'cases', 'updates', 'tasks'];
+    const cols = ['offices', 'users', 'cases', 'updates', 'tasks', 'calendar'];
     const unsubscribes = cols.map(colName => {
        return onSnapshot(
          collection(db, 'artifacts', appId, 'public', 'data', colName),
@@ -1713,7 +1931,6 @@ export default function App() {
     setCurrentView('landing');
   };
 
-  // If the app is booting up or resolving auth, block all rendering with the SplashLoader
   if (isInitializing) {
     return <SplashLoader />;
   }
